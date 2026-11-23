@@ -14,7 +14,10 @@ services:
       OrchardCore__OrchardCore_AutoSetup__Tenants__0__AdminEmail: ${ORCHARD_ADMIN_EMAIL:-admin@example.test}
       OrchardCore__OrchardCore_AutoSetup__Tenants__0__AdminPassword: ${ORCHARD_ADMIN_PASSWORD:?Set ORCHARD_ADMIN_PASSWORD in .env}
       OrchardCore__OrchardCore_AutoSetup__Tenants__0__DatabaseProvider: Sqlite
-      OrchardCore__OrchardCore_AutoSetup__Tenants__0__RecipeName: Blank
+      OrchardCore__OrchardCore_AutoSetup__Tenants__0__RecipeName: AbrITPanel
+      # Demo customers (optional; empty = skipped). Read by the DemoUsers recipe step.
+      DEMO_CUSTOMER_A_PASSWORD: ${DEMO_CUSTOMER_A_PASSWORD:-}
+      DEMO_CUSTOMER_B_PASSWORD: ${DEMO_CUSTOMER_B_PASSWORD:-}
       NEXTCLOUD_MODE: ${NEXTCLOUD_MODE:-Mock}
     volumes:
       - app_data:/app/App_Data
