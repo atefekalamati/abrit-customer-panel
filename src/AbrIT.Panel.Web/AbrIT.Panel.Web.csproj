@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <ItemGroup>
+    <PackageReference Include="OrchardCore.Application.Cms.Targets" />
+    <ProjectReference Include="..\AbrIT.Panel.Module\AbrIT.Panel.Module.csproj" />
+    <ProjectReference Include="..\AbrIT.Theme\AbrIT.Theme.csproj" />
+  </ItemGroup>
+</Project>

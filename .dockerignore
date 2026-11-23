@@ -1,0 +1,10 @@
+**/bin/
+**/obj/
+**/App_Data/
+.git/
+.env
+docs/
+landing/
+design-system/
+refrence/
+tests/
