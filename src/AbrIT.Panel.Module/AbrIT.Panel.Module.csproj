@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+  <PropertyGroup>
+    <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="OrchardCore.Module.Targets" />
+    <ProjectReference Include="..\AbrIT.Panel.Domain\AbrIT.Panel.Domain.csproj" />
+    <ProjectReference Include="..\AbrIT.Panel.Nextcloud\AbrIT.Panel.Nextcloud.csproj" />
+  </ItemGroup>
+</Project>

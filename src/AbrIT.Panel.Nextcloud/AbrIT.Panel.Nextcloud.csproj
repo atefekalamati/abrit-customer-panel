@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\AbrIT.Panel.Domain\AbrIT.Panel.Domain.csproj" />
+  </ItemGroup>
+</Project>
