@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AbrIT Design System — preview</title>
+<link rel="stylesheet" href="tokens.css">
+<style>
+body{margin:0;font-family:var(--abr-font);color:var(--abr-text);background:var(--abr-bg);font-size:var(--abr-fs-body);line-height:var(--abr-lh-body)}
+.page{max-width:1280px;margin:0 auto;padding:48px 80px}
+h1{font-size:var(--abr-fs-h1);line-height:var(--abr-lh-h1);margin:0 0 4px}
+h2{font-size:var(--abr-fs-h2);line-height:var(--abr-lh-h2);margin:48px 0 16px;padding-top:24px;border-top:1px solid var(--abr-border)}
+.sub{color:var(--abr-text-2);margin:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px}
+.sw{background:var(--abr-surface);border:1px solid var(--abr-border);border-radius:var(--abr-radius-md);overflow:hidden}
+.sw i{display:block;height:72px}
+.sw div{padding:10px 12px;font-size:13px;line-height:20px}
+.sw code{direction:ltr;display:block;color:var(--abr-text-2);font-size:12px}
+.pair{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:var(--abr-radius-md);font-weight:600}
+.pair small{direction:ltr;font-weight:400}
+.type div{display:flex;align-items:baseline;gap:24px;padding:10px 0;border-bottom:1px solid var(--abr-border)}
+.type code{direction:ltr;color:var(--abr-text-2);font-size:12px;min-width:140px}
+.space div{display:flex;align-items:center;gap:16px;padding:4px 0}
+.space i{display:block;height:16px;background:var(--abr-primary);border-radius:3px}
+.space code{direction:ltr;font-size:12px;color:var(--abr-text-2);width:120px}
+.row{display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+.btn{font:700 15px var(--abr-font);border-radius:var(--abr-radius-pill);padding:8px 22px;min-height:44px;border:2px solid transparent}
+.p{background:var(--abr-primary);color:#fff}.n{background:#fff;color:var(--abr-primary);border-color:var(--abr-primary)}.l{background:none;color:var(--abr-link)}.d{background:#fff;color:var(--abr-error);border-color:var(--abr-error)}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:2px 10px;border-radius:var(--abr-radius-xs);font-size:12px;font-weight:600}
+.badge::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+.rad{width:88px;height:64px;background:var(--abr-primary-soft);border:2px solid var(--abr-primary);display:grid;place-items:center;font-size:12px}
+.sh{width:160px;height:90px;background:#fff;border-radius:var(--abr-radius-lg);display:grid;place-items:center;font-size:12px}
+.field{display:flex;flex-direction:column;gap:6px;width:320px}.field label{font-weight:600}
+.field input{font:inherit;border:1px solid var(--abr-border-strong);border-radius:var(--abr-radius-sm);padding:8px 12px}
+.field.err input{border-color:var(--abr-error)}.field .msg{color:var(--abr-error);font-size:13px}
+.focus{box-shadow:var(--abr-focus-ring)}
+</style>
+</head>
+<body><div class="page">
+<h1>سیستم طراحی پنل مشتریان ابریت</h1>
+<p class="sub">نسخه‌ی ۱٫۰ · راست‌به‌چپ · فونت وزیرمتن · منبع: <bdi>design-system/tokens.css</bdi></p>
+
+<h2>رنگ‌های اصلی</h2>
+<div class="grid">
+  <div class="sw"><i style="background:var(--abr-primary)"></i><div>اصلی<code>--abr-primary #0761BD</code></div></div>
+  <div class="sw"><i style="background:var(--abr-primary-hover)"></i><div>اصلی (هاور)<code>--abr-primary-hover #033160</code></div></div>
+  <div class="sw"><i style="background:var(--abr-primary-soft)"></i><div>اصلی کم‌رنگ<code>--abr-primary-soft #F2F8FD</code></div></div>
+  <div class="sw"><i style="background:var(--abr-nav-bg)"></i><div>نوار بالا<code>--abr-nav-bg #0F1B2A</code></div></div>
+  <div class="sw"><i style="background:var(--abr-bg)"></i><div>پس‌زمینه<code>--abr-bg #F4F4F4</code></div></div>
+  <div class="sw"><i style="background:var(--abr-surface)"></i><div>سطح کارت<code>--abr-surface #FFFFFF</code></div></div>
+  <div class="sw"><i style="background:var(--abr-border-strong)"></i><div>حاشیه‌ی کنترل‌ها<code>--abr-border-strong #8C8C94</code></div></div>
+  <div class="sw"><i style="background:var(--abr-text)"></i><div>متن<code>--abr-text #000716</code></div></div>
+  <div class="sw"><i style="background:var(--abr-text-2)"></i><div>متن فرعی<code>--abr-text-2 #5F6B7A</code></div></div>
+</div>
+
+<h2>رنگ‌های وضعیت (متن روی زمینه‌ی خودش)</h2>
+<div class="grid">
+  <div class="pair" style="color:var(--abr-success);background:var(--abr-success-bg)">موفق / فعال <small>5.00:1</small></div>
+  <div class="pair" style="color:var(--abr-info);background:var(--abr-info-bg)">اطلاعات / در جریان <small>5.68:1</small></div>
+  <div class="pair" style="color:var(--abr-warning);background:var(--abr-warning-bg)">هشدار / در انتظار <small>5.04:1</small></div>
+  <div class="pair" style="color:var(--abr-error);background:var(--abr-error-bg)">خطا <small>4.89:1</small></div>
+  <div class="pair" style="color:var(--abr-neutral);background:var(--abr-neutral-bg)">خنثی / لغوشده <small>4.93:1</small></div>
+  <div class="pair" style="color:var(--abr-mock);background:var(--abr-mock-bg)">آزمایشی (Mock) <small>9.40:1</small></div>
+</div>
+
+<h2>تایپوگرافی — وزیرمتن</h2>
+<div class="type">
+  <div><code>display 32/44 · 700</code><span style="font-size:32px;line-height:44px;font-weight:700">۹۹٬۰۰۰ تومان</span></div>
+  <div><code>h1 28/42 · 700</code><span style="font-size:28px;line-height:42px;font-weight:700">داشبورد من</span></div>
+  <div><code>h2 20/32 · 700</code><span style="font-size:20px;font-weight:700">پلن Starter</span></div>
+  <div><code>h3 18/28 · 700</code><span style="font-size:18px;font-weight:700">سفارش‌های من</span></div>
+  <div><code>body 15/26 · 400</code><span>سفارش در انتظار تأیید پرداخت است. پس از تأیید، فضای Drive ساخته می‌شود.</span></div>
+  <div><code>sm 13/22 · 500</code><span style="font-size:13px;color:var(--abr-text-2)">تاریخ ثبت</span></div>
+  <div><code>xs 12/20 · 600</code><span class="badge" style="color:var(--abr-warning);background:var(--abr-warning-bg)">در انتظار تأیید پرداخت</span></div>
+</div>
+
+<h2>فاصله‌ها (شبکه‌ی ۴ پیکسلی)</h2>
+<div class="space">
+  <div><code>space-1 · 4</code><i style="width:4px"></i></div><div><code>space-2 · 8</code><i style="width:8px"></i></div>
+  <div><code>space-3 · 12</code><i style="width:12px"></i></div><div><code>space-4 · 16</code><i style="width:16px"></i></div>
+  <div><code>space-5 · 20</code><i style="width:20px"></i></div><div><code>space-6 · 24</code><i style="width:24px"></i></div>
+  <div><code>space-8 · 32</code><i style="width:32px"></i></div><div><code>space-12 · 48</code><i style="width:48px"></i></div>
+  <div><code>space-16 · 64</code><i style="width:64px"></i></div><div><code>space-20 · 80</code><i style="width:80px"></i></div>
+</div>
+
+<h2>گردی گوشه و سایه</h2>
+<div class="row">
+  <div class="rad" style="border-radius:4px">۴ · نشان</div><div class="rad" style="border-radius:8px">۸ · ورودی</div><div class="rad" style="border-radius:12px">۱۲ · کاشی</div><div class="rad" style="border-radius:16px">۱۶ · کارت</div><div class="rad" style="border-radius:999px">دکمه</div>
+  <div class="sh" style="box-shadow:var(--abr-shadow-1)">سایه ۱ · کارت</div><div class="sh" style="box-shadow:var(--abr-shadow-2)">سایه ۲ · هاور</div><div class="sh" style="box-shadow:var(--abr-shadow-3)">سایه ۳ · دیالوگ</div>
+</div>
+
+<h2>کامپوننت‌ها</h2>
+<div class="row" style="margin-bottom:20px">
+  <button class="btn p">ثبت سفارش</button><button class="btn n">سفارش جدید</button><button class="btn l">مشاهده جزئیات</button><button class="btn d">لغو سفارش</button><button class="btn p focus">حالت فوکوس</button><button class="btn p" disabled style="opacity:.5">غیرفعال</button>
+</div>
+<div class="row" style="margin-bottom:20px">
+  <span class="badge" style="color:var(--abr-warning);background:var(--abr-warning-bg)">در انتظار تأیید پرداخت</span>
+  <span class="badge" style="color:var(--abr-info);background:var(--abr-info-bg)">پرداخت‌شده</span>
+  <span class="badge" style="color:var(--abr-info);background:var(--abr-info-bg)">در حال فعال‌سازی</span>
+  <span class="badge" style="color:var(--abr-success);background:var(--abr-success-bg)">فعال</span>
+  <span class="badge" style="color:var(--abr-mock);background:var(--abr-mock-bg)">فعال آزمایشی <bdi>(Mock)</bdi></span>
+  <span class="badge" style="color:var(--abr-error);background:var(--abr-error-bg)">خطا در فعال‌سازی</span>
+  <span class="badge" style="color:var(--abr-neutral);background:var(--abr-neutral-bg)">لغوشده</span>
+</div>
+<div class="row">
+  <div class="field"><label>ایمیل</label><input dir="ltr" placeholder="name@example.com"></div>
+  <div class="field err"><label>رمز عبور</label><input type="password" value="12345" aria-invalid="true"><span class="msg">رمز باید حداقل ۸ کاراکتر باشد.</span></div>
+</div>
+</div></body></html>

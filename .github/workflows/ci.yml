@@ -1,0 +1,106 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', 'Directory.*.props', 'global.json') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Restore
+        run: dotnet restore AbrIT.Panel.sln
+
+      - name: Format check
+        run: dotnet format AbrIT.Panel.sln --verify-no-changes --no-restore
+
+      - name: Build
+        run: dotnet build AbrIT.Panel.sln -c Release --no-restore
+
+      - name: Test
+        run: >
+          dotnet test AbrIT.Panel.sln -c Release --no-build
+          --logger "trx;LogFilePrefix=results"
+          --collect:"XPlat Code Coverage"
+          --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: TestResults
+
+  docker-smoke:
+    needs: build-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create CI-only .env (random throwaway secrets)
+        run: |
+          {
+            echo "ORCHARD_ADMIN_USERNAME=admin"
+            echo "ORCHARD_ADMIN_EMAIL=admin@example.test"
+            echo "ORCHARD_ADMIN_PASSWORD=Ci-$(openssl rand -hex 8)-Aa1!"
+            echo "DEMO_CUSTOMER_A_PASSWORD=Ci-$(openssl rand -hex 8)-Bb2!"
+            echo "DEMO_CUSTOMER_B_PASSWORD=Ci-$(openssl rand -hex 8)-Cc3!"
+            echo "NEXTCLOUD_MODE=Mock"
+            echo "MOCK_PAYMENT_WEBHOOK_SECRET=$(openssl rand -hex 16)"
+          } > .env
+
+      - name: Start stack
+        run: docker compose up -d --build app smtp4dev
+
+      - name: Wait for health
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:8080/health/live > /dev/null; then echo "healthy"; exit 0; fi
+            sleep 3
+          done
+          echo "app did not become healthy"; exit 1
+
+      # Phase 00 ships only the health check above. Remove `if: false` in phase 06/08 once /services
+      # and the admin orders page exist.
+      - name: Smoke checks
+        if: false
+        run: |
+          curl -fsS http://localhost:8080/services -o services.html
+          grep -q 'dir="rtl"' services.html
+          grep -q 'AbrIT Drive' services.html
+          code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/Admin/AbrIT/Orders)
+          echo "anonymous admin access -> $code"
+          test "$code" != "200"
+
+      - name: Logs on failure
+        if: failure()
+        run: docker compose logs app
+
+      - name: Tear down
+        if: always()
+        run: docker compose down -v

@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" data-type="software" data-radius="soft" data-buttons="pill" data-motion="on">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ابریت — مدیریت فناوری اطلاعات سازمانی در مشهد</title>
+<meta name="description" content="ابریت شبکه، امنیت، دسترسی‌ها، پشتیبان‌گیری و پایش فناوری اطلاعات سازمان شما را مدیریت می‌کند؛ با محصولات AbrIT Drive، ERP360 و AbrIT Desk.">
+<meta name="page-type" content="software">
+<meta name="site-kind" content="software">
+<meta name="theme-color" content="#0F1B2A">
+<meta property="og:title" content="ابریت — مدیریت فناوری اطلاعات سازمانی">
+<meta property="og:description" content="بیشتر از پشتیبانی؛ مدیریت فناوری اطلاعات. ارزیابی، طراحی راهکار، پیاده‌سازی و مدیریت مستمر.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="fa_IR">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Cpath d='M8 20h12a5 5 0 0 0 .6-9.96A7 7 0 0 0 7.2 11.5 4.3 4.3 0 0 0 8 20Z' fill='%230761BD'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="../design-system/tokens.css">
+<!--
+  Concept landing page prepared for the AbrIT technical evaluation (not an official AbrIT page).
+  Plan
+  1. kind: software (managed IT services + own software products), page type software, site-kind software
+  2. deal: client palette from design-system (navy #0F1B2A + blue #0761BD: infrastructure, trust; no violet),
+     type Vazirmatn (single family, Persian), radius soft, buttons pill, hero = dark split with live app-frame
+     (the customer panel), ground = dark hero with a faint dot grid (CSS), effect = none (perf), moments = 1
+     (type-led statement with word highlight inside its own section), nav centre, footer dark, close type.
+  Sections (1440x900): hero(1) · services hub diagram(1) · products with UI fragments(1) · model + statement moment(1) · panel(1) · close+footer(1)
+  Facts used are only those published on abrit.ir; no figures, customers or quotes are invented.
+-->
+<style>
+/* ---------- base ---------- */
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:calc(var(--abr-nav-h) + 8px)}
+body{margin:0;font-family:var(--abr-font);font-size:16px;line-height:1.75;color:var(--abr-text);background:var(--abr-surface);-webkit-font-smoothing:antialiased}
+img,svg{display:block}
+a{color:var(--abr-link)}
+:focus-visible{outline:none;box-shadow:var(--abr-focus-ring);border-radius:6px}
+.sr-only{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+.skip{position:fixed;inset-inline-start:16px;top:-80px;z-index:999;background:#fff;color:var(--abr-primary);padding:12px 18px;border-radius:10px;font-weight:700;text-decoration:none}
+.skip:focus{top:12px}
+bdi.ltr{direction:ltr;unicode-bidi:isolate}
+
+.wrap{width:100%;max-width:calc(var(--abr-content-max) + 2*var(--abr-page-pad-x));margin-inline:auto;padding-inline:var(--abr-page-pad-x)}
+main>section{min-height:100svh;display:flex;align-items:center;padding-block:96px}
+main>section>.wrap{width:100%}
+.eyebrow{font-size:14px;font-weight:600;color:var(--abr-primary);margin:0 0 12px}
+h2{font-size:40px;line-height:1.35;font-weight:800;margin:0 0 16px;letter-spacing:0}
+.lead{font-size:18px;color:var(--abr-text-2);max-width:620px;margin:0}
+
+/* ---------- buttons ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:10px 26px;border-radius:var(--abr-radius-pill);font:700 16px/1.4 var(--abr-font);text-decoration:none;border:2px solid transparent;cursor:pointer;transition:transform var(--abr-dur-fast) var(--abr-ease),background var(--abr-dur-base) var(--abr-ease),box-shadow var(--abr-dur-base) var(--abr-ease)}
+.btn--primary{background:var(--abr-primary);color:#fff}
+.btn--primary:hover{background:var(--abr-primary-hover);transform:translateY(-1px);box-shadow:var(--abr-shadow-2)}
+.btn--ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.45)}
+.btn--ghost:hover{border-color:#fff;transform:translateY(-1px)}
+.btn--outline{background:#fff;color:var(--abr-primary);border-color:var(--abr-primary)}
+.btn--outline:hover{background:var(--abr-primary-soft);transform:translateY(-1px)}
+.btn:active{transform:translateY(0) scale(.98)}
+.link{color:var(--abr-primary);font-weight:700;text-decoration:none;background:linear-gradient(currentColor,currentColor) 100% 100%/0 2px no-repeat;transition:background-size var(--abr-dur-base) var(--abr-ease);display:inline-flex;align-items:center;min-height:44px}
+.link:hover{background-size:100% 2px}
+
+/* ---------- nav ---------- */
+.nav{position:fixed;inset-inline:0;top:0;z-index:var(--abr-z-nav);height:64px;background:var(--abr-nav-bg);transition:background var(--abr-dur-base) var(--abr-ease),box-shadow var(--abr-dur-base)}
+.nav.solid{background:rgba(15,27,42,.92);backdrop-filter:blur(10px);box-shadow:0 1px 0 rgba(255,255,255,.08)}
+.nav .wrap{height:100%;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:24px}
+.brand{display:flex;align-items:center;gap:10px;color:#fff;font-weight:800;font-size:22px;text-decoration:none;min-height:44px;letter-spacing:.5px}
+.brand small{font-weight:400;font-size:13px;color:var(--abr-nav-muted);letter-spacing:0}
+.nav__links{display:flex;gap:4px;list-style:none;margin:0;padding:0}
+.nav__links a{display:inline-flex;align-items:center;min-height:44px;padding:0 14px;color:var(--abr-nav-muted);text-decoration:none;font-weight:500;border-radius:999px;transition:color var(--abr-dur-fast),background var(--abr-dur-fast)}
+.nav__links a:hover{color:#fff;background:rgba(255,255,255,.08)}
+.nav__end{display:flex;justify-content:flex-end;gap:12px;align-items:center}
+.nav__end .btn{min-height:44px;padding:8px 20px;font-size:15px}
+.nav__login{color:#fff;text-decoration:none;font-weight:600;min-height:44px;display:inline-flex;align-items:center;padding:0 8px}
+.burger{display:none;background:none;border:0;color:#fff;width:44px;height:44px;border-radius:10px;cursor:pointer}
+
+/* ---------- hero ---------- */
+.hero{background:var(--abr-nav-bg);color:#fff;position:relative;overflow:hidden;padding-top:120px!important}
+.hero::before{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.09) 1px,transparent 1px);background-size:28px 28px;mask-image:linear-gradient(to bottom,#000 30%,transparent 95%)}
+.hero::after{content:"";position:absolute;width:900px;height:900px;inset-inline-start:-260px;top:-200px;background:radial-gradient(circle,rgba(7,97,189,.38),transparent 62%);pointer-events:none}
+.hero .wrap{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:56px;align-items:center}
+.hero h1{font-size:52px;line-height:1.3;font-weight:800;margin:0 0 20px}
+.hero h1 span{color:#7CB8F2}
+.hero__lead{font-size:19px;color:#C9D2DE;margin:0 0 32px;max-width:520px}
+.hero__actions{display:flex;gap:14px;flex-wrap:wrap}
+.hero__fact{margin-top:36px;display:flex;gap:28px;flex-wrap:wrap;color:#AEB9C7;font-size:15px;padding:0;list-style:none}
+.hero__fact li{display:flex;gap:8px;align-items:center}
+.hero__fact li::before{content:"";width:8px;height:8px;border-radius:50%;background:#4FA3F0}
+
+/* app frame (live UI of the customer panel) */
+.app-frame{background:#fff;color:var(--abr-text);border-radius:18px;box-shadow:0 30px 80px rgba(0,0,0,.45),0 0 0 1px rgba(255,255,255,.08);overflow:hidden;font-size:13px;line-height:1.6}
+.app-frame__bar{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#F4F4F4;padding:10px 14px;border-bottom:1px solid var(--abr-border)}
+.dots{display:flex;gap:6px;direction:ltr}.dots i{width:10px;height:10px;border-radius:50%;background:#D5D9DE}
+.url{flex:1;max-width:340px;background:#fff;border:1px solid var(--abr-border);border-radius:8px;padding:2px 10px;color:var(--abr-text-2);font-size:12px;text-align:center}
+.app-nav{background:var(--abr-nav-bg);color:#fff;display:flex;justify-content:space-between;align-items:center;padding:10px 18px;font-size:12px}
+.app-nav b{font-size:14px}
+.app-nav span{color:var(--abr-nav-muted)}
+.app-body{padding:18px;background:var(--abr-bg);display:flex;flex-direction:column;gap:12px}
+.app-title{font-size:18px;font-weight:800;margin:0}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.stat{background:#fff;border:1px solid var(--abr-border);border-radius:12px;padding:10px 12px}
+.stat span{color:var(--abr-text-2);font-size:11px;display:flex;align-items:center;gap:6px}
+.stat span::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--c,#0761BD)}
+.stat b{font-size:22px;line-height:1.3}
+.tbl{background:#fff;border:1px solid var(--abr-border);border-radius:14px;padding:12px 14px}
+.tbl-title{margin:0 0 6px;font-size:14px;font-weight:700}
+.row{display:grid;grid-template-columns:1.3fr 1.3fr .9fr 1.4fr;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--abr-border)}
+.row:first-of-type{border-top:0}
+.row .id{color:var(--abr-link);font-weight:700;direction:ltr;text-align:right}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:1px 8px;border-radius:4px;font-size:11px;font-weight:700;white-space:nowrap;justify-self:start}
+.badge::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.b-ok{color:var(--abr-success);background:var(--abr-success-bg)}.b-wait{color:var(--abr-warning);background:var(--abr-warning-bg)}.b-run{color:var(--abr-info);background:var(--abr-info-bg)}
+.live .badge.b-run{animation:pulseBadge 3s var(--abr-ease) infinite}
+@keyframes pulseBadge{0%,100%{opacity:1}50%{opacity:.55}}
+
+/* ---------- services (hub diagram) ---------- */
+.services .wrap{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:64px;align-items:center}
+.svc-list{list-style:none;margin:28px 0 0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:10px 24px}
+.svc-list li{display:flex;gap:10px;align-items:center;font-weight:600}
+.svc-list li::before{content:"";width:10px;height:10px;border-radius:3px;background:var(--abr-primary);flex:none}
+.hub{background:var(--abr-subtle);border:1px solid var(--abr-border);border-radius:24px;padding:24px;aspect-ratio:1.25}
+.hub svg{width:100%;height:100%}
+.hub .line{stroke:#C7D3E0;stroke-width:2;fill:none}
+.hub .pulse{stroke:var(--abr-primary);stroke-width:3;fill:none;stroke-linecap:round;stroke-dasharray:14 400;animation:run 3.2s linear infinite}
+@keyframes run{from{stroke-dashoffset:414}to{stroke-dashoffset:0}}
+.hub:hover .pulse{animation-duration:2.4s}
+.hub .node rect{fill:#fff;stroke:var(--abr-border);stroke-width:1.5}
+.hub .node text{font:600 15px var(--abr-font);fill:var(--abr-text)}
+.hub .core rect{fill:var(--abr-nav-bg)}
+.hub .core text{fill:#fff;font:800 20px var(--abr-font)}
+
+/* ---------- products ---------- */
+.products{background:var(--abr-bg)}
+.products__head{display:flex;justify-content:space-between;align-items:end;gap:32px;margin-bottom:40px}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.card{background:#fff;border:1px solid var(--abr-border);border-radius:var(--abr-radius-lg);padding:24px;display:flex;flex-direction:column;gap:14px;text-decoration:none;color:inherit;transition:transform var(--abr-dur-base) var(--abr-ease),box-shadow var(--abr-dur-base) var(--abr-ease)}
+a.card:hover{transform:translateY(-2px);box-shadow:var(--abr-shadow-2)}
+.card h3{margin:0;font-size:22px}
+.card p{margin:0;color:var(--abr-text-2)}
+.card .link{margin-top:auto}
+.frag{background:var(--abr-subtle);border:1px solid var(--abr-border);border-radius:14px;padding:14px;font-size:13px;min-height:178px;display:flex;flex-direction:column;gap:8px}
+.file{display:flex;justify-content:space-between;align-items:center;background:#fff;border:1px solid var(--abr-border);border-radius:10px;padding:7px 10px}
+.file span{direction:ltr}
+.file small{color:var(--abr-text-2)}
+.quota{height:6px;border-radius:3px;background:#E3E8EE;overflow:hidden}
+.quota i{display:block;height:100%;width:38%;background:var(--abr-primary);animation:fill 3.6s var(--abr-ease) infinite alternate}
+@keyframes fill{from{width:22%}to{width:38%}}
+.bars{display:flex;gap:8px;align-items:end;height:96px;padding-top:6px}
+.bars i{flex:1;background:var(--abr-primary-soft);border:1px solid #BFD6EE;border-radius:6px 6px 2px 2px;transform-origin:bottom;animation:grow 3s var(--abr-ease) infinite alternate}
+.bars i:nth-child(2){animation-delay:.2s}.bars i:nth-child(3){animation-delay:.4s}.bars i:nth-child(4){animation-delay:.6s}.bars i:nth-child(5){animation-delay:.8s}
+@keyframes grow{from{transform:scaleY(.6)}to{transform:scaleY(1)}}
+.desk-id{display:flex;gap:8px;align-items:center;justify-content:space-between;background:#fff;border:1px solid var(--abr-border);border-radius:10px;padding:10px}
+.desk-id b{direction:ltr;font-size:18px;letter-spacing:2px}
+.desk-screen{flex:1;border-radius:10px;background:linear-gradient(160deg,#0F1B2A,#1d3350);position:relative;overflow:hidden}
+.desk-screen::after{content:"";position:absolute;width:10px;height:10px;border-radius:50%;background:#fff;box-shadow:0 0 0 6px rgba(255,255,255,.18);top:40%;inset-inline-start:30%;animation:cursor 3.4s var(--abr-ease) infinite}
+@keyframes cursor{0%{transform:translate(0,0)}50%{transform:translate(60px,22px)}100%{transform:translate(0,0)}}
+
+/* ---------- model + statement moment ---------- */
+.model .wrap{display:flex;flex-direction:column;gap:56px}
+.statement{font-size:64px;line-height:1.35;font-weight:800;margin:0;max-width:1100px}
+.statement .w{color:#7D8A9A;transition:color var(--abr-dur-slow) var(--abr-ease)}
+.statement .w.on{color:var(--abr-text)}
+.statement .w.on.accent{color:var(--abr-primary)}
+.steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:24px;counter-reset:st}
+.steps li{border-top:3px solid var(--abr-border);padding-top:18px;counter-increment:st}
+.steps li::before{content:counter(st,persian) "٫";display:block;font-size:14px;font-weight:700;color:var(--abr-primary);margin-bottom:6px}
+.steps h3{margin:0 0 6px;font-size:20px}
+.steps p{margin:0;color:var(--abr-text-2);font-size:15px}
+
+/* ---------- panel ---------- */
+.panel{background:var(--abr-bg)}
+.panel .wrap{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:64px;align-items:center}
+.checks{list-style:none;padding:0;margin:24px 0 32px;display:flex;flex-direction:column;gap:12px}
+.checks li{display:flex;gap:12px;align-items:flex-start}
+.checks li::before{content:"✓";color:var(--abr-success);font-weight:800;line-height:1.75}
+.timeline{display:flex;flex-direction:column;gap:12px}
+.tl{display:flex;gap:12px;align-items:center;justify-content:space-between;background:#fff;border:1px solid var(--abr-border);border-radius:12px;padding:10px 14px}
+.tl small{color:var(--abr-text-2)}
+.kv{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;background:#fff;border:1px solid var(--abr-border);border-radius:14px;padding:14px}
+.kv dt{font-size:11px;color:var(--abr-text-2)}.kv dd{margin:0;font-weight:600;direction:ltr;text-align:right}
+
+/* ---------- close + footer ---------- */
+.close{background:var(--abr-nav-bg);color:#fff;text-align:center}
+.close .wrap{display:flex;flex-direction:column;align-items:center;gap:24px}
+.close h2{font-size:56px;max-width:900px}
+.close p{color:#C9D2DE;font-size:18px;max-width:640px;margin:0}
+.contact{display:flex;gap:32px;flex-wrap:wrap;justify-content:center;color:#AEB9C7;list-style:none;padding:0;margin:8px 0 0}
+.contact a{color:#fff;display:inline-flex;align-items:center;min-height:44px}
+.contact li{display:flex;align-items:center;gap:6px}
+footer{background:#0A1420;color:#8C99AA;font-size:14px;padding:28px 0}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+footer a{color:#C9D2DE;text-decoration:none;display:inline-flex;align-items:center;min-height:44px;padding-inline:4px}
+footer a:hover{color:#fff}
+
+/* ---------- entrance (hero only, once) ---------- */
+[data-enter] .enter{opacity:0;transform:translateY(14px);animation:enter .7s var(--abr-ease) forwards}
+[data-enter] .enter:nth-child(2){animation-delay:.08s}[data-enter] .enter:nth-child(3){animation-delay:.16s}[data-enter] .enter:nth-child(4){animation-delay:.24s}
+[data-enter] .app-frame.enter{animation-delay:.25s}
+@keyframes enter{to{opacity:1;transform:none}}
+
+/* ---------- responsive ---------- */
+@media (max-width:1024px){
+  :root{--abr-page-pad-x:32px}
+  .hero .wrap,.services .wrap,.panel .wrap{grid-template-columns:1fr;gap:40px}
+  .hero h1{font-size:42px}
+  .cards{grid-template-columns:1fr 1fr}
+  .steps{grid-template-columns:1fr 1fr}
+  .statement{font-size:48px}
+  .nav__links{display:none}
+  .nav .wrap{display:flex;justify-content:space-between}
+  .nav .wrap>nav{flex:0 0 0;width:0}
+  .nav__end .btn{display:none}
+  .burger{display:inline-grid;place-items:center}
+  .menu-open .nav__links{display:flex;position:fixed;inset:64px 0 0;flex-direction:column;background:var(--abr-nav-bg);padding:24px var(--abr-page-pad-x);gap:8px}
+  .menu-open .nav__links a{font-size:22px;color:#fff}
+}
+@media (max-width:640px){
+  :root{--abr-page-pad-x:16px}
+  main>section{padding-block:72px;min-height:100svh}
+  .frag{min-height:130px}
+  .cards{gap:16px}
+  .hero{min-height:100svh!important}
+  .hero h1{font-size:32px}
+  .hero__lead{font-size:17px}
+  h2{font-size:28px}
+  .hero__actions .btn,.close .btn{width:100%}
+  .cards,.steps,.svc-list{grid-template-columns:1fr}
+  .stats{grid-template-columns:1fr 1fr}
+  .row{grid-template-columns:1fr 1fr}
+  .row .hide-sm{display:none}
+  .statement{font-size:34px}
+  .close h2{font-size:34px}
+  .kv{grid-template-columns:1fr 1fr}
+  .products__head{flex-direction:column;align-items:flex-start}
+  .nav__login{display:none}
+  .brand small{display:none}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  [data-enter] .enter{opacity:1;transform:none}
+  .statement .w{color:var(--abr-text)}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">پرش به محتوای اصلی</a>
+
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="ابریت، صفحه‌ی اصلی">
+      <svg width="30" height="30" viewBox="0 0 28 28" fill="none" aria-hidden="true"><path d="M8 20h12a5 5 0 0 0 .6-9.96A7 7 0 0 0 7.2 11.5 4.3 4.3 0 0 0 8 20Z" fill="#4FA3F0"/><path d="M10.5 15.5c1.2-1.6 2.3-1.6 3.5 0s2.3 1.6 3.5 0" stroke="#0F1B2A" stroke-width="1.6" stroke-linecap="round"/></svg>
+      ABRIT <small>مدیریت فناوری اطلاعات سازمانی</small>
+    </a>
+    <nav aria-label="منوی اصلی"><ul class="nav__links" id="menu">
+      <li><a href="#services">خدمات</a></li><li><a href="#products">محصولات</a></li><li><a href="#model">مدل همکاری</a></li><li><a href="#panel">پنل مشتریان</a></li><li><a href="#contact">تماس</a></li>
+    </ul></nav>
+    <div class="nav__end">
+      <a class="nav__login" href="../docs/prototype/index.html#d7">ورود مشتریان</a>
+      <a class="btn btn--primary" href="#contact">درخواست ارزیابی</a>
+      <button class="burger" type="button" aria-label="منو" aria-expanded="false" aria-controls="menu"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+    </div>
+  </div>
+</header>
+
+<main id="main" tabindex="-1">
+
+  <!-- 1 · hero -->
+  <section class="hero" id="top" data-enter style="--h:1">
+    <div class="wrap">
+      <div>
+        <h1 class="enter">مدیریت فناوری اطلاعات <span>برای سازمان‌ها</span>، یکپارچه و تحت پایش</h1>
+        <p class="enter hero__lead">ابریت در مشهد شبکه، امنیت، دسترسی‌ها، پشتیبان‌گیری و پایش سیستم‌های شما را برعهده می‌گیرد و برای هر درخواست، مسئول و مسیر پیگیری مشخص می‌کند.</p>
+        <div class="hero__actions enter">
+          <a class="btn btn--primary" href="#contact">درخواست ارزیابی زیرساخت</a>
+          <a class="btn btn--ghost" href="#products">دیدن محصولات</a>
+        </div>
+        <ul class="hero__fact enter" aria-label="در یک نگاه">
+          <li>دفتر مشهد</li><li>سه محصول نرم‌افزاری</li><li>پشتیبانی و مدیریت مستمر</li>
+        </ul>
+      </div>
+
+      <div class="app-frame enter live" role="img" aria-label="نمای پنل مشتریان ابریت: داشبورد سفارش‌ها با وضعیت فعال‌سازی سرویس‌ها">
+        <div class="app-frame__bar"><div class="dots"><i></i><i></i><i></i></div><div class="url"><bdi class="ltr">my.abrit.ir/dashboard</bdi></div><span style="width:46px"></span></div>
+        <div class="app-nav"><b>ABRIT <span>پنل مشتریان</span></b><span>داشبورد من</span></div>
+        <div class="app-body">
+          <p class="app-title">داشبورد من</p>
+          <div class="stats">
+            <div class="stat"><span>همه‌ی سرویس‌ها</span><b>۴</b></div>
+            <div class="stat" style="--c:var(--abr-success)"><span>فعال</span><b>۳</b></div>
+            <div class="stat" style="--c:var(--abr-info)"><span>در حال فعال‌سازی</span><b>۱</b></div>
+            <div class="stat" style="--c:var(--abr-warning)"><span>در انتظار پرداخت</span><b>۰</b></div>
+          </div>
+          <div class="tbl">
+            <p class="tbl-title">سرویس‌های من</p>
+            <div class="row"><span class="id">ABR-1405-000131</span><span>AbrIT Drive — Team</span><span class="hide-sm">۲۹۹٬۰۰۰ تومان</span><span class="badge b-run">در حال فعال‌سازی</span></div>
+            <div class="row"><span class="id">ABR-1405-000118</span><span>AbrIT Desk</span><span class="hide-sm">۱۴۰۵/۰۸/۲۰</span><span class="badge b-ok">فعال</span></div>
+            <div class="row"><span class="id">ABR-1405-000102</span><span>ERP360</span><span class="hide-sm">۱۴۰۵/۰۸/۰۳</span><span class="badge b-ok">فعال</span></div>
+            <div class="row"><span class="id">ABR-1405-000097</span><span>AbrIT Drive — Starter</span><span class="hide-sm">۱۴۰۵/۰۷/۲۹</span><span class="badge b-ok">فعال</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 · services -->
+  <section class="services" id="services" style="--h:1">
+    <div class="wrap">
+      <div>
+        <p class="eyebrow">خدمات</p>
+        <h2>همه‌ی بخش‌های IT سازمان، زیر یک مدیریت</h2>
+        <p class="lead">به‌جای چند پیمانکار جدا، یک تیم مسئول شبکه تا تلفن سازمانی. تغییرات زیرساخت، دسترسی‌ها و پشتیبان‌گیری ثبت و پیگیری می‌شوند.</p>
+        <ul class="svc-list">
+          <li>شبکه و امنیت</li><li>هویت و دسترسی</li><li>پشتیبان‌گیری و بازیابی</li><li>مانیتورینگ و مدیریت از راه دور</li><li>تلفن سازمانی</li><li>ERP و اتوماسیون</li>
+        </ul>
+      </div>
+      <div class="hub" role="img" aria-label="نمودار: ابریت در مرکز، متصل به شش حوزه‌ی شبکه و امنیت، هویت و دسترسی، پشتیبان‌گیری، مانیتورینگ، تلفن سازمانی و ERP">
+        <svg viewBox="0 0 640 512" aria-hidden="true">
+          <g>
+            <path class="line" id="l1" d="M320 256 C 320 160, 140 160, 140 96"/>
+            <path class="line" id="l2" d="M320 256 C 320 160, 500 160, 500 96"/>
+            <path class="line" id="l3" d="M320 256 C 220 256, 140 256, 110 256"/>
+            <path class="line" id="l4" d="M320 256 C 420 256, 500 256, 530 256"/>
+            <path class="line" id="l5" d="M320 256 C 320 352, 140 352, 140 416"/>
+            <path class="line" id="l6" d="M320 256 C 320 352, 500 352, 500 416"/>
+            <use href="#l1" class="pulse"/><use href="#l2" class="pulse" style="animation-delay:-.6s"/><use href="#l3" class="pulse" style="animation-delay:-1.2s"/>
+            <use href="#l4" class="pulse" style="animation-delay:-1.8s"/><use href="#l5" class="pulse" style="animation-delay:-2.4s"/><use href="#l6" class="pulse" style="animation-delay:-3s"/>
+          </g>
+          <g class="node"><rect x="60" y="66" width="160" height="56" rx="14"/><text x="140" y="100" text-anchor="middle">شبکه و امنیت</text></g>
+          <g class="node"><rect x="420" y="66" width="160" height="56" rx="14"/><text x="500" y="100" text-anchor="middle">هویت و دسترسی</text></g>
+          <g class="node"><rect x="10" y="228" width="160" height="56" rx="14"/><text x="90" y="262" text-anchor="middle">پشتیبان‌گیری</text></g>
+          <g class="node"><rect x="470" y="228" width="160" height="56" rx="14"/><text x="550" y="262" text-anchor="middle">مانیتورینگ</text></g>
+          <g class="node"><rect x="60" y="390" width="160" height="56" rx="14"/><text x="140" y="424" text-anchor="middle">تلفن سازمانی</text></g>
+          <g class="node"><rect x="420" y="390" width="160" height="56" rx="14"/><text x="500" y="424" text-anchor="middle">ERP و اتوماسیون</text></g>
+          <g class="core"><rect x="240" y="220" width="160" height="72" rx="18"/><text x="320" y="264" text-anchor="middle">ABRIT</text></g>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · products -->
+  <section class="products" id="products" style="--h:1">
+    <div class="wrap">
+      <div class="products__head">
+        <div><p class="eyebrow">محصولات</p><h2>سه محصول ابریت برای کار روزانه‌ی تیم‌ها</h2></div>
+        <p class="lead">هر محصول جدا قابل استفاده است و از پنل مشتریان سفارش و پیگیری می‌شود.</p>
+      </div>
+      <div class="cards">
+        <a class="card" href="#panel">
+          <div class="frag" aria-hidden="true">
+            <div class="file"><span>Q3-report.xlsx</span><small>۲٫۱ مگابایت</small></div>
+            <div class="file"><span>contracts/</span><small>۱۸ فایل</small></div>
+            <div class="file"><span>design-v2.pdf</span><small>اشتراک با تیم</small></div>
+            <small style="color:var(--abr-text-2)">فضای استفاده‌شده</small><div class="quota"><i></i></div>
+          </div>
+          <h3>AbrIT Drive</h3>
+          <p>فضای ابری برای نگهداری و اشتراک فایل‌ها و همکاری تیمی.</p>
+          <span class="link">پلن‌ها و سفارش ←</span>
+        </a>
+        <a class="card" href="#contact">
+          <div class="frag" aria-hidden="true">
+            <small style="color:var(--abr-text-2)">فروش ماهانه</small>
+            <div class="bars"><i style="height:45%"></i><i style="height:70%"></i><i style="height:55%"></i><i style="height:85%"></i><i style="height:100%"></i></div>
+          </div>
+          <h3>ERP360</h3>
+          <p>مدیریت یکپارچه‌ی کسب‌وکار در یک سامانه؛ با امکان درخواست دمو.</p>
+          <span class="link">درخواست دمو ←</span>
+        </a>
+        <a class="card" href="#contact">
+          <div class="frag" aria-hidden="true">
+            <div class="desk-id"><small>شناسه‌ی دستگاه</small><b>482 913 076</b></div>
+            <div class="desk-screen"></div>
+          </div>
+          <h3>AbrIT Desk</h3>
+          <p>دسترسی امن از راه دور به سیستم‌های سازمان، برای پشتیبانی سریع بدون مراجعه‌ی حضوری.</p>
+          <span class="link">اطلاعات بیشتر ←</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 · model + dealt moment (type-led statement) -->
+  <section class="model" id="model" style="--h:1">
+    <div class="wrap">
+      <p class="statement" id="statement" aria-label="بیشتر از پشتیبانی؛ مدیریت فناوری اطلاعات.">
+        <span class="w">بیشتر</span> <span class="w">از</span> <span class="w">پشتیبانی؛</span> <span class="w accent">مدیریت</span> <span class="w accent">فناوری</span> <span class="w accent">اطلاعات.</span>
+      </p>
+      <div>
+        <h2 class="sr-only">مدل همکاری چهارمرحله‌ای</h2>
+        <ol class="steps">
+          <li><h3>ارزیابی</h3><p>بررسی وضعیت فعلی شبکه، سرورها، دسترسی‌ها و ریسک‌ها.</p></li>
+          <li><h3>طراحی راهکار</h3><p>برنامه‌ی مشخص برای امنیت، پشتیبان‌گیری و تداوم کسب‌وکار.</p></li>
+          <li><h3>پیاده‌سازی</h3><p>اجرای مرحله‌به‌مرحله، بدون توقف کار تیم‌ها.</p></li>
+          <li><h3>مدیریت مستمر</h3><p>پایش، به‌روزرسانی و پاسخ به درخواست‌ها با مسیر پیگیری روشن.</p></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 · panel -->
+  <section class="panel" id="panel" style="--h:1">
+    <div class="wrap">
+      <div>
+        <p class="eyebrow">پنل مشتریان</p>
+        <h2>سفارش تا فعال‌سازی، در یک پنل</h2>
+        <p class="lead">پلن را انتخاب کنید، وضعیت پرداخت و فعال‌سازی را ببینید و اطلاعات دسترسی را بدون نمایش رمز دریافت کنید.</p>
+        <ul class="checks">
+          <li>وضعیت هر سفارش از ثبت تا فعال شدن، با تاریخ</li>
+          <li>هر حساب فقط سرویس‌های خودش را می‌بیند</li>
+          <li>در صورت خطا، بدون ساخت سرویس تکراری دوباره تلاش می‌شود</li>
+        </ul>
+        <a class="btn btn--outline" href="../docs/prototype/index.html#d1">دیدن پنل نمونه</a>
+      </div>
+      <div class="app-frame" role="img" aria-label="نمای جزئیات سرویس AbrIT Drive در پنل مشتریان با تاریخچه‌ی وضعیت">
+        <div class="app-frame__bar"><div class="dots"><i></i><i></i><i></i></div><div class="url"><bdi class="ltr">my.abrit.ir/dashboard/orders/000131</bdi></div><span style="width:46px"></span></div>
+        <div class="app-body">
+          <p class="app-title">AbrIT Drive — <bdi>Team</bdi></p>
+          <dl class="kv"><div><dt>نام کاربری</dt><dd>abrit-000131</dd></div><div><dt>سهمیه</dt><dd>۳ × ۵۰۰ مگابایت</dd></div><div><dt>آدرس ورود</dt><dd>drive.abrit.example</dd></div></dl>
+          <div class="timeline">
+            <div class="tl"><span class="badge b-ok">فعال</span><small>۱۴۰۵/۰۹/۰۲ — ۱۰:۴۲</small></div>
+            <div class="tl"><span class="badge b-run">در حال فعال‌سازی</span><small>۱۴۰۵/۰۹/۰۲ — ۱۰:۴۱</small></div>
+            <div class="tl"><span class="badge b-run">پرداخت‌شده</span><small>۱۴۰۵/۰۹/۰۲ — ۱۰:۴۰</small></div>
+            <div class="tl"><span class="badge b-wait">ثبت سفارش</span><small>۱۴۰۵/۰۹/۰۲ — ۱۰:۳۰</small></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 · close -->
+  <section class="close" id="contact" style="--h:1">
+    <div class="wrap">
+      <h2>زیرساخت IT سازمانتان را با ابریت ارزیابی کنید</h2>
+      <p>وضعیت فعلی را بررسی می‌کنیم و برنامه‌ی مدیریت، امنیت و پشتیبان‌گیری متناسب با سازمان شما را پیشنهاد می‌دهیم.</p>
+      <a class="btn btn--primary" href="mailto:info@abrit.example?subject=%D8%AF%D8%B1%D8%AE%D9%88%D8%A7%D8%B3%D8%AA%20%D8%A7%D8%B1%D8%B2%DB%8C%D8%A7%D8%A8%DB%8C">درخواست ارزیابی زیرساخت</a>
+      <ul class="contact">
+        <li>دفتر: مشهد، آبکوه</li>
+        <li>ایمیل: <a href="mailto:info@abrit.example"><bdi class="ltr">info@abrit.example</bdi></a></li>
+        <li>شنبه تا چهارشنبه ۸ تا ۱۷</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© ابریت — مدیریت فناوری اطلاعات سازمانی</span>
+    <span><a href="#services">خدمات</a> · <a href="#products">محصولات</a> · <a href="../docs/prototype/index.html#d7">ورود مشتریان</a></span>
+  </div>
+</footer>
+
+<script>
+// nav: solid after hero; burger
+const nav=document.getElementById('nav');
+const onScroll=()=>nav.classList.toggle('solid',scrollY>40); onScroll(); addEventListener('scroll',onScroll,{passive:true});
+const burger=document.querySelector('.burger');
+burger.addEventListener('click',()=>{const o=burger.getAttribute('aria-expanded')==='true';burger.setAttribute('aria-expanded',!o);document.body.classList.toggle('menu-open',!o);});
+document.querySelectorAll('#menu a').forEach(a=>a.addEventListener('click',()=>{burger.setAttribute('aria-expanded','false');document.body.classList.remove('menu-open');}));
+addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('menu-open')){burger.click();burger.focus();}});
+// dealt moment: words of the statement light up while its own section is on screen
+const words=[...document.querySelectorAll('#statement .w')];
+if(!matchMedia('(prefers-reduced-motion: reduce)').matches){
+  const sec=document.getElementById('model');
+  const tick=()=>{const r=sec.getBoundingClientRect();const p=Math.min(1,Math.max(0,(innerHeight*.85-r.top)/(innerHeight*.6)));const n=Math.round(p*words.length);words.forEach((w,i)=>w.classList.toggle('on',i<n));};
+  tick(); addEventListener('scroll',tick,{passive:true});
+} else words.forEach(w=>w.classList.add('on'));
+</script>
+</body>
+</html>

@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AbrIT Customer Panel — UI prototype (Cloudscape-inspired, RTL)</title>
+<link rel="stylesheet" href="../../design-system/tokens.css">
+<style>
+/* =====================================================================
+   THEME — copy everything between THEME START / THEME END into
+   src/AbrIT.Theme/wwwroot/css/theme.css (replace @container with @media
+   (max-width: 640px) in the real theme). Tokens = Figma variables.
+   ===================================================================== */
+/* THEME START */
+/* tokens: ../../design-system/tokens.css (single source) */
+.abr-app{font-family:var(--abr-font);color:var(--abr-text);background:var(--abr-bg);font-size:var(--abr-fs-body);line-height:var(--abr-lh-body);min-height:100%;display:flex;flex-direction:column}
+.abr-app *{box-sizing:border-box}
+.abr-app :where(a){color:var(--abr-link);text-decoration:none}
+.abr-app :where(a:not(.abr-btn):not(.abr-nav__brand)):hover{text-decoration:underline}
+bdi.ltr,.ltr{direction:ltr;unicode-bidi:isolate}
+
+/* Top navigation */
+.abr-nav{background:var(--abr-nav-bg);color:var(--abr-nav-text);height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 32px;gap:24px}
+.abr-nav__brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:20px;color:var(--abr-nav-text)}
+.abr-nav__brand small{font-weight:400;font-size:13px;color:var(--abr-nav-muted)}
+.abr-nav__right{display:flex;align-items:center;gap:48px}
+.abr-nav__links{display:flex;gap:28px}
+.abr-nav__links a{color:var(--abr-nav-muted);font-weight:500}
+.abr-nav__links a[aria-current]{color:var(--abr-nav-text)}
+.abr-nav__user{display:flex;align-items:center;gap:12px;color:var(--abr-nav-text);font-weight:500}
+.abr-nav__user a{color:var(--abr-nav-muted);font-weight:400}
+.abr-avatar{width:28px;height:28px;border-radius:50%;background:var(--abr-primary);display:inline-grid;place-items:center;font-size:12px}
+.abr-nav__burger{display:none;background:none;border:0;color:var(--abr-nav-text);font-size:22px;cursor:pointer}
+
+/* Layout */
+.abr-main{flex:1;padding:28px 80px 56px;display:flex;flex-direction:column;gap:24px}
+.abr-footer{background:var(--abr-surface);border-top:1px solid var(--abr-border);padding:20px 32px;display:flex;justify-content:space-between;gap:16px;font-size:12px;color:var(--abr-text-2)}
+.abr-crumb{font-size:13px;color:var(--abr-link)}
+.abr-crumb span{color:var(--abr-text-2)}
+.abr-h1{font-size:28px;line-height:40px;font-weight:700;margin:0}
+.abr-sub{font-size:15px;color:var(--abr-text-2);margin:0}
+.abr-head{display:flex;flex-direction:column;gap:6px}
+.abr-head__title{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.abr-grid{display:grid;gap:24px}
+.abr-grid--4{grid-template-columns:repeat(4,1fr)}
+.abr-grid--2{grid-template-columns:repeat(2,minmax(0,400px))}
+.abr-cols{display:grid;grid-template-columns:1fr 420px;gap:24px;align-items:start}
+
+/* Button */
+.abr-btn{font-family:inherit;font-size:14px;font-weight:700;border-radius:var(--abr-radius-pill);padding:6px 20px;border:2px solid transparent;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;line-height:1.6}
+.abr-btn--primary{background:var(--abr-primary);color:var(--abr-on-primary)}
+.abr-btn--primary:hover{background:var(--abr-primary-hover)}
+.abr-btn--normal{background:var(--abr-surface);color:var(--abr-primary);border-color:var(--abr-primary)}
+.abr-btn--normal:hover{background:var(--abr-primary-soft)}
+.abr-btn--link{background:none;color:var(--abr-link);padding:6px 0}
+.abr-btn--danger{background:var(--abr-surface);color:var(--abr-error);border-color:var(--abr-error)}
+.abr-btn--block{width:100%}
+.abr-btn:focus-visible{outline:2px solid var(--abr-primary);outline-offset:2px}
+
+/* Status badge */
+.abr-badge{display:inline-flex;align-items:center;gap:6px;padding:2px 10px;border-radius:var(--abr-radius-xs);font-size:12px;font-weight:600;white-space:nowrap}
+.abr-badge::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+.abr-badge[data-status=PendingPayment]{color:var(--abr-warning);background:var(--abr-warning-bg)}
+.abr-badge[data-status=Paid],.abr-badge[data-status=Provisioning]{color:var(--abr-info);background:var(--abr-info-bg)}
+.abr-badge[data-status=Active]{color:var(--abr-success);background:var(--abr-success-bg)}
+.abr-badge[data-status=ActiveMock]{color:var(--abr-mock);background:var(--abr-mock-bg)}
+.abr-badge[data-status=Failed]{color:var(--abr-error);background:var(--abr-error-bg)}
+.abr-badge[data-status=Cancelled]{color:var(--abr-neutral);background:var(--abr-neutral-bg)}
+.abr-badge--soon{color:var(--abr-neutral);background:var(--abr-neutral-bg)}
+.abr-badge--soon::before,.abr-badge--plain::before{display:none}
+.abr-badge--plain{color:var(--abr-primary);background:var(--abr-primary-soft)}
+
+/* Container */
+.abr-container{background:var(--abr-surface);border:1px solid var(--abr-border);border-radius:var(--abr-radius-lg);box-shadow:var(--abr-shadow-1);padding:20px 24px 24px;display:flex;flex-direction:column;gap:16px}
+.abr-container__head{display:flex;justify-content:space-between;align-items:center;gap:16px}
+.abr-container__title{font-size:18px;font-weight:700;margin:0}
+.abr-container__desc{font-size:13px;color:var(--abr-text-2);margin:2px 0 0}
+
+/* Key-value */
+.abr-kv-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px 24px;margin:0}
+.abr-kv dt{font-size:12px;font-weight:500;color:var(--abr-text-2)}
+.abr-kv dd{margin:2px 0 0;font-size:14px}
+
+/* Alert */
+.abr-alert{display:flex;gap:12px;padding:12px 16px;border-radius:12px;border:1px solid}
+.abr-alert__icon{width:16px;height:16px;border-radius:50%;flex:none;margin-top:4px;background:currentColor}
+.abr-alert strong{display:block;color:var(--abr-text)}
+.abr-alert p{margin:2px 0 0;color:var(--abr-text);font-size:13px}
+.abr-alert--info{color:var(--abr-info);background:var(--abr-info-bg)}
+.abr-alert--error{color:var(--abr-error);background:var(--abr-error-bg)}
+.abr-alert--mock{color:var(--abr-mock);background:var(--abr-mock-bg)}
+.abr-alert--success{color:var(--abr-success);background:var(--abr-success-bg)}
+
+/* Form field */
+.abr-field{display:flex;flex-direction:column;gap:6px}
+.abr-field label{font-weight:600}
+.abr-input{font-family:inherit;font-size:14px;border:1px solid var(--abr-border-strong);border-radius:var(--abr-radius-sm);padding:7px 12px;background:var(--abr-surface);color:var(--abr-text);width:100%}
+.abr-input:focus{outline:2px solid var(--abr-primary);border-color:var(--abr-primary)}
+.abr-input.ltr{text-align:left}
+
+/* Service card */
+.abr-service{background:var(--abr-surface);border:1px solid var(--abr-border);border-radius:var(--abr-radius-lg);box-shadow:var(--abr-shadow-1);padding:24px;display:flex;flex-direction:column;gap:16px;align-items:flex-start}
+.abr-service__top{display:flex;justify-content:space-between;width:100%;align-items:center}
+.abr-icon{width:44px;height:44px;border-radius:12px;background:var(--abr-primary-soft);display:grid;place-items:center}
+.abr-service h3{font-size:18px;margin:0}
+.abr-service p{margin:0;color:var(--abr-text-2)}
+.abr-service__foot{margin-top:auto}
+
+/* Plan card */
+.abr-plan{background:var(--abr-surface);border:1px solid var(--abr-border);border-radius:var(--abr-radius-lg);padding:28px 24px 24px;display:flex;flex-direction:column;gap:16px}
+.abr-plan--recommended{border:2px solid var(--abr-primary)}
+.abr-plan__head{display:flex;justify-content:space-between;align-items:center}
+.abr-plan__name{font-size:20px;font-weight:700;margin:0}
+.abr-plan__price{display:flex;align-items:baseline;gap:6px}
+.abr-plan__price b{font-size:32px;line-height:44px}
+.abr-plan__price span{color:var(--abr-text-2)}
+.abr-plan hr{border:0;border-top:1px solid var(--abr-border);margin:0}
+.abr-plan ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px}
+.abr-plan li{display:flex;gap:8px;align-items:center}
+.abr-plan li::before{content:"✓";color:var(--abr-success);font-weight:700}
+.abr-note{font-size:12px;color:var(--abr-text-2)}
+
+/* Steps */
+.abr-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;counter-reset:s}
+.abr-step{background:var(--abr-subtle);border-radius:var(--abr-radius-md);padding:16px;display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.abr-step__n{background:var(--abr-primary);color:#fff;border-radius:12px;padding:0 10px;font-weight:700;font-size:13px}
+.abr-list{margin:0;padding-inline-start:18px;display:flex;flex-direction:column;gap:8px}
+
+/* Stat tiles */
+.abr-stat{background:var(--abr-surface);border:1px solid var(--abr-border);border-radius:var(--abr-radius-lg);padding:20px 24px}
+.abr-stat span{color:var(--abr-text-2)}
+.abr-stat b{display:block;font-size:32px;line-height:44px}
+
+/* Table (stacks into cards on narrow screens) */
+.abr-table{width:100%;border-collapse:collapse}
+.abr-table th{background:var(--abr-subtle);color:var(--abr-text-2);font-size:13px;font-weight:700;text-align:start;padding:12px}
+.abr-table td{padding:12px;border-bottom:1px solid var(--abr-border);vertical-align:middle}
+.abr-table td.actions{white-space:nowrap}
+.abr-table td.actions .abr-btn{margin-inline-start:8px}
+
+/* Chips / filters */
+.abr-toolbar{display:flex;gap:12px;align-items:end;flex-wrap:wrap}
+.abr-chip{border:1px solid var(--abr-border-strong);border-radius:16px;padding:4px 14px;background:var(--abr-surface);font:600 13px var(--abr-font);cursor:pointer;color:var(--abr-text)}
+.abr-chip[aria-pressed=true]{background:var(--abr-primary);border-color:var(--abr-primary);color:#fff}
+
+/* Timeline */
+.abr-timeline{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:16px}
+.abr-timeline li{border-inline-start:2px solid var(--abr-border);padding-inline-start:16px;display:flex;flex-direction:column;gap:4px;align-items:flex-start}
+.abr-timeline small{color:var(--abr-text-2);font-size:12px}
+
+/* Progress */
+.abr-progress{height:8px;border-radius:4px;background:var(--abr-bg);overflow:hidden}
+.abr-progress span{display:block;height:100%;background:var(--abr-primary)}
+
+/* Toggle */
+.abr-switch{display:flex;align-items:center;gap:10px}
+.abr-switch input{width:40px;height:22px;accent-color:var(--abr-primary)}
+
+/* Total bar */
+.abr-total{background:var(--abr-primary-soft);border-radius:12px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center}
+.abr-total b{font-size:20px}
+.abr-actions{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+
+/* Auth card */
+.abr-auth{max-width:440px;width:100%;margin:48px auto;background:var(--abr-surface);border:1px solid var(--abr-border);border-radius:var(--abr-radius-lg);padding:32px;display:flex;flex-direction:column;gap:20px}
+.abr-auth h1{font-size:24px;margin:0}
+.abr-auth__links{display:flex;justify-content:space-between;font-size:13px;gap:12px;flex-wrap:wrap}
+
+
+/* ---- a11y layer (design-system §7) ---- */
+.abr-app{scroll-padding-top:calc(var(--abr-nav-h) + 16px)}
+.abr-app :focus-visible{outline:none;box-shadow:var(--abr-focus-ring);border-radius:var(--abr-radius-xs)}
+.abr-app .abr-btn:focus-visible{border-radius:var(--abr-radius-pill)}
+.abr-skip{position:absolute;inset-inline-start:16px;top:-60px;z-index:var(--abr-z-toast);background:var(--abr-surface);color:var(--abr-primary);padding:10px 16px;border-radius:var(--abr-radius-sm);font-weight:700}
+.abr-skip:focus{top:8px}
+.abr-app{position:relative}
+.sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.abr-btn{min-height:var(--abr-tap-min);padding:8px 20px}
+.abr-btn--link{padding:8px 4px}
+.abr-btn:active{transform:scale(.98)}
+.abr-btn[disabled],.abr-btn[aria-disabled=true]{opacity:.5;cursor:not-allowed}
+.abr-nav__links a,.abr-nav__linkbtn{min-height:var(--abr-tap-min);display:inline-flex;align-items:center}
+.abr-nav__linkbtn{background:none;border:0;color:var(--abr-nav-muted);font:inherit;cursor:pointer;padding:0 4px}
+.abr-nav__linkbtn:hover{color:var(--abr-nav-text)}
+.abr-nav__logout{margin:0}
+.abr-nav__burger{min-width:var(--abr-tap-min);min-height:var(--abr-tap-min)}
+.abr-nav__brand{min-height:var(--abr-tap-min)}
+.abr-crumb a{display:inline-flex;align-items:center;min-height:24px}
+.abr-cell-link{display:inline-flex;align-items:center;min-height:var(--abr-tap-min);font-weight:600}
+.abr-hint{display:block;font-size:var(--abr-fs-xs);line-height:var(--abr-lh-xs);color:var(--abr-text-2);margin-top:4px}
+/* stat tiles as filters */
+.abr-stat{font:inherit;text-align:start;cursor:pointer;color:inherit;transition:box-shadow var(--abr-dur-base) var(--abr-ease),transform var(--abr-dur-base) var(--abr-ease)}
+.abr-stat:hover{box-shadow:var(--abr-shadow-2);transform:translateY(-2px)}
+.abr-stat[aria-pressed=true]{border-color:var(--abr-primary);box-shadow:inset 0 0 0 1px var(--abr-primary)}
+.abr-stat__label{display:flex;align-items:center;gap:8px;color:var(--abr-text-2)}
+.abr-stat__label::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--dot,var(--abr-text-2))}
+.abr-stat b{color:var(--abr-text)}
+.abr-stat--success{--dot:var(--abr-success)} .abr-stat--warning{--dot:var(--abr-warning)} .abr-stat--error{--dot:var(--abr-error)} .abr-stat--all{--dot:var(--abr-primary)}
+.abr-empty[hidden],.abr-table[hidden],.abr-table tr[hidden]{display:none!important}
+.abr-empty{text-align:center;padding:32px 16px;color:var(--abr-text-2);display:flex;flex-direction:column;gap:12px;align-items:center}
+dialog.abr-dialog{border:0;border-radius:var(--abr-radius-lg);box-shadow:var(--abr-shadow-3);padding:24px;max-width:420px;font-family:var(--abr-font);direction:rtl;color:var(--abr-text)}
+dialog.abr-dialog::backdrop{background:rgba(0,7,22,.45)}
+dialog.abr-dialog h2{font-size:var(--abr-fs-h3);margin:0 0 8px}
+dialog.abr-dialog p{margin:0 0 20px;color:var(--abr-text-2)}
+@media (prefers-reduced-motion: reduce){.abr-stat,.abr-btn{transition:none}.abr-stat:hover{transform:none}.abr-btn:active{transform:none}}
+
+/* ---------- narrow (mobile) — real theme: @media (max-width:640px) ---------- */
+@container viewport (max-width: 640px){
+  .abr-nav{padding:0 16px}
+  .abr-nav{position:relative}
+  .abr-nav__links,.abr-nav__user span,.abr-nav__user a,.abr-nav__brand small{display:none}
+  .abr-nav__burger{display:block}
+  .abr-nav__links.open{display:flex;position:absolute;top:var(--abr-nav-h);inset-inline:0;flex-direction:column;gap:0;background:var(--abr-nav-bg);padding:8px 16px;z-index:var(--abr-z-menu)}
+  .abr-nav__right{gap:12px}
+  .abr-main{padding:20px 16px 40px;gap:16px}
+  .abr-h1{font-size:22px;line-height:34px}
+  .abr-grid--4,.abr-grid--2,.abr-cols,.abr-steps{grid-template-columns:1fr}
+  .abr-grid--stats{grid-template-columns:1fr 1fr;gap:12px}
+  .abr-stat{padding:14px 16px}
+  .abr-stat b{font-size:24px;line-height:34px}
+  .abr-kv-grid{grid-template-columns:1fr 1fr}
+  .abr-footer{flex-direction:column;padding:16px}
+  .abr-container{padding:16px}
+  .abr-table thead{display:none}
+  .abr-table,.abr-table tbody,.abr-table tr,.abr-table td{display:block;width:100%}
+  .abr-table tr{border:1px solid var(--abr-border);border-radius:12px;padding:8px 12px;margin-bottom:12px}
+  .abr-table td{border:0;padding:6px 0;display:flex;justify-content:space-between;gap:12px}
+  .abr-table td::before{content:attr(data-label);color:var(--abr-text-2);font-size:12px;font-weight:500}
+  .abr-table td.actions{justify-content:flex-end}
+  .abr-table td.actions .abr-btn{width:100%}
+  .abr-page-pad{padding:0}
+  .abr-table td.actions::before{display:none}
+  .abr-auth{margin:16px auto;padding:24px}
+}
+/* THEME END */
+
+/* ---------- prototype chrome (not part of the theme) ---------- */
+html,body{margin:0;background:#dfe3e8;font-family:var(--abr-font)}
+.proto-bar{position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid #ccd;padding:10px 16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:13px}
+.proto-bar button{font:500 13px var(--abr-font);border:1px solid #bbc;border-radius:6px;background:#fff;padding:4px 10px;cursor:pointer}
+.proto-bar button[aria-pressed=true]{background:#0F1B2A;color:#fff;border-color:#0F1B2A}
+.proto-bar .sep{width:1px;height:22px;background:#ccd;margin:0 6px}
+.proto-stage{display:flex;justify-content:center;padding:24px}
+.proto-viewport{container:viewport / inline-size;width:1440px;max-width:100%;background:var(--abr-bg);box-shadow:0 4px 24px rgba(0,0,0,.15);transition:width .2s}
+.proto-viewport.mobile{width:375px}
+.screen{display:none}
+.screen.on{display:flex}
+</style>
+</head>
+<body>
+
+<div class="proto-bar" role="toolbar" aria-label="Prototype navigation">
+  <strong>صفحه:</strong>
+  <button data-go="d1">D1 سرویس‌ها</button>
+  <button data-go="d2">D2 AbrIT Drive</button>
+  <button data-go="d3">D3 بازبینی سفارش</button>
+  <button data-go="d4">D4 داشبورد</button>
+  <button data-go="d5">D5 سرویس فعال (Mock)</button>
+  <button data-go="d6">D6 سفارش با خطا</button>
+  <button data-go="d7">D7 ورود</button>
+  <button data-go="d8">D8 ثبت‌نام</button>
+  <button data-go="d9">D9 بازیابی رمز</button>
+  <button data-go="a1">A1 ادمین: سفارش‌ها</button>
+  <button data-go="a2">A2 ادمین: اتصال Drive</button>
+  <span class="sep"></span>
+  <button data-vp="desktop" aria-pressed="true">دسکتاپ ۱۴۴۰</button>
+  <button data-vp="mobile">موبایل ۳۷۵</button>
+</div>
+
+<div class="proto-stage"><div class="proto-viewport" id="vp">
+
+<!-- shared fragments are duplicated per screen on purpose: each <section> = one Razor view -->
+
+<!-- ================= D1 Services ================= -->
+<section class="screen abr-app" id="d1">
+  <a class="abr-skip" href="#main-d1">پرش به محتوای اصلی</a>
+  <header class="abr-nav">
+    <div class="abr-nav__right">
+      <a class="abr-nav__brand" href="#"><svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true"><path d="M8 20h12a5 5 0 0 0 .6-9.96A7 7 0 0 0 7.2 11.5 4.3 4.3 0 0 0 8 20Z" fill="#0972D3"/><path d="M10.5 15.5c1.2-1.6 2.3-1.6 3.5 0s2.3 1.6 3.5 0" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>ABRIT <small>پنل مشتریان</small></a>
+      <nav class="abr-nav__links" id="nav-d1" aria-label="منوی اصلی"><a href="#" aria-current="page">سرویس‌ها</a><a href="#">داشبورد من</a><a href="#">پشتیبانی</a></nav>
+    </div>
+    <div class="abr-nav__user"><span class="abr-avatar" aria-hidden="true">ا</span><span>مشتری الف</span><form class="abr-nav__logout" method="post" action="/Users/LogOff"><button type="submit" class="abr-nav__linkbtn">خروج</button></form><button class="abr-nav__burger" type="button" aria-label="منو" aria-expanded="false" aria-controls="nav-d1">☰</button></div>
+  </header>
+  <main class="abr-main" id="main-d1" tabindex="-1">
+    <div class="abr-head">
+      <div class="abr-crumb">خانه <span>/</span> سرویس‌ها</div>
+      <h1 class="abr-h1">سرویس‌های ابریت</h1>
+      <p class="abr-sub">سرویس موردنظرتان را انتخاب کنید. در این نسخه‌ی آزمایشی، فقط AbrIT Drive قابل سفارش است.</p>
+    </div>
+    <div class="abr-grid abr-grid--4">
+      <article class="abr-service">
+        <div class="abr-service__top"><div class="abr-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M7 18h10a4 4 0 0 0 .5-7.97A6 6 0 0 0 6.2 11 3.5 3.5 0 0 0 7 18Z" stroke="#0972D3" stroke-width="1.8" stroke-linejoin="round"/></svg></div></div>
+        <h3>AbrIT Drive</h3><p>فضای ذخیره‌سازی و همکاری تیمی روی فایل‌ها؛ امن و همیشه در دسترس.</p>
+        <div class="abr-service__foot"><a class="abr-btn abr-btn--primary" href="#">مشاهده پلن‌ها</a></div>
+      </article>
+      <article class="abr-service">
+        <div class="abr-service__top"><div class="abr-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="3" stroke="#0972D3" stroke-width="1.8"/><path d="M8 15v-3M12 15V9M16 15v-5" stroke="#0972D3" stroke-width="1.8" stroke-linecap="round"/></svg></div><span class="abr-badge abr-badge--soon">به‌زودی</span></div>
+        <h3>ERP360</h3><p>سامانه‌ی یکپارچه‌ی مدیریت منابع سازمان.</p>
+        <p class="abr-note abr-service__foot">این سرویس هنوز قابل سفارش آنلاین نیست.</p>
+      </article>
+      <article class="abr-service">
+        <div class="abr-service__top"><div class="abr-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="12" rx="2" stroke="#0972D3" stroke-width="1.8"/><path d="M9 20h6M12 17v3" stroke="#0972D3" stroke-width="1.8" stroke-linecap="round"/></svg></div></div>
+        <h3>AbrIT Desk</h3><p>دسترسی امن از راه دور به سیستم‌های سازمان، روی همه‌ی پلتفرم‌ها.</p>
+        <div class="abr-service__foot"><a class="abr-btn abr-btn--link" href="#">اطلاعات بیشتر ←</a></div>
+      </article>
+      <article class="abr-service">
+        <div class="abr-service__top"><div class="abr-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M5 13v-1a7 7 0 0 1 14 0v1" stroke="#0972D3" stroke-width="1.8"/><rect x="3.5" y="13" width="4" height="6" rx="1.5" stroke="#0972D3" stroke-width="1.8"/><rect x="16.5" y="13" width="4" height="6" rx="1.5" stroke="#0972D3" stroke-width="1.8"/></svg></div></div>
+        <h3>پشتیبانی IT</h3><p>پشتیبانی و مدیریت فناوری اطلاعات سازمان شما توسط تیم ابریت.</p>
+        <div class="abr-service__foot"><a class="abr-btn abr-btn--link" href="https://abrit.ir" target="_blank" rel="noopener">مشاهده در <bdi class="ltr">abrit.ir</bdi> ←</a></div>
+      </article>
+    </div>
+    <div class="abr-alert abr-alert--info" role="note"><span class="abr-alert__icon"></span><div><strong>محیط ارزیابی</strong><p>قیمت‌ها و ظرفیت‌ها آزمایشی‌اند. پرداخت واقعی انجام نمی‌شود و تأیید پرداخت توسط مدیر شبیه‌سازی می‌شود.</p></div></div>
+  </main>
+  <footer class="abr-footer"><span>© ابریت — مدیریت فناوری اطلاعات سازمانی</span><span>محیط ارزیابی — هیچ خرید واقعی انجام نمی‌شود</span></footer>
+</section>
+
+<!-- ================= D2 Drive plans ================= -->
+<section class="screen abr-app" id="d2">
+  <a class="abr-skip" href="#main-d2">پرش به محتوای اصلی</a>
+  <header class="abr-nav"><div class="abr-nav__right"><a class="abr-nav__brand" href="#">ABRIT <small>پنل مشتریان</small></a><nav class="abr-nav__links" id="nav-d2" aria-label="منوی اصلی"><a href="#" aria-current="page">سرویس‌ها</a><a href="#">داشبورد من</a><a href="#">پشتیبانی</a></nav></div><div class="abr-nav__user"><span class="abr-avatar" aria-hidden="true">ا</span><span>مشتری الف</span><form class="abr-nav__logout" method="post" action="/Users/LogOff"><button type="submit" class="abr-nav__linkbtn">خروج</button></form><button class="abr-nav__burger" type="button" aria-label="منو" aria-expanded="false" aria-controls="nav-d2">☰</button></div></header>
+  <main class="abr-main" id="main-d2" tabindex="-1">
+    <div class="abr-head"><div class="abr-crumb">خانه <span>/</span> سرویس‌ها <span>/</span> AbrIT Drive</div><h1 class="abr-h1">AbrIT Drive</h1><p class="abr-sub">فضای ابری امن برای نگهداری و اشتراک فایل‌ها، بر پایه‌ی Nextcloud.</p></div>
+    <div class="abr-grid abr-grid--2">
+      <article class="abr-plan">
+        <div class="abr-plan__head"><h2 class="abr-plan__name">Starter</h2></div>
+        <div class="abr-plan__price"><b>۹۹٬۰۰۰</b><span>تومان / ماه</span></div><hr>
+        <ul><li>یک حساب کاربری</li><li>۱ گیگابایت فضا</li><li>دسترسی وب، دسکتاپ و موبایل</li></ul>
+        <a class="abr-btn abr-btn--normal abr-btn--block" href="#">انتخاب این پلن</a>
+        <span class="abr-note">مبالغ آزمایشی‌اند و تعرفه واقعی ابریت نیستند.</span>
+      </article>
+      <article class="abr-plan abr-plan--recommended">
+        <div class="abr-plan__head"><h2 class="abr-plan__name">Team</h2><span class="abr-badge abr-badge--plain">پیشنهاد برای تیم‌ها</span></div>
+        <div class="abr-plan__price"><b>۲۹۹٬۰۰۰</b><span>تومان / ماه</span></div><hr>
+        <ul><li>۳ کاربر</li><li>۵۰۰ مگابایت برای هر کاربر</li><li>پوشه‌ی مشترک تیمی</li></ul>
+        <a class="abr-btn abr-btn--primary abr-btn--block" href="#">انتخاب این پلن</a>
+        <span class="abr-note">مبالغ آزمایشی‌اند و تعرفه واقعی ابریت نیستند.</span>
+      </article>
+    </div>
+    <section class="abr-container"><div class="abr-container__head"><h2 class="abr-container__title">چطور کار می‌کند؟</h2></div>
+      <div class="abr-steps">
+        <div class="abr-step"><span class="abr-step__n">۱</span>پلن را انتخاب و سفارش را ثبت کنید.</div>
+        <div class="abr-step"><span class="abr-step__n">۲</span>سفارش در انتظار تأیید پرداخت قرار می‌گیرد.</div>
+        <div class="abr-step"><span class="abr-step__n">۳</span>پس از تأیید، فضای Drive به‌طور خودکار ساخته می‌شود.</div>
+        <div class="abr-step"><span class="abr-step__n">۴</span>اطلاعات ورود را در داشبورد ببینید.</div>
+      </div></section>
+  </main>
+  <footer class="abr-footer"><span>© ابریت — مدیریت فناوری اطلاعات سازمانی</span><span>محیط ارزیابی — هیچ خرید واقعی انجام نمی‌شود</span></footer>
+</section>
+
+<!-- ================= D3 Order confirm ================= -->
+<section class="screen abr-app" id="d3">
+  <a class="abr-skip" href="#main-d3">پرش به محتوای اصلی</a>
+  <header class="abr-nav"><div class="abr-nav__right"><a class="abr-nav__brand" href="#">ABRIT <small>پنل مشتریان</small></a><nav class="abr-nav__links" id="nav-d3" aria-label="منوی اصلی"><a href="#" aria-current="page">سرویس‌ها</a><a href="#">داشبورد من</a><a href="#">پشتیبانی</a></nav></div><div class="abr-nav__user"><span class="abr-avatar" aria-hidden="true">ا</span><span>مشتری الف</span><form class="abr-nav__logout" method="post" action="/Users/LogOff"><button type="submit" class="abr-nav__linkbtn">خروج</button></form><button class="abr-nav__burger" type="button" aria-label="منو" aria-expanded="false" aria-controls="nav-d3">☰</button></div></header>
+  <main class="abr-main" id="main-d3" tabindex="-1">
+    <div class="abr-head"><div class="abr-crumb">خانه <span>/</span> سرویس‌ها <span>/</span> AbrIT Drive <span>/</span> ثبت سفارش</div><h1 class="abr-h1">بازبینی سفارش</h1><p class="abr-sub">قبل از ثبت، جزئیات سفارش را بررسی کنید.</p></div>
+    <div class="abr-cols">
+      <form class="abr-container">
+        <div class="abr-container__head"><h2 class="abr-container__title">خلاصه‌ی سفارش</h2></div>
+        <dl class="abr-kv-grid">
+          <div class="abr-kv"><dt>سرویس</dt><dd>AbrIT Drive</dd></div>
+          <div class="abr-kv"><dt>پلن</dt><dd>Starter</dd></div>
+          <div class="abr-kv"><dt>دوره</dt><dd>ماهانه</dd></div>
+          <div class="abr-kv"><dt>ظرفیت</dt><dd>۱ گیگابایت — ۱ کاربر</dd></div>
+          <div class="abr-kv"><dt>مالک سفارش</dt><dd>مشتری الف (<bdi class="ltr">customer-a@example.test</bdi>)</dd></div>
+          <div class="abr-kv"><dt>مبلغ</dt><dd>۹۹٬۰۰۰ تومان</dd></div>
+        </dl>
+        <div class="abr-total"><span>مبلغ قابل پرداخت (آزمایشی)</span><b>۹۹٬۰۰۰ تومان</b></div>
+        <div class="abr-actions"><button class="abr-btn abr-btn--primary" type="button">ثبت سفارش</button><a class="abr-btn abr-btn--link" href="#">انصراف و بازگشت</a></div>
+      </form>
+      <aside class="abr-container"><div class="abr-container__head"><h2 class="abr-container__title">بعد از ثبت سفارش</h2></div>
+        <ol class="abr-list"><li>وضعیت سفارش «در انتظار تأیید پرداخت» می‌شود.</li><li>مدیر، پرداخت آزمایشی را تأیید می‌کند.</li><li>فضای Drive ساخته و سهمیه تنظیم می‌شود.</li><li>نتیجه را در داشبورد می‌بینید؛ در صورت خطا، امکان تلاش مجدد وجود دارد.</li></ol></aside>
+    </div>
+  </main>
+  <footer class="abr-footer"><span>© ابریت — مدیریت فناوری اطلاعات سازمانی</span><span>محیط ارزیابی — هیچ خرید واقعی انجام نمی‌شود</span></footer>
+</section>
+
+<!-- ================= D4 Dashboard ================= -->
+<section class="screen abr-app" id="d4">
+  <a class="abr-skip" href="#main-d4">پرش به محتوای اصلی</a>
+  <header class="abr-nav"><div class="abr-nav__right"><a class="abr-nav__brand" href="#">ABRIT <small>پنل مشتریان</small></a><nav class="abr-nav__links" id="nav-d4" aria-label="منوی اصلی"><a href="#">سرویس‌ها</a><a href="#" aria-current="page">داشبورد من</a><a href="#">پشتیبانی</a></nav></div><div class="abr-nav__user"><span class="abr-avatar" aria-hidden="true">ا</span><span>مشتری الف</span><form class="abr-nav__logout" method="post" action="/Users/LogOff"><button type="submit" class="abr-nav__linkbtn">خروج</button></form><button class="abr-nav__burger" type="button" aria-label="منو" aria-expanded="false" aria-controls="nav-d4">☰</button></div></header>
+  <main class="abr-main" id="main-d4" tabindex="-1">
+    <div class="abr-head"><nav aria-label="مسیر صفحه" class="abr-crumb"><a href="#">خانه</a> <span aria-hidden="true">/</span> <span aria-current="page">داشبورد من</span></nav><h1 class="abr-h1">داشبورد من</h1><p class="abr-sub">سفارش‌ها و سرویس‌های شما. برای فیلتر جدول، روی هر کارت آمار بزنید.</p></div>
+
+    <div class="abr-alert abr-alert--success" role="status"><span class="abr-alert__icon" aria-hidden="true"></span><div><strong>سفارش <bdi class="ltr">ABR-1405-000124</bdi> ثبت شد</strong><p>سفارش در انتظار تأیید پرداخت است. پس از تأیید، فضای Drive به‌طور خودکار ساخته می‌شود.</p></div></div>
+
+    <div class="abr-grid abr-grid--4 abr-grid--stats" role="group" aria-label="فیلتر سفارش‌ها بر اساس وضعیت">
+      <button type="button" class="abr-stat abr-stat--all" data-filter="all" aria-pressed="true" aria-controls="orders-d4"><span class="abr-stat__label">همه‌ی سفارش‌ها</span><b>۳</b></button>
+      <button type="button" class="abr-stat abr-stat--success" data-filter="active" aria-pressed="false" aria-controls="orders-d4"><span class="abr-stat__label">سرویس فعال</span><b>۱</b></button>
+      <button type="button" class="abr-stat abr-stat--warning" data-filter="pending" aria-pressed="false" aria-controls="orders-d4"><span class="abr-stat__label">در انتظار تأیید پرداخت</span><b>۱</b></button>
+      <button type="button" class="abr-stat abr-stat--error" data-filter="failed" aria-pressed="false" aria-controls="orders-d4"><span class="abr-stat__label">خطا در فعال‌سازی</span><b>۱</b></button>
+    </div>
+
+    <section class="abr-container" aria-labelledby="orders-title-d4">
+      <div class="abr-container__head"><div><h2 class="abr-container__title" id="orders-title-d4">سفارش‌های من</h2><p class="abr-container__desc">فقط سفارش‌هایی که متعلق به حساب شما هستند نمایش داده می‌شوند. جدیدترین در بالا.</p></div><a class="abr-btn abr-btn--normal" href="#">سفارش جدید</a></div>
+      <p class="sr-only" role="status" aria-live="polite" id="filter-status-d4"></p>
+      <table class="abr-table" id="orders-d4">
+        <caption class="sr-only">سفارش‌های من، مرتب‌شده از جدیدترین</caption>
+        <thead><tr><th scope="col">شماره سفارش</th><th scope="col">سرویس / پلن</th><th scope="col">مبلغ</th><th scope="col">تاریخ ثبت</th><th scope="col">وضعیت</th><th scope="col"><span class="sr-only">عملیات</span></th></tr></thead>
+        <tbody>
+          <tr data-group="failed"><td data-label="شماره سفارش"><a class="abr-cell-link" href="#"><bdi class="ltr">ABR-1405-000125</bdi></a></td><td data-label="سرویس / پلن"><span>AbrIT Drive — <bdi>Starter</bdi></span></td><td data-label="مبلغ">۹۹٬۰۰۰ تومان</td><td data-label="تاریخ ثبت"><time datetime="2026-11-23">۱۴۰۵/۰۹/۰۲</time></td><td data-label="وضعیت"><span><span class="abr-badge" data-status="Failed">خطا در فعال‌سازی</span><span class="abr-hint">پشتیبانی در حال بررسی است؛ نیازی به ثبت دوباره نیست.</span></span></td><td class="actions"><a class="abr-btn abr-btn--link" href="#" aria-label="مشاهده جزئیات سفارش ABR-1405-000125">مشاهده جزئیات</a></td></tr>
+          <tr data-group="pending"><td data-label="شماره سفارش"><a class="abr-cell-link" href="#"><bdi class="ltr">ABR-1405-000124</bdi></a></td><td data-label="سرویس / پلن"><span>AbrIT Drive — <bdi>Team</bdi></span></td><td data-label="مبلغ">۲۹۹٬۰۰۰ تومان</td><td data-label="تاریخ ثبت"><time datetime="2026-11-23">۱۴۰۵/۰۹/۰۲</time></td><td data-label="وضعیت"><span class="abr-badge" data-status="PendingPayment">در انتظار تأیید پرداخت</span></td><td class="actions"><button class="abr-btn abr-btn--danger" type="button" data-confirm="ABR-1405-000124" aria-haspopup="dialog">لغو سفارش</button></td></tr>
+          <tr data-group="active"><td data-label="شماره سفارش"><a class="abr-cell-link" href="#"><bdi class="ltr">ABR-1405-000123</bdi></a></td><td data-label="سرویس / پلن"><span>AbrIT Drive — <bdi>Starter</bdi></span></td><td data-label="مبلغ">۹۹٬۰۰۰ تومان</td><td data-label="تاریخ ثبت"><time datetime="2026-11-22">۱۴۰۵/۰۹/۰۱</time></td><td data-label="وضعیت"><span class="abr-badge" data-status="ActiveMock">فعال آزمایشی <bdi>(Mock)</bdi></span></td><td class="actions"><a class="abr-btn abr-btn--link" href="#" aria-label="مشاهده سرویس سفارش ABR-1405-000123">مشاهده سرویس</a></td></tr>
+        </tbody>
+      </table>
+      <div class="abr-empty" id="empty-d4" hidden><strong>سفارشی با این وضعیت ندارید.</strong><button class="abr-btn abr-btn--link" type="button" data-filter-reset>نمایش همه‌ی سفارش‌ها</button></div>
+    </section>
+
+    <dialog class="abr-dialog" id="confirm-d4" aria-labelledby="confirm-title-d4" aria-describedby="confirm-desc-d4">
+      <form method="post" action="#">
+        <h2 id="confirm-title-d4">سفارش <bdi class="ltr" data-order></bdi> لغو شود؟</h2>
+        <p id="confirm-desc-d4">این کار برگشت‌پذیر نیست. برای استفاده از سرویس باید سفارش تازه ثبت کنید.</p>
+        <div class="abr-actions"><button class="abr-btn abr-btn--danger" type="submit" value="confirm">بله، لغو شود</button><button class="abr-btn abr-btn--normal" type="submit" value="cancel" formmethod="dialog" autofocus>انصراف</button></div>
+      </form>
+    </dialog>
+  </main>
+  <footer class="abr-footer"><span>© ابریت — مدیریت فناوری اطلاعات سازمانی</span><span>محیط ارزیابی — هیچ خرید واقعی انجام نمی‌شود</span></footer>
+</section>
+
+<!-- ================= D5 Order detail — Active (Mock) ================= -->
+<section class="screen abr-app" id="d5">
+  <a class="abr-skip" href="#main-d5">پرش به محتوای اصلی</a>
+  <header class="abr-nav"><div class="abr-nav__right"><a class="abr-nav__brand" href="#">ABRIT <small>پنل مشتریان</small></a><nav class="abr-nav__links" id="nav-d5" aria-label="منوی اصلی"><a href="#">سرویس‌ها</a><a href="#" aria-current="page">داشبورد من</a><a href="#">پشتیبانی</a></nav></div><div class="abr-nav__user"><span class="abr-avatar" aria-hidden="true">ا</span><span>مشتری الف</span><form class="abr-nav__logout" method="post" action="/Users/LogOff"><button type="submit" class="abr-nav__linkbtn">خروج</button></form><button class="abr-nav__burger" type="button" aria-label="منو" aria-expanded="false" aria-controls="nav-d5">☰</button></div></header>
+  <main class="abr-main" id="main-d5" tabindex="-1">
+    <div class="abr-head"><div class="abr-crumb">خانه <span>/</span> داشبورد من <span>/</span> <bdi class="ltr">ABR-1405-000123</bdi></div>
+      <div class="abr-head__title"><h1 class="abr-h1">سفارش <bdi class="ltr">ABR-1405-000123</bdi></h1><span class="abr-badge" data-status="ActiveMock">فعال آزمایشی <bdi>(Mock)</bdi></span></div><p class="abr-sub">AbrIT Drive — Starter</p></div>
+    <div class="abr-alert abr-alert--mock" role="note"><span class="abr-alert__icon"></span><div><strong>فعال‌سازی آزمایشی (Mock)</strong><p>این حساب در حالت Mock ساخته شده و به سرور واقعی Nextcloud متصل نیست. اطلاعات زیر فقط برای نمایش جریان کار است.</p></div></div>
+    <div class="abr-cols">
+      <div style="display:flex;flex-direction:column;gap:24px">
+        <section class="abr-container"><div class="abr-container__head"><h2 class="abr-container__title">اطلاعات سفارش</h2></div>
+          <dl class="abr-kv-grid">
+            <div class="abr-kv"><dt>سرویس</dt><dd>AbrIT Drive</dd></div><div class="abr-kv"><dt>پلن</dt><dd><bdi>Starter</bdi> — ۱ کاربر</dd></div><div class="abr-kv"><dt>مبلغ</dt><dd>۹۹٬۰۰۰ تومان (آزمایشی)</dd></div>
+            <div class="abr-kv"><dt>وضعیت پرداخت</dt><dd>تأییدشده (شبیه‌سازی)</dd></div><div class="abr-kv"><dt>تاریخ ثبت</dt><dd>۱۴۰۵/۰۹/۰۱</dd></div><div class="abr-kv"><dt>حالت اتصال</dt><dd>Mock</dd></div>
+          </dl></section>
+        <section class="abr-container"><div class="abr-container__head"><div><h2 class="abr-container__title">دسترسی به AbrIT Drive</h2><p class="abr-container__desc">اطلاعات ورود امن؛ رمز عبور هرگز در این پنل نمایش داده نمی‌شود.</p></div></div>
+          <dl class="abr-kv-grid">
+            <div class="abr-kv"><dt>نام کاربری</dt><dd><bdi class="ltr">mock-abrit-4f2a9c</bdi></dd></div>
+            <div class="abr-kv"><dt>آدرس ورود</dt><dd><bdi class="ltr">drive.abrit.test</bdi> (نمایشی)</dd></div>
+            <div class="abr-kv"><dt>شناسه‌ی سرویس خارجی</dt><dd><bdi class="ltr">mock-abrit-4f2a9c</bdi></dd></div>
+          </dl>
+          <div><div style="display:flex;justify-content:space-between;font-size:13px"><b>سهمیه‌ی فضا</b><span style="color:var(--abr-text-2)">۰ از ۱ گیگابایت</span></div><div class="abr-progress" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"><span style="width:0%"></span></div></div>
+          <div class="abr-alert abr-alert--info"><span class="abr-alert__icon"></span><div><strong>تنظیم رمز عبور</strong><p>لینک تعیین رمز عبور به ایمیل حساب شما ارسال می‌شود. در حالت Mock ایمیلی ارسال نمی‌شود.</p></div></div>
+        </section>
+      </div>
+      <section class="abr-container"><div class="abr-container__head"><h2 class="abr-container__title">تاریخچه‌ی وضعیت</h2></div>
+        <ol class="abr-timeline">
+          <li><span class="abr-badge" data-status="ActiveMock">فعال آزمایشی <bdi>(Mock)</bdi></span><small>۱۴۰۵/۰۹/۰۱ — ۱۴:۰۶</small>حساب و سهمیه ثبت شد (Mock)</li>
+          <li><span class="abr-badge" data-status="Provisioning">در حال فعال‌سازی</span><small>۱۴۰۵/۰۹/۰۱ — ۱۴:۰۶</small>شروع ساخت حساب</li>
+          <li><span class="abr-badge" data-status="Paid">پرداخت‌شده</span><small>۱۴۰۵/۰۹/۰۱ — ۱۴:۰۵</small>تأیید پرداخت توسط مدیر</li>
+          <li><span class="abr-badge" data-status="PendingPayment">در انتظار تأیید پرداخت</span><small>۱۴۰۵/۰۹/۰۱ — ۱۳:۵۰</small>ثبت سفارش</li>
+        </ol></section>
+    </div>
+  </main>
+  <footer class="abr-footer"><span>© ابریت — مدیریت فناوری اطلاعات سازمانی</span><span>محیط ارزیابی — هیچ خرید واقعی انجام نمی‌شود</span></footer>
+</section>
+
+<!-- ================= D6 Order detail — Failed ================= -->
+<section class="screen abr-app" id="d6">
+  <a class="abr-skip" href="#main-d6">پرش به محتوای اصلی</a>
+  <header class="abr-nav"><div class="abr-nav__right"><a class="abr-nav__brand" href="#">ABRIT <small>پنل مشتریان</small></a><nav class="abr-nav__links" id="nav-d6" aria-label="منوی اصلی"><a href="#">سرویس‌ها</a><a href="#" aria-current="page">داشبورد من</a><a href="#">پشتیبانی</a></nav></div><div class="abr-nav__user"><span class="abr-avatar" aria-hidden="true">ا</span><span>مشتری الف</span><form class="abr-nav__logout" method="post" action="/Users/LogOff"><button type="submit" class="abr-nav__linkbtn">خروج</button></form><button class="abr-nav__burger" type="button" aria-label="منو" aria-expanded="false" aria-controls="nav-d6">☰</button></div></header>
+  <main class="abr-main" id="main-d6" tabindex="-1">
+    <div class="abr-head"><div class="abr-crumb">خانه <span>/</span> داشبورد من <span>/</span> <bdi class="ltr">ABR-1405-000125</bdi></div>
+      <div class="abr-head__title"><h1 class="abr-h1">سفارش <bdi class="ltr">ABR-1405-000125</bdi></h1><span class="abr-badge" data-status="Failed">خطا در فعال‌سازی</span></div><p class="abr-sub">AbrIT Drive — Starter</p></div>
+    <div class="abr-alert abr-alert--error" role="alert"><span class="abr-alert__icon"></span><div><strong>ساخت فضای Drive انجام نشد</strong><p>ارتباط با سرویس ذخیره‌سازی با خطا مواجه شد. تیم پشتیبانی در حال بررسی است؛ نیازی به ثبت سفارش دوباره نیست و سرویس تکراری ساخته نمی‌شود.</p></div></div>
+    <div class="abr-cols">
+      <div style="display:flex;flex-direction:column;gap:24px">
+        <section class="abr-container"><div class="abr-container__head"><h2 class="abr-container__title">اطلاعات سفارش</h2></div>
+          <dl class="abr-kv-grid">
+            <div class="abr-kv"><dt>سرویس</dt><dd>AbrIT Drive</dd></div><div class="abr-kv"><dt>پلن</dt><dd><bdi>Starter</bdi> — ۱ کاربر</dd></div><div class="abr-kv"><dt>مبلغ</dt><dd>۹۹٬۰۰۰ تومان (آزمایشی)</dd></div>
+            <div class="abr-kv"><dt>وضعیت پرداخت</dt><dd>تأییدشده (شبیه‌سازی)</dd></div><div class="abr-kv"><dt>تلاش‌های فعال‌سازی</dt><dd>۱ از ۵</dd></div><div class="abr-kv"><dt>حالت اتصال</dt><dd>Mock</dd></div>
+          </dl></section>
+        <section class="abr-container"><div class="abr-container__head"><h2 class="abr-container__title">دسترسی به AbrIT Drive</h2></div>
+          <p class="abr-note" style="font-size:14px;margin:0">پس از فعال‌سازی موفق، اطلاعات دسترسی در این بخش نمایش داده می‌شود.</p></section>
+      </div>
+      <section class="abr-container"><div class="abr-container__head"><h2 class="abr-container__title">تاریخچه‌ی وضعیت</h2></div>
+        <ol class="abr-timeline">
+          <li><span class="abr-badge" data-status="Failed">خطا در فعال‌سازی</span><small>۱۴۰۵/۰۹/۰۲ — ۱۰:۴۲</small>تلاش ۱ از ۵ — سرویس در دسترس نبود</li>
+          <li><span class="abr-badge" data-status="Provisioning">در حال فعال‌سازی</span><small>۱۴۰۵/۰۹/۰۲ — ۱۰:۴۲</small>شروع ساخت حساب</li>
+          <li><span class="abr-badge" data-status="Paid">پرداخت‌شده</span><small>۱۴۰۵/۰۹/۰۲ — ۱۰:۴۱</small>تأیید پرداخت توسط مدیر</li>
+          <li><span class="abr-badge" data-status="PendingPayment">در انتظار تأیید پرداخت</span><small>۱۴۰۵/۰۹/۰۲ — ۱۰:۳۰</small>ثبت سفارش</li>
+        </ol></section>
+    </div>
+  </main>
+  <footer class="abr-footer"><span>© ابریت — مدیریت فناوری اطلاعات سازمانی</span><span>محیط ارزیابی — هیچ خرید واقعی انجام نمی‌شود</span></footer>
+</section>
+
+<!-- ================= D7 Login ================= -->
+<section class="screen abr-app" id="d7">
+  <a class="abr-skip" href="#main-d7">پرش به محتوای اصلی</a>
+  <header class="abr-nav"><div class="abr-nav__right"><a class="abr-nav__brand" href="#">ABRIT <small>پنل مشتریان</small></a><nav class="abr-nav__links" id="nav-d7" aria-label="منوی اصلی"><a href="#">سرویس‌ها</a></nav></div><div class="abr-nav__user"><a href="#" style="color:#fff">ورود / ثبت‌نام</a><button class="abr-nav__burger" type="button" aria-label="منو" aria-expanded="false" aria-controls="nav-d7">☰</button></div></header>
+  <main class="abr-main" id="main-d7" tabindex="-1">
+    <form class="abr-auth">
+      <div><h1>ورود به پنل مشتریان</h1><p class="abr-sub">با حساب کاربری ابریت وارد شوید.</p></div>
+      <div class="abr-field"><label for="l-u">ایمیل یا نام کاربری</label><input id="l-u" class="abr-input ltr" placeholder="name@example.com" autocomplete="username"></div>
+      <div class="abr-field"><label for="l-p">رمز عبور</label><input id="l-p" class="abr-input ltr" type="password" autocomplete="current-password"></div>
+      <div class="abr-auth__links"><a href="#">رمز عبور را فراموش کرده‌اید؟</a><a href="#">حساب ندارید؟ ثبت‌نام</a></div>
+      <button class="abr-btn abr-btn--primary abr-btn--block" type="button">ورود</button>
+    </form>
+  </main>
+  <footer class="abr-footer"><span>© ابریت — مدیریت فناوری اطلاعات سازمانی</span><span>محیط ارزیابی — هیچ خرید واقعی انجام نمی‌شود</span></footer>
+</section>
+
+<!-- ================= D8 Register ================= -->
+<section class="screen abr-app" id="d8">
+  <a class="abr-skip" href="#main-d8">پرش به محتوای اصلی</a>
+  <header class="abr-nav"><div class="abr-nav__right"><a class="abr-nav__brand" href="#">ABRIT <small>پنل مشتریان</small></a><nav class="abr-nav__links" id="nav-d8" aria-label="منوی اصلی"><a href="#">سرویس‌ها</a></nav></div><div class="abr-nav__user"><a href="#" style="color:#fff">ورود / ثبت‌نام</a><button class="abr-nav__burger" type="button" aria-label="منو" aria-expanded="false" aria-controls="nav-d8">☰</button></div></header>
+  <main class="abr-main" id="main-d8" tabindex="-1">
+    <form class="abr-auth">
+      <div><h1>ساخت حساب کاربری</h1><p class="abr-sub">برای سفارش سرویس‌های ابریت ثبت‌نام کنید.</p></div>
+      <div class="abr-field"><label for="r-n">نام کاربری</label><input id="r-n" class="abr-input ltr" autocomplete="username"></div>
+      <div class="abr-field"><label for="r-e">ایمیل</label><input id="r-e" class="abr-input ltr" type="email" placeholder="name@example.com" autocomplete="email"></div>
+      <div class="abr-field"><label for="r-p">رمز عبور</label><input id="r-p" class="abr-input ltr" type="password" autocomplete="new-password"><span class="abr-note">حداقل ۸ کاراکتر، شامل حرف بزرگ، کوچک و عدد.</span></div>
+      <div class="abr-field"><label for="r-p2">تکرار رمز عبور</label><input id="r-p2" class="abr-input ltr" type="password" autocomplete="new-password"></div>
+      <button class="abr-btn abr-btn--primary abr-btn--block" type="button">ثبت‌نام</button>
+      <div class="abr-auth__links"><a href="#">حساب دارید؟ ورود</a></div>
+    </form>
+  </main>
+  <footer class="abr-footer"><span>© ابریت — مدیریت فناوری اطلاعات سازمانی</span><span>محیط ارزیابی — هیچ خرید واقعی انجام نمی‌شود</span></footer>
+</section>
+
+<!-- ================= D9 Forgot password ================= -->
+<section class="screen abr-app" id="d9">
+  <a class="abr-skip" href="#main-d9">پرش به محتوای اصلی</a>
+  <header class="abr-nav"><div class="abr-nav__right"><a class="abr-nav__brand" href="#">ABRIT <small>پنل مشتریان</small></a><nav class="abr-nav__links" id="nav-d9" aria-label="منوی اصلی"><a href="#">سرویس‌ها</a></nav></div><div class="abr-nav__user"><a href="#" style="color:#fff">ورود / ثبت‌نام</a><button class="abr-nav__burger" type="button" aria-label="منو" aria-expanded="false" aria-controls="nav-d9">☰</button></div></header>
+  <main class="abr-main" id="main-d9" tabindex="-1">
+    <form class="abr-auth">
+      <div><h1>بازیابی رمز عبور</h1><p class="abr-sub">ایمیل حساب خود را وارد کنید تا لینک تعیین رمز جدید برایتان ارسال شود.</p></div>
+      <div class="abr-field"><label for="f-e">ایمیل</label><input id="f-e" class="abr-input ltr" type="email" placeholder="name@example.com"></div>
+      <button class="abr-btn abr-btn--primary abr-btn--block" type="button">ارسال لینک بازیابی</button>
+      <div class="abr-alert abr-alert--success"><span class="abr-alert__icon"></span><div><strong>درخواست ثبت شد</strong><p>اگر این ایمیل در سامانه وجود داشته باشد، لینک بازیابی ارسال می‌شود. (محیط توسعه: ایمیل را در smtp4dev ببینید.)</p></div></div>
+      <div class="abr-auth__links"><a href="#">بازگشت به ورود</a></div>
+    </form>
+  </main>
+  <footer class="abr-footer"><span>© ابریت — مدیریت فناوری اطلاعات سازمانی</span><span>محیط ارزیابی — هیچ خرید واقعی انجام نمی‌شود</span></footer>
+</section>
+
+<!-- ================= A1 Admin orders (renders inside Orchard admin; this is the content area) ================= -->
+<section class="screen abr-app" id="a1">
+  <a class="abr-skip" href="#main-a1">پرش به محتوای اصلی</a>
+  <header class="abr-nav"><div class="abr-nav__right"><a class="abr-nav__brand" href="#">ABRIT <small>پیشخوان مدیریت</small></a><nav class="abr-nav__links" id="nav-a1" aria-label="منوی اصلی"><a href="#" aria-current="page">سفارش‌ها</a><a href="#">اتصال Drive</a><a href="#">محتوا (سرویس‌ها و پلن‌ها)</a></nav></div><div class="abr-nav__user"><span class="abr-avatar" aria-hidden="true">م</span><span>مدیر آزمایشی</span><form class="abr-nav__logout" method="post" action="/Users/LogOff"><button type="submit" class="abr-nav__linkbtn">خروج</button></form><button class="abr-nav__burger" type="button" aria-label="منو" aria-expanded="false" aria-controls="nav-a1">☰</button></div></header>
+  <main class="abr-main" id="main-a1" tabindex="-1">
+    <div class="abr-head"><div class="abr-crumb">پیشخوان مدیریت <span>/</span> ابریت <span>/</span> سفارش‌ها</div><h1 class="abr-h1">سفارش‌ها</h1><p class="abr-sub">تأیید پرداخت آزمایشی، لغو و تلاش مجدد فعال‌سازی — فقط برای نقش مدیر.</p></div>
+    <div class="abr-alert abr-alert--success" role="status"><span class="abr-alert__icon"></span><div><strong>پرداخت سفارش <bdi class="ltr">ABR-1405-000123</bdi> تأیید شد</strong><p>فعال‌سازی در حالت Mock با موفقیت انجام شد.</p></div></div>
+    <section class="abr-container">
+      <div class="abr-container__head"><div><h2 class="abr-container__title">همه‌ی سفارش‌ها (۴)</h2><p class="abr-container__desc">حالت اتصال: Mock • شبیه‌سازی خطا: خاموش</p></div></div>
+      <div class="abr-toolbar">
+        <div class="abr-field" style="min-width:280px"><label for="a-q">جست‌وجو</label><input id="a-q" class="abr-input" placeholder="شماره سفارش یا ایمیل مشتری"></div>
+        <button class="abr-chip" aria-pressed="true">همه</button><button class="abr-chip" aria-pressed="false">در انتظار تأیید پرداخت</button><button class="abr-chip" aria-pressed="false">فعال</button><button class="abr-chip" aria-pressed="false">خطا</button><button class="abr-chip" aria-pressed="false">لغوشده</button>
+      </div>
+      <table class="abr-table">
+        <thead><tr><th>شماره سفارش</th><th>مشتری</th><th>پلن</th><th>مبلغ</th><th>وضعیت</th><th>تلاش‌ها</th><th>عملیات</th></tr></thead>
+        <tbody>
+          <tr><td data-label="شماره سفارش"><bdi class="ltr">ABR-1405-000126</bdi></td><td data-label="مشتری"><bdi class="ltr">customer-b@example.test</bdi></td><td data-label="پلن"><span>Drive — Starter</span></td><td data-label="مبلغ">۹۹٬۰۰۰ تومان</td><td data-label="وضعیت"><span class="abr-badge" data-status="PendingPayment">در انتظار تأیید پرداخت</span></td><td data-label="تلاش‌ها">—</td><td class="actions"><button class="abr-btn abr-btn--primary" type="button">تأیید پرداخت</button><button class="abr-btn abr-btn--link" type="button">لغو</button></td></tr>
+          <tr><td data-label="شماره سفارش"><bdi class="ltr">ABR-1405-000125</bdi></td><td data-label="مشتری"><bdi class="ltr">customer-a@example.test</bdi></td><td data-label="پلن"><span>Drive — Starter</span></td><td data-label="مبلغ">۹۹٬۰۰۰ تومان</td><td data-label="وضعیت"><span class="abr-badge" data-status="Failed">خطا در فعال‌سازی</span></td><td data-label="تلاش‌ها">۱ / ۵</td><td class="actions"><button class="abr-btn abr-btn--normal" type="button">تلاش مجدد</button></td></tr>
+          <tr><td data-label="شماره سفارش"><bdi class="ltr">ABR-1405-000124</bdi></td><td data-label="مشتری"><bdi class="ltr">customer-a@example.test</bdi></td><td data-label="پلن"><span>Drive — Team</span></td><td data-label="مبلغ">۲۹۹٬۰۰۰ تومان</td><td data-label="وضعیت"><span class="abr-badge" data-status="PendingPayment">در انتظار تأیید پرداخت</span></td><td data-label="تلاش‌ها">—</td><td class="actions"><button class="abr-btn abr-btn--primary" type="button">تأیید پرداخت</button><button class="abr-btn abr-btn--link" type="button">لغو</button></td></tr>
+          <tr><td data-label="شماره سفارش"><bdi class="ltr">ABR-1405-000123</bdi></td><td data-label="مشتری"><bdi class="ltr">customer-a@example.test</bdi></td><td data-label="پلن"><span>Drive — Starter</span></td><td data-label="مبلغ">۹۹٬۰۰۰ تومان</td><td data-label="وضعیت"><span class="abr-badge" data-status="ActiveMock">فعال آزمایشی <bdi>(Mock)</bdi></span></td><td data-label="تلاش‌ها">۱ / ۵</td><td class="actions"><a class="abr-btn abr-btn--link" href="#">جزئیات</a></td></tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+  <footer class="abr-footer"><span>© ابریت — مدیریت فناوری اطلاعات سازمانی</span><span>محیط ارزیابی</span></footer>
+</section>
+
+<!-- ================= A2 Admin provisioning settings ================= -->
+<section class="screen abr-app" id="a2">
+  <a class="abr-skip" href="#main-a2">پرش به محتوای اصلی</a>
+  <header class="abr-nav"><div class="abr-nav__right"><a class="abr-nav__brand" href="#">ABRIT <small>پیشخوان مدیریت</small></a><nav class="abr-nav__links" id="nav-a2" aria-label="منوی اصلی"><a href="#">سفارش‌ها</a><a href="#" aria-current="page">اتصال Drive</a><a href="#">محتوا (سرویس‌ها و پلن‌ها)</a></nav></div><div class="abr-nav__user"><span class="abr-avatar" aria-hidden="true">م</span><span>مدیر آزمایشی</span><form class="abr-nav__logout" method="post" action="/Users/LogOff"><button type="submit" class="abr-nav__linkbtn">خروج</button></form><button class="abr-nav__burger" type="button" aria-label="منو" aria-expanded="false" aria-controls="nav-a2">☰</button></div></header>
+  <main class="abr-main" id="main-a2" tabindex="-1">
+    <div class="abr-head"><div class="abr-crumb">پیشخوان مدیریت <span>/</span> ابریت <span>/</span> اتصال Drive</div><h1 class="abr-h1">اتصال AbrIT Drive (Nextcloud)</h1><p class="abr-sub">حالت اتصال از متغیرهای محیطی خوانده می‌شود و این‌جا فقط نمایش داده می‌شود.</p></div>
+    <div class="abr-cols">
+      <section class="abr-container"><div class="abr-container__head"><h2 class="abr-container__title">وضعیت اتصال</h2></div>
+        <dl class="abr-kv-grid">
+          <div class="abr-kv"><dt>حالت</dt><dd><span class="abr-badge abr-badge--plain">Mock</span></dd></div>
+          <div class="abr-kv"><dt>آدرس سرور</dt><dd>— (در حالت Mock لازم نیست)</dd></div>
+          <div class="abr-kv"><dt>کاربر مدیر Nextcloud</dt><dd>—</dd></div>
+          <div class="abr-kv"><dt>رمز برنامه (App password)</dt><dd>تنظیم نشده • هرگز نمایش داده نمی‌شود</dd></div>
+          <div class="abr-kv"><dt>حداکثر تلاش برای هر سفارش</dt><dd>۵</dd></div>
+          <div class="abr-kv"><dt>آخرین درخواست</dt><dd>موفق — ۱۴۰۵/۰۹/۰۱ ۱۴:۰۶</dd></div>
+        </dl>
+        <div class="abr-alert abr-alert--info"><span class="abr-alert__icon"></span><div><strong>تغییر به حالت Real</strong><p>متغیرهای <bdi class="ltr">NEXTCLOUD_MODE=Real</bdi>، آدرس سرور، کاربر مدیر و رمز برنامه را تنظیم و برنامه را دوباره اجرا کنید. راهنما در README.</p></div></div>
+      </section>
+      <section class="abr-container"><div class="abr-container__head"><h2 class="abr-container__title">شبیه‌سازی خطا (فقط Mock)</h2></div>
+        <label class="abr-switch"><input type="checkbox" checked> شکست فراخوانی بعدی</label>
+        <div class="abr-field"><label for="a-n">تعداد فراخوانی‌های ناموفق</label><input id="a-n" class="abr-input" value="۱" style="max-width:120px"></div>
+        <p class="abr-note" style="margin:0">برای نمایش AC-06: سفارش را تأیید کنید تا Failed شود، سپس شبیه‌سازی را خاموش و «تلاش مجدد» را بزنید.</p>
+        <button class="abr-btn abr-btn--primary" type="button" style="align-self:flex-start">ذخیره</button>
+      </section>
+    </div>
+  </main>
+  <footer class="abr-footer"><span>© ابریت — مدیریت فناوری اطلاعات سازمانی</span><span>محیط ارزیابی</span></footer>
+</section>
+
+</div></div>
+
+<script>
+const screens=[...document.querySelectorAll('.screen')];
+const goBtns=[...document.querySelectorAll('[data-go]')];
+function go(id){screens.forEach(s=>s.classList.toggle('on',s.id===id));goBtns.forEach(b=>b.setAttribute('aria-pressed',b.dataset.go===id));history.replaceState(null,'','#'+id);}
+goBtns.forEach(b=>b.onclick=()=>go(b.dataset.go));
+const vp=document.getElementById('vp');
+document.querySelectorAll('[data-vp]').forEach(b=>b.onclick=()=>{vp.classList.toggle('mobile',b.dataset.vp==='mobile');document.querySelectorAll('[data-vp]').forEach(x=>x.setAttribute('aria-pressed',x===b));});
+document.querySelectorAll('.abr-chip').forEach(c=>c.onclick=()=>{c.parentElement.querySelectorAll('.abr-chip').forEach(x=>x.setAttribute('aria-pressed',x===c));});
+addEventListener('hashchange',()=>go(location.hash.slice(1)));
+go((location.hash||'#d1').slice(1));
+// dashboard: stat tiles filter the table (aria-pressed + live region), cancel confirm dialog
+document.querySelectorAll('[data-filter]').forEach(btn=>btn.addEventListener('click',()=>{
+  const f=btn.dataset.filter, root=btn.closest('main');
+  root.querySelectorAll('[data-filter]').forEach(b=>b.setAttribute('aria-pressed',b===btn));
+  let shown=0; root.querySelectorAll('tbody tr').forEach(tr=>{const on=f==='all'||tr.dataset.group===f; tr.hidden=!on; if(on)shown++;});
+  root.querySelector('#empty-d4').hidden=shown>0; root.querySelector('table').hidden=shown===0;
+  root.querySelector('#filter-status-d4').textContent=shown+' سفارش نمایش داده می‌شود';
+}));
+document.querySelectorAll('[data-filter-reset]').forEach(b=>b.onclick=()=>document.querySelector('[data-filter=all]').click());
+document.querySelectorAll('[data-confirm]').forEach(b=>b.onclick=()=>{const d=document.getElementById('confirm-d4');d.querySelector('[data-order]').textContent=b.dataset.confirm;d._trigger=b;d.showModal();});
+document.getElementById('confirm-d4').addEventListener('close',e=>e.target._trigger&&e.target._trigger.focus());
+document.querySelectorAll('.abr-nav__burger').forEach(b=>b.onclick=()=>{const o=b.getAttribute('aria-expanded')==='true';b.setAttribute('aria-expanded',!o);document.getElementById(b.getAttribute('aria-controls')).classList.toggle('open',!o);});
+
+</script>
+</body>
+</html>

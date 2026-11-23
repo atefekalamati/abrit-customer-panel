@@ -1,0 +1,28 @@
+# secrets
+.env
+*.env
+!.env.example
+appsettings.*.local.json
+
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+TestResults/
+*.trx
+coverage*.xml
+
+# Orchard runtime data (SQLite db, media, logs)
+**/App_Data/
+**/wwwroot/is-cache/
+logs/
+
+# IDE / OS
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+.DS_Store
+Thumbs.db

@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./.env)",
+      "Read(./**/.env)",
+      "Read(./**/bin/**)",
+      "Read(./**/obj/**)",
+      "Read(./**/App_Data/**)",
+      "Read(./TestResults/**)",
+      "Read(./docs/TASK_SPEC.pdf)",
+      "Read(./**/wwwroot/lib/**)"
+    ]
+  }
+}
