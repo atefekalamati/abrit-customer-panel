@@ -1,0 +1,273 @@
+{
+  "name": "AbrITPanel",
+  "displayName": "AbrIT Customer Panel",
+  "description": "AbrIT customer panel: catalog content types, seeded services and plans, registration settings, demo customers.",
+  "author": "AbrIT",
+  "website": "https://abrit.ir",
+  "version": "0.1.0",
+  "issetuprecipe": true,
+  "categories": [ "AbrIT" ],
+  "tags": [ "abrit", "panel" ],
+  "steps": [
+    {
+      "name": "feature",
+      "enable": [
+        // Base list: copied verbatim from the built-in Blank recipe (OrchardCore v3.0.1, TheAdmin/Recipes/blank.recipe.json)
+        "OrchardCore.HomeRoute",
+        "OrchardCore.Admin",
+        "OrchardCore.Diagnostics",
+        "OrchardCore.DynamicCache",
+        "OrchardCore.Features",
+        "OrchardCore.Navigation",
+        "OrchardCore.Recipes",
+        "OrchardCore.Resources",
+        "OrchardCore.Roles",
+        "OrchardCore.Security",
+        "OrchardCore.Settings",
+        "OrchardCore.Themes",
+        "OrchardCore.Users",
+        "OrchardCore.Alias",
+        "OrchardCore.Autoroute",
+        "OrchardCore.Html",
+        "OrchardCore.ContentFields",
+        "OrchardCore.ContentPreview",
+        "OrchardCore.Contents",
+        "OrchardCore.ContentTypes",
+        "OrchardCore.CustomSettings",
+        "OrchardCore.Deployment",
+        "OrchardCore.Deployment.Remote",
+        "OrchardCore.Flows",
+        "OrchardCore.Indexing",
+        "OrchardCore.Layers",
+        "OrchardCore.Lists",
+        "OrchardCore.Markdown",
+        "OrchardCore.Media",
+        "OrchardCore.Menu",
+        "OrchardCore.Queries",
+        "OrchardCore.Shortcodes.Templates",
+        "OrchardCore.Title",
+        "OrchardCore.Templates",
+        "OrchardCore.Widgets",
+        "TheAdmin",
+        // AbrIT additions
+        "OrchardCore.Users.Registration",
+        "OrchardCore.Users.ResetPassword",
+        "OrchardCore.Email",
+        "OrchardCore.Email.Smtp",
+        "OrchardCore.HealthChecks",
+        "TheTheme",
+        "AbrIT.Panel.Module"
+      ]
+    },
+    {
+      "name": "themes",
+      "admin": "TheAdmin",
+      "site": "TheTheme"
+    },
+    {
+      "name": "settings",
+      "RegistrationSettings": {
+        "UsersMustValidateEmail": false,
+        "UsersAreModerated": false,
+        "UseSiteTheme": true
+      },
+      "ResetPasswordSettings": {
+        "AllowResetPassword": true,
+        "UseSiteTheme": true
+      },
+      "LoginSettings": {
+        "UseSiteTheme": true
+      }
+    },
+    {
+      "name": "ContentDefinition",
+      "ContentTypes": [
+        {
+          "Name": "AbrService",
+          "DisplayName": "AbrIT Service",
+          "Settings": {
+            "ContentTypeSettings": { "Creatable": true, "Listable": true, "Draftable": true, "Versionable": true, "Securable": true }
+          },
+          "ContentTypePartDefinitionRecords": [
+            { "PartName": "TitlePart", "Name": "TitlePart", "Settings": { "ContentTypePartSettings": { "Position": "0" } } },
+            {
+              "PartName": "AutoroutePart",
+              "Name": "AutoroutePart",
+              "Settings": {
+                "ContentTypePartSettings": { "Position": "1" },
+                "AutoroutePartSettings": {
+                  "AllowCustomPath": true,
+                  "Pattern": "catalog/{{ ContentItem.Content.AbrService.ServiceKey.Text }}",
+                  "ShowHomepageOption": false
+                }
+              }
+            },
+            { "PartName": "MarkdownBodyPart", "Name": "MarkdownBodyPart", "Settings": { "ContentTypePartSettings": { "Position": "2" } } },
+            { "PartName": "AbrService", "Name": "AbrService", "Settings": { "ContentTypePartSettings": { "Position": "3" } } }
+          ]
+        },
+        {
+          "Name": "AbrPlan",
+          "DisplayName": "AbrIT Plan",
+          "Settings": {
+            "ContentTypeSettings": { "Creatable": true, "Listable": true, "Draftable": true, "Versionable": true, "Securable": true }
+          },
+          "ContentTypePartDefinitionRecords": [
+            { "PartName": "TitlePart", "Name": "TitlePart", "Settings": { "ContentTypePartSettings": { "Position": "0" } } },
+            { "PartName": "AbrPlan", "Name": "AbrPlan", "Settings": { "ContentTypePartSettings": { "Position": "1" } } }
+          ]
+        }
+      ],
+      "ContentParts": [
+        {
+          "Name": "AbrService",
+          "Settings": {},
+          "ContentPartFieldDefinitionRecords": [
+            { "FieldName": "TextField", "Name": "ServiceKey", "Settings": { "ContentPartFieldSettings": { "DisplayName": "Service key", "Position": "0" } } },
+            { "FieldName": "TextField", "Name": "Availability", "Settings": { "ContentPartFieldSettings": { "DisplayName": "Availability (Orderable | ComingSoon | InfoOnly)", "Position": "1" } } },
+            { "FieldName": "LinkField", "Name": "MoreInfoUrl", "Settings": { "ContentPartFieldSettings": { "DisplayName": "More info URL", "Position": "2" } } },
+            { "FieldName": "TextField", "Name": "Icon", "Settings": { "ContentPartFieldSettings": { "DisplayName": "Icon", "Position": "3" } } },
+            { "FieldName": "NumericField", "Name": "SortOrder", "Settings": { "ContentPartFieldSettings": { "DisplayName": "Sort order", "Position": "4" }, "NumericFieldSettings": { "Required": false, "Scale": 0 } } }
+          ]
+        },
+        {
+          "Name": "AbrPlan",
+          "Settings": {},
+          "ContentPartFieldDefinitionRecords": [
+            { "FieldName": "TextField", "Name": "PlanKey", "Settings": { "ContentPartFieldSettings": { "DisplayName": "Plan key", "Position": "0" } } },
+            {
+              "FieldName": "ContentPickerField",
+              "Name": "Service",
+              "Settings": {
+                "ContentPartFieldSettings": { "DisplayName": "Service", "Position": "1" },
+                "ContentPickerFieldSettings": { "Required": true, "Multiple": false, "DisplayedContentTypes": [ "AbrService" ] }
+              }
+            },
+            { "FieldName": "NumericField", "Name": "PriceToman", "Settings": { "ContentPartFieldSettings": { "DisplayName": "Price (Toman)", "Position": "2" }, "NumericFieldSettings": { "Required": true, "Scale": 0 } } },
+            { "FieldName": "TextField", "Name": "BillingPeriod", "Settings": { "ContentPartFieldSettings": { "DisplayName": "Billing period", "Position": "3" } } },
+            { "FieldName": "NumericField", "Name": "QuotaPerUserMB", "Settings": { "ContentPartFieldSettings": { "DisplayName": "Quota per user (MB)", "Position": "4" }, "NumericFieldSettings": { "Required": true, "Scale": 0 } } },
+            { "FieldName": "NumericField", "Name": "MaxUsers", "Settings": { "ContentPartFieldSettings": { "DisplayName": "Max users", "Position": "5" }, "NumericFieldSettings": { "Required": true, "Scale": 0 } } },
+            { "FieldName": "BooleanField", "Name": "IsOrderable", "Settings": { "ContentPartFieldSettings": { "DisplayName": "Is orderable", "Position": "6" } } },
+            { "FieldName": "TextField", "Name": "Description", "Settings": { "ContentPartFieldSettings": { "DisplayName": "Description", "Position": "7" } } }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "content",
+      "data": [
+        {
+          "ContentItemId": "abrsvc-drive",
+          "ContentItemVersionId": "abrsvc-drive-v1",
+          "ContentType": "AbrService",
+          "DisplayText": "ابریت درایو",
+          "Latest": true,
+          "Published": true,
+          "TitlePart": { "Title": "ابریت درایو" },
+          "AutoroutePart": { "Path": "catalog/drive", "SetHomepage": false },
+          "MarkdownBodyPart": { "Source": "فضای ذخیره‌سازی ابری برای فایل‌ها و همکاری تیمی." },
+          "AbrService": {
+            "ServiceKey": { "Text": "drive" },
+            "Availability": { "Text": "Orderable" },
+            "Icon": { "Text": "cloud" },
+            "SortOrder": { "Value": 1 }
+          }
+        },
+        {
+          "ContentItemId": "abrsvc-erp360",
+          "ContentItemVersionId": "abrsvc-erp360-v1",
+          "ContentType": "AbrService",
+          "DisplayText": "ERP360",
+          "Latest": true,
+          "Published": true,
+          "TitlePart": { "Title": "ERP360" },
+          "AutoroutePart": { "Path": "catalog/erp360", "SetHomepage": false },
+          "MarkdownBodyPart": { "Source": "سامانه جامع منابع سازمانی. به‌زودی." },
+          "AbrService": {
+            "ServiceKey": { "Text": "erp360" },
+            "Availability": { "Text": "ComingSoon" },
+            "Icon": { "Text": "boxes" },
+            "SortOrder": { "Value": 2 }
+          }
+        },
+        {
+          "ContentItemId": "abrsvc-desk",
+          "ContentItemVersionId": "abrsvc-desk-v1",
+          "ContentType": "AbrService",
+          "DisplayText": "ابریت دسک",
+          "Latest": true,
+          "Published": true,
+          "TitlePart": { "Title": "ابریت دسک" },
+          "AutoroutePart": { "Path": "catalog/desk", "SetHomepage": false },
+          "MarkdownBodyPart": { "Source": "میز خدمات و مدیریت درخواست‌ها." },
+          "AbrService": {
+            "ServiceKey": { "Text": "desk" },
+            "Availability": { "Text": "InfoOnly" },
+            "MoreInfoUrl": { "Url": "https://abrit.ir", "Text": "اطلاعات بیشتر" },
+            "Icon": { "Text": "headset" },
+            "SortOrder": { "Value": 3 }
+          }
+        },
+        {
+          "ContentItemId": "abrsvc-itsupport",
+          "ContentItemVersionId": "abrsvc-itsupport-v1",
+          "ContentType": "AbrService",
+          "DisplayText": "پشتیبانی IT",
+          "Latest": true,
+          "Published": true,
+          "TitlePart": { "Title": "پشتیبانی IT" },
+          "AutoroutePart": { "Path": "catalog/it-support", "SetHomepage": false },
+          "MarkdownBodyPart": { "Source": "خدمات پشتیبانی و مدیریت زیرساخت فناوری اطلاعات." },
+          "AbrService": {
+            "ServiceKey": { "Text": "it-support" },
+            "Availability": { "Text": "InfoOnly" },
+            "MoreInfoUrl": { "Url": "https://abrit.ir", "Text": "مشاهده در abrit.ir" },
+            "Icon": { "Text": "tools" },
+            "SortOrder": { "Value": 4 }
+          }
+        },
+        {
+          "ContentItemId": "abrplan-drive-starter",
+          "ContentItemVersionId": "abrplan-drive-starter-v1",
+          "ContentType": "AbrPlan",
+          "DisplayText": "درایو – پایه",
+          "Latest": true,
+          "Published": true,
+          "TitlePart": { "Title": "درایو – پایه" },
+          "AbrPlan": {
+            "PlanKey": { "Text": "drive-starter" },
+            "Service": { "ContentItemIds": [ "abrsvc-drive" ] },
+            "PriceToman": { "Value": 99000 },
+            "BillingPeriod": { "Text": "Monthly" },
+            "QuotaPerUserMB": { "Value": 1024 },
+            "MaxUsers": { "Value": 1 },
+            "IsOrderable": { "Value": true },
+            "Description": { "Text": "یک حساب کاربری با ۱ گیگابایت فضا" }
+          }
+        },
+        {
+          "ContentItemId": "abrplan-drive-team",
+          "ContentItemVersionId": "abrplan-drive-team-v1",
+          "ContentType": "AbrPlan",
+          "DisplayText": "درایو – تیمی",
+          "Latest": true,
+          "Published": true,
+          "TitlePart": { "Title": "درایو – تیمی" },
+          "AbrPlan": {
+            "PlanKey": { "Text": "drive-team" },
+            "Service": { "ContentItemIds": [ "abrsvc-drive" ] },
+            "PriceToman": { "Value": 299000 },
+            "BillingPeriod": { "Text": "Monthly" },
+            "QuotaPerUserMB": { "Value": 500 },
+            "MaxUsers": { "Value": 3 },
+            "IsOrderable": { "Value": true },
+            "Description": { "Text": "سه کاربر، هرکدام ۵۰۰ مگابایت فضا" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "DemoUsers"
+    }
+  ]
+}
