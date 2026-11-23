@@ -4,6 +4,8 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="OrchardCore.Module.Targets" />
+    <PackageReference Include="OrchardCore.Users.Core" />
+    <PackageReference Include="OrchardCore.Recipes.Core" />
     <ProjectReference Include="..\AbrIT.Panel.Domain\AbrIT.Panel.Domain.csproj" />
     <ProjectReference Include="..\AbrIT.Panel.Nextcloud\AbrIT.Panel.Nextcloud.csproj" />
   </ItemGroup>
