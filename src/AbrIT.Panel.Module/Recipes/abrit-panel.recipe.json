@@ -66,6 +66,7 @@
     },
     {
       "name": "settings",
+      "HomeRoute": { "Area": "AbrIT.Panel.Module", "Controller": "Services", "Action": "Index" },
       "RegistrationSettings": {
         "UsersMustValidateEmail": false,
         "UsersAreModerated": false,

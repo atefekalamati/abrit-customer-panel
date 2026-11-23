@@ -1,0 +1,15 @@
+@model PlanCard
+<div dir="rtl" lang="fa">
+    <h1>بررسی و تأیید سفارش</h1>
+    <dl>
+        <dt>پلن</dt><dd>@Model.Title</dd>
+        <dt>فضا برای هر کاربر</dt><dd>@Labels.Quota(Model.QuotaPerUserMB)</dd>
+        <dt>تعداد کاربر</dt><dd>@Model.MaxUsers</dd>
+        <dt>مبلغ ماهانه</dt><dd>@Labels.Price(Model.PriceToman)</dd>
+    </dl>
+    <p>پرداخت در این نسخه آزمایشی است: پس از ثبت، سفارش «در انتظار تأیید پرداخت» می‌ماند تا مدیر آن را تأیید کند.</p>
+    <form asp-area="AbrIT.Panel.Module" asp-controller="Orders" asp-action="New" asp-route-plan="@Model.ContentItemId" method="post">
+        <button type="submit">ثبت سفارش</button>
+    </form>
+    <p><a asp-area="AbrIT.Panel.Module" asp-controller="Services" asp-action="Drive">انصراف</a></p>
+</div>

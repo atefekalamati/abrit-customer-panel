@@ -1,0 +1,26 @@
+@model IReadOnlyList<Order>
+<div dir="rtl" lang="fa">
+    <h1>سفارش‌های من</h1>
+    @if (Model.Count == 0)
+    {
+        <p>هنوز سفارشی ثبت نکرده‌اید. <a asp-area="AbrIT.Panel.Module" asp-controller="Services" asp-action="Index">مشاهده سرویس‌ها</a></p>
+    }
+    else
+    {
+        <table>
+            <thead><tr><th>شماره سفارش</th><th>پلن</th><th>مبلغ</th><th>وضعیت</th><th>تاریخ ثبت</th></tr></thead>
+            <tbody>
+                @foreach (var order in Model)
+                {
+                    <tr>
+                        <td><a asp-area="AbrIT.Panel.Module" asp-controller="Dashboard" asp-action="Order" asp-route-orderId="@order.OrderId"><bdi>@order.OrderNumber</bdi></a></td>
+                        <td>@order.PlanSnapshot.Title</td>
+                        <td>@Labels.Price(order.AmountToman)</td>
+                        <td>@Labels.Status(order.Status)</td>
+                        <td>@Labels.Date(order.CreatedUtc)</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

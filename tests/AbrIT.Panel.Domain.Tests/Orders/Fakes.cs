@@ -96,3 +96,40 @@ internal sealed class RacySequenceStore : ISequenceStore
         return current + 1;
     }
 }
+
+internal sealed class InMemoryProvisioningRequestRepository : AbrIT.Panel.Domain.Provisioning.IProvisioningRequestRepository
+{
+    private readonly ConcurrentDictionary<string, AbrIT.Panel.Domain.Provisioning.ProvisioningRequest> _requests = new();
+
+    public int Count => _requests.Count;
+
+    public Task<AbrIT.Panel.Domain.Provisioning.ProvisioningRequest?> GetByOrderIdAsync(string orderId, CancellationToken ct = default) =>
+        Task.FromResult(_requests.GetValueOrDefault(orderId));
+
+    public Task SaveAsync(AbrIT.Panel.Domain.Provisioning.ProvisioningRequest request, CancellationToken ct = default)
+    {
+        // A second document for the same order would be the idempotency bug these tests guard against.
+        var existing = _requests.GetOrAdd(request.OrderId, request);
+        if (existing.RequestId != request.RequestId)
+        {
+            throw new InvalidOperationException("Duplicate ProvisioningRequest for one order.");
+        }
+
+        _requests[request.OrderId] = request;
+
+        return Task.CompletedTask;
+    }
+}
+
+/// <summary>Only the listed user ids hold the operator permissions.</summary>
+internal sealed class FakeOperatorAuthorizer(params string[] admins) : IOperatorAuthorizer
+{
+    public Task<bool> IsAuthorizedAsync(string actorUserId, OperatorAction action, CancellationToken ct = default) =>
+        Task.FromResult(admins.Contains(actorUserId));
+}
+
+internal sealed class FakeCustomerDirectory : AbrIT.Panel.Domain.Provisioning.ICustomerDirectory
+{
+    public Task<string?> GetEmailAsync(string userId, CancellationToken ct = default) =>
+        Task.FromResult<string?>($"{userId}@example.test");
+}

@@ -1,0 +1,55 @@
+@model CustomerOrderViewModel
+@{
+    var order = Model.Order;
+    var request = Model.Request;
+}
+<div dir="rtl" lang="fa">
+    <h1>سفارش <bdi>@order.OrderNumber</bdi></h1>
+    <partial name="_Message" />
+    <dl>
+        <dt>پلن</dt><dd>@order.PlanSnapshot.Title</dd>
+        <dt>مبلغ</dt><dd>@Labels.Price(order.AmountToman)</dd>
+        <dt>وضعیت</dt><dd>@Labels.StatusHtml(order.Status, request?.Mode)</dd>
+        <dt>تاریخ ثبت</dt><dd>@Labels.Date(order.CreatedUtc)</dd>
+        <dt>تاریخ تأیید پرداخت</dt><dd>@Labels.Date(order.PaidUtc)</dd>
+    </dl>
+
+    @if (order.Status == OrderStatus.Failed)
+    {
+        <p>خطا در فعال‌سازی – در حال پیگیری توسط پشتیبانی.</p>
+    }
+
+    @if (order.Status == OrderStatus.Active && request is not null)
+    {
+        <section>
+            <h2>اطلاعات دسترسی</h2>
+            @if (request.Mode == ProvisionerMode.Mock)
+            {
+                <p><strong>حالت آزمایشی <bdi>(Mock)</bdi>:</strong> هیچ حساب واقعی در Nextcloud ساخته نشده است.</p>
+            }
+            <dl>
+                <dt>آدرس درایو</dt>
+                <dd>@(request.Mode == ProvisionerMode.Mock ? "در حالت آزمایشی آدرس واقعی وجود ندارد" : "در ایمیل خوش‌آمدگویی Nextcloud")</dd>
+                <dt>نام کاربری</dt><dd><bdi>@request.ExternalUserId</bdi></dd>
+                <dt>فضا</dt><dd>@Labels.Quota(order.PlanSnapshot.QuotaPerUserMB)</dd>
+                <dt>رمز عبور</dt><dd>رمز عبور را از طریق ایمیل ارسال‌شده از Nextcloud تعیین کنید. ابریت رمز عبور شما را نگه نمی‌دارد.</dd>
+            </dl>
+        </section>
+    }
+
+    @if (order.Status == OrderStatus.PendingPayment)
+    {
+        <form asp-area="AbrIT.Panel.Module" asp-controller="Dashboard" asp-action="Cancel" asp-route-orderId="@order.OrderId" method="post">
+            <button type="submit">لغو سفارش</button>
+        </form>
+    }
+
+    <h2>تاریخچه</h2>
+    <ol>
+        @foreach (var change in order.History)
+        {
+            <li>@Labels.Date(change.AtUtc): @Labels.Status(change.From) ← @Labels.Status(change.To)</li>
+        }
+    </ol>
+    <p><a asp-area="AbrIT.Panel.Module" asp-controller="Dashboard" asp-action="Index">بازگشت به داشبورد</a></p>
+</div>
