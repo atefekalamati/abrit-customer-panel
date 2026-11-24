@@ -72,6 +72,9 @@
         "UsersAreModerated": false,
         "UseSiteTheme": true
       },
+      "EmailSettings": {
+        "DefaultProviderName": "DefaultSMTP"
+      },
       "ResetPasswordSettings": {
         "AllowResetPassword": true,
         "UseSiteTheme": true

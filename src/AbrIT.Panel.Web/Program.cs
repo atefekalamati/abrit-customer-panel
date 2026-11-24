@@ -11,6 +11,21 @@ builder.Services.AddSingleton(nextcloud);
 builder.Services.AddSingleton(
     builder.Configuration.GetSection(MockPaymentOptions.SectionName).Get<MockPaymentOptions>() ?? new MockPaymentOptions());
 
+// E-mail (password reset etc.): Docker wires Orchard's config-based "DefaultSMTP" provider to smtp4dev through
+// OrchardCore__OrchardCore_Email_Smtp__*. Without a configured SMTP host (local `dotnet run`), messages are written
+// as .eml files to App_Data/mail via SMTP pickup-directory delivery, so a reset link can be verified without Docker.
+const string smtp = "OrchardCore:OrchardCore_Email_Smtp:";
+if (string.IsNullOrWhiteSpace(builder.Configuration[smtp + "Host"]))
+{
+    builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+    {
+        [smtp + "DefaultSender"] = builder.Configuration[smtp + "DefaultSender"] ?? "no-reply@abrit-panel.test",
+        [smtp + "DeliveryMethod"] = "SpecifiedPickupDirectory",
+        [smtp + "PickupDirectoryLocationBase"] = "{{ AppData }}/mail",
+        [smtp + "PickupDirectoryLocation"] = "/",
+    });
+}
+
 // AutoSetup is configured exclusively through environment variables (see docker-compose.yml / .env.example).
 builder.Services.AddOrchardCms(orchard => orchard.AddSetupFeatures("OrchardCore.AutoSetup"));
 

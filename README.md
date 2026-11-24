@@ -11,7 +11,16 @@ The full README (screenshots, architecture, limitations) arrives with the delive
 dotnet build && dotnet test
 dotnet run --project src/AbrIT.Panel.Web        # Mock mode, http://localhost:5000
 docker compose up --build                        # app :8080, smtp4dev UI :5080 (copy .env.example to .env first)
+dotnet test --filter Category=Integration        # AC-01..AC-09 against the real host (temp App_Data, ~20 s)
 ```
+
+### E-mail (password reset) without Docker
+
+With Docker, Orchard's SMTP provider sends to **smtp4dev** (open http://localhost:5080 to read the reset e-mail).
+When no SMTP host is configured (`OrchardCore__OrchardCore_Email_Smtp__Host` empty, e.g. plain `dotnet run`), the app
+uses SMTP **pickup-directory** delivery instead: every e-mail is written as an `.eml` file to `App_Data/mail/`
+(or `$ORCHARD_APP_DATA/mail/`). To verify a password reset by hand: open `/ForgotPassword`, enter the user name, open
+the newest `.eml` in `App_Data/mail/`, and follow the `/ResetPassword?...` link (valid 15 minutes).
 
 ## Real Nextcloud mode (optional)
 

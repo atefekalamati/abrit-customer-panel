@@ -26,6 +26,14 @@ services:
       Nextcloud__TimeoutSeconds: ${NEXTCLOUD_TIMEOUT_SECONDS:-15}
       Nextcloud__Mock__FailNextCalls: ${NEXTCLOUD_MOCK_FAIL_NEXT_CALLS:-0}
       MockPayment__WebhookSecret: ${MOCK_PAYMENT_WEBHOOK_SECRET:-}
+      # E-mail (password reset): Orchard's config-based "DefaultSMTP" provider -> smtp4dev (UI on :5080).
+      OrchardCore__OrchardCore_Email_Smtp__DefaultSender: no-reply@abrit-panel.test
+      OrchardCore__OrchardCore_Email_Smtp__DeliveryMethod: Network
+      OrchardCore__OrchardCore_Email_Smtp__Host: smtp4dev
+      OrchardCore__OrchardCore_Email_Smtp__Port: "25"
+      OrchardCore__OrchardCore_Email_Smtp__EncryptionMethod: None
+      OrchardCore__OrchardCore_Email_Smtp__AutoSelectEncryption: "false"
+      OrchardCore__OrchardCore_Email_Smtp__RequireCredentials: "false"
     volumes:
       - app_data:/app/App_Data
     healthcheck:
