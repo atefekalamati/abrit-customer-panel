@@ -30,6 +30,10 @@ public static class Labels
             ? new HtmlString("فعال آزمایشی <bdi>(Mock)</bdi>")
             : new HtmlString(WebUtility.HtmlEncode(Status(status)));
 
+    /// <summary>Badge key for <c>.abr-badge[data-status]</c>: <c>ActiveMock</c> keeps Mock activations visually apart.</summary>
+    public static string StatusKey(OrderStatus status, ProvisionerMode? mode) =>
+        status == OrderStatus.Active && mode == ProvisionerMode.Mock ? "ActiveMock" : status.ToString();
+
     public static string Price(long toman) => toman.ToString("N0", Fa) + " تومان";
 
     public static string Date(DateTime? utc)
@@ -64,4 +68,8 @@ public static class Labels
     };
 
     public static string Number(int value) => value.ToString(Fa);
+
+    /// <summary>Persian digits (۰–۹) for UI copy; .NET formatting never substitutes native digits.</summary>
+    public static string Digits(int value) =>
+        string.Concat(value.ToString(CultureInfo.InvariantCulture).Select(c => c is >= '0' and <= '9' ? (char)('۰' + (c - '0')) : c));
 }

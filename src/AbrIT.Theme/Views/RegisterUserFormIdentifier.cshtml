@@ -1,0 +1,39 @@
+@model RegisterViewModel
+@{
+    var passwordId = Html.IdFor(m => m.Password);
+    var confirmId = Html.IdFor(m => m.ConfirmPassword);
+}
+<div class="abr-field">
+    <label asp-for="UserName">نام کاربری</label>
+    <div class="abr-inputwrap">
+        @Icons.Svg("user")
+        <input asp-for="UserName" class="abr-input ltr" dir="ltr" autocomplete="username" autocapitalize="none" spellcheck="false" aria-required="true" autofocus />
+    </div>
+</div>
+
+<div class="abr-field">
+    <label asp-for="Email">ایمیل</label>
+    <div class="abr-inputwrap">
+        @Icons.Svg("mail")
+        <input asp-for="Email" type="email" class="abr-input ltr" dir="ltr" autocomplete="email" spellcheck="false" aria-required="true" />
+    </div>
+</div>
+
+<div class="abr-field">
+    <label asp-for="Password">رمز عبور</label>
+    <div class="abr-inputwrap">
+        @Icons.Svg("lock")
+        <input asp-for="Password" class="abr-input ltr" dir="ltr" autocomplete="new-password" aria-required="true" aria-describedby="@(passwordId)-rules" />
+        <partial name="_PasswordToggle" model="passwordId" />
+    </div>
+    <partial name="_PasswordRules" model="passwordId" />
+</div>
+
+<div class="abr-field">
+    <label asp-for="ConfirmPassword">تکرار رمز عبور</label>
+    <div class="abr-inputwrap">
+        @Icons.Svg("lock")
+        <input asp-for="ConfirmPassword" class="abr-input ltr" dir="ltr" autocomplete="new-password" aria-required="true" />
+        <partial name="_PasswordToggle" model="confirmId" />
+    </div>
+</div>

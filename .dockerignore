@@ -5,6 +5,9 @@
 .env
 docs/
 landing/
-design-system/
+# design-system/: tokens.css + fonts are linked into AbrIT.Theme (D-20); only previews/scripts are excluded
+design-system/preview.html
+design-system/*.py
+design-system/tokens.json
 refrence/
 tests/

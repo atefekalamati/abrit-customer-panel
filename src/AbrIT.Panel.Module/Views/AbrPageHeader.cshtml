@@ -1,0 +1,41 @@
+@* Shape: AbrPageHeader(Title, Subtitle?, Crumbs?: IEnumerable<Crumb>, Illustration?: IHtmlContent) *@
+@{
+    string title = Model.Title;
+    string? subtitle = Model.Subtitle;
+    var crumbs = (Model.Crumbs as IEnumerable<Crumb>)?.ToList() ?? [];
+    var illustration = Model.Illustration as IHtmlContent;
+}
+<header class="abr-pagehead">
+    <div class="abr-pagehead__text">
+        @if (crumbs.Count > 0)
+        {
+            <nav class="abr-crumb" aria-label="مسیر صفحه">
+                <ol>
+                    <li><a href="~/">@Icons.Svg("home", 18)<span>خانه</span></a></li>
+                    @foreach (var crumb in crumbs)
+                    {
+                        <li>
+                            @if (crumb.Url is { } url)
+                            {
+                                <a href="@url">@crumb.Text</a>
+                            }
+                            else
+                            {
+                                <span aria-current="page">@crumb.Text</span>
+                            }
+                        </li>
+                    }
+                </ol>
+            </nav>
+        }
+        <h1 class="abr-h1 abr-h1--bar">@title</h1>
+        @if (!string.IsNullOrEmpty(subtitle))
+        {
+            <p class="abr-sub">@subtitle</p>
+        }
+    </div>
+    @if (illustration is not null)
+    {
+        <div class="abr-pagehead__art" aria-hidden="true">@illustration</div>
+    }
+</header>

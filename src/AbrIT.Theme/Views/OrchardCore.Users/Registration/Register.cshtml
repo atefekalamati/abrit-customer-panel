@@ -1,0 +1,26 @@
+@{
+    RenderTitleSegments(new HtmlString("ثبت‌نام"));
+}
+<div class="abr-authpage">
+    @await DisplayAsync(await New.AbrPageHeader(
+        Title: "ثبت‌نام در AbrIT",
+        Subtitle: "برای استفاده از سرویس‌های ابری سازمانی AbrIT، حساب کاربری خود را ایجاد کنید.",
+        Crumbs: new[] { new Crumb("ثبت‌نام") }))
+
+    <div class="abr-auth-split">
+        <partial name="_AuthHero" />
+
+        <section class="abr-auth" aria-labelledby="abr-auth-title">
+            <span class="abr-badge abr-badge--plain abr-auth__badge">@Icons.Svg("flask", 16) محیط ارزیابی</span>
+            <div class="abr-auth__head">
+                <span class="abr-auth__logo" aria-hidden="true">@Icons.Svg("cloud", 44)<span>ABRIT</span></span>
+                <h2 class="abr-auth__title" id="abr-auth-title">ایجاد حساب کاربری</h2>
+                <p class="abr-auth__sub">فقط نام کاربری، ایمیل و رمز عبور لازم است.</p>
+            </div>
+
+            <partial name="_FormErrors" />
+
+            @await DisplayAsync(Model)
+        </section>
+    </div>
+</div>

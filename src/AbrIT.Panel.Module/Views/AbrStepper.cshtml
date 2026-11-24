@@ -1,0 +1,43 @@
+@* Shape: AbrStepper(Steps: IEnumerable<StepItem>, Label?). Horizontal on desktop, vertical ≤640px (theme.css). *@
+@{
+    var steps = (Model.Steps as IEnumerable<StepItem>)?.ToList() ?? [];
+    string label = Model.Label ?? "مراحل";
+}
+<ol class="abr-stepper" aria-label="@label">
+    @for (var i = 0; i < steps.Count; i++)
+    {
+        var step = steps[i];
+        var state = step.State.ToString().ToLowerInvariant();
+        var stateText = step.State switch
+        {
+            StepState.Done => "انجام شد",
+            StepState.Current => "مرحله‌ی فعلی",
+            StepState.Failed => "خطا",
+            _ => "در انتظار",
+        };
+        <li class="abr-stepper__item" data-state="@state" aria-current="@(step.State == StepState.Current ? "step" : null)">
+            <span class="abr-stepper__dot">
+                @if (step.State == StepState.Done)
+                {
+                    @Icons.Svg("check", 16)
+                }
+                else if (step.State == StepState.Failed)
+                {
+                    @Icons.Svg("close", 16)
+                }
+                else
+                {
+                    @Labels.Digits(i + 1)
+                }
+            </span>
+            <span class="abr-stepper__text">
+                <span class="abr-stepper__label">@step.Label</span>
+                <span class="sr-only">(@stateText)</span>
+                @if (!string.IsNullOrEmpty(step.Note))
+                {
+                    <span class="abr-stepper__note">@step.Note</span>
+                }
+            </span>
+        </li>
+    }
+</ol>

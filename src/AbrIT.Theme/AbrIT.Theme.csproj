@@ -4,5 +4,18 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="OrchardCore.Theme.Targets" />
+    <!-- View models (LoginViewModel, RegisterViewModel, ...) for the restyled Users shape templates. -->
+    <PackageReference Include="OrchardCore.Users" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- UI primitives (Icons, Crumb, StepItem) and the component shapes live in the module so TheAdmin can use them too. -->
+    <ProjectReference Include="..\AbrIT.Panel.Module\AbrIT.Panel.Module.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- design-system/ is the single source of tokens + font: linked (not copied) as module assets,
+         served at /AbrIT.Theme/css/tokens.css and /AbrIT.Theme/css/fonts/*. -->
+    <EmbeddedResource Include="..\..\design-system\tokens.css" Link="wwwroot\css\tokens.css" />
+    <EmbeddedResource Include="..\..\design-system\fonts\Vazirmatn-Variable.woff2" Link="wwwroot\css\fonts\Vazirmatn-Variable.woff2" />
+    <EmbeddedResource Include="..\..\design-system\fonts\OFL.txt" Link="wwwroot\css\fonts\OFL.txt" />
   </ItemGroup>
 </Project>

@@ -55,18 +55,23 @@
         "OrchardCore.Email",
         "OrchardCore.Email.Smtp",
         "OrchardCore.HealthChecks",
-        "TheTheme",
+        "OrchardCore.Localization",
+        "AbrIT.Theme",
         "AbrIT.Panel.Module"
       ]
     },
     {
       "name": "themes",
       "admin": "TheAdmin",
-      "site": "TheTheme"
+      "site": "AbrIT.Theme"
     },
     {
       "name": "settings",
       "HomeRoute": { "Area": "AbrIT.Panel.Module", "Controller": "Services", "Action": "Index" },
+      "LocalizationSettings": {
+        "DefaultCulture": "fa-IR",
+        "SupportedCultures": [ "fa-IR" ]
+      },
       "RegistrationSettings": {
         "UsersMustValidateEmail": false,
         "UsersAreModerated": false,
