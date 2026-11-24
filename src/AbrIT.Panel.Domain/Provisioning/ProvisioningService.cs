@@ -100,15 +100,14 @@ public sealed class ProvisioningService(
 
     private ProvisioningRequest CreateRequest(Order order)
     {
-        var externalUserId = ExternalIds.ExternalUserId(order);
         return new ProvisioningRequest
         {
             RequestId = ids.NewId(),
             OrderId = order.OrderId,
             IdempotencyKey = OrderService.LockKey(order.OrderId),
             Mode = provisioner.Mode,
-            ExternalUserId = externalUserId,
-            ExternalGroupId = order.PlanSnapshot.MaxUsers > 1 ? ExternalIds.TeamGroupId(externalUserId) : null,
+            ExternalUserId = ExternalIds.ExternalUserId(order),
+            ExternalGroupId = order.PlanSnapshot.MaxUsers > 1 ? ExternalIds.TeamGroupId(order) : null,
             QuotaBytes = ExternalIds.QuotaBytes(order.PlanSnapshot),
             Status = ProvisioningStatus.Pending,
             CreatedUtc = clock.UtcNow,
@@ -180,6 +179,16 @@ public sealed class ProvisioningService(
         if (!user.Succeeded)
         {
             return user;
+        }
+
+        // Create-with-groups is skipped by Nextcloud when the account already existed, so membership is ensured explicitly.
+        if (request.ExternalGroupId is { } ownerGroup)
+        {
+            var membership = await provisioner.AddUserToGroupAsync(request.ExternalUserId, ownerGroup, ct);
+            if (!membership.Succeeded)
+            {
+                return membership;
+            }
         }
 
         return await provisioner.SetQuotaAsync(request.ExternalUserId, request.QuotaBytes, ct);

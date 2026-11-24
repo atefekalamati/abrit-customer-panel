@@ -68,15 +68,25 @@ public static class ExternalIds
     public static string ExternalUserId(Order order)
     {
         var number = order.OrderNumber;
-        if (number.StartsWith("ABR-", StringComparison.Ordinal) && number.Length > 4)
-        {
-            return "abrit-ord" + number[4..].ToLower(CultureInfo.InvariantCulture);
-        }
-
-        return "abrit-" + order.OrderId.ToLower(CultureInfo.InvariantCulture);
+        return number.StartsWith("ABR-", StringComparison.Ordinal) && number.Length > 4
+            ? "abrit-ord" + NumberPart(order)
+            : "abrit-" + order.OrderId.ToLower(CultureInfo.InvariantCulture);
     }
 
-    public static string TeamGroupId(string externalUserId) => externalUserId + "-team";
+    private static string NumberPart(Order order) =>
+        order.OrderNumber.StartsWith("ABR-", StringComparison.Ordinal) && order.OrderNumber.Length > 4
+            ? order.OrderNumber[4..].ToLower(CultureInfo.InvariantCulture)
+            : order.OrderId.ToLower(CultureInfo.InvariantCulture);
+
+    /// <summary><c>ABR-1405-000124</c> → <c>abrit-team-1405-000124</c> (Team plans only).</summary>
+    public static string TeamGroupId(Order order) => "abrit-team-" + NumberPart(order);
+
+    /// <summary>
+    /// Workspace member <paramref name="memberNumber"/> (≥ 2; the owner is seat 1): <c>abrit-ord1405-000124-m2</c>.
+    /// Numbers are never reused, so a removed (disabled) member's account is never handed to someone else.
+    /// </summary>
+    public static string MemberExternalUserId(Order order, int memberNumber) =>
+        ExternalUserId(order) + "-m" + memberNumber.ToString(CultureInfo.InvariantCulture);
 
     public static long QuotaBytes(PlanSnapshot plan) => plan.QuotaPerUserMB * BytesPerMegabyte;
 }

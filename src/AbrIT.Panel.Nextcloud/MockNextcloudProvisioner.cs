@@ -14,10 +14,12 @@ public sealed class MockNextcloudProvisioner(int failNextCalls = 0) : INextcloud
 
     private readonly ConcurrentDictionary<string, ExternalUserStatus> _users = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, byte> _groups = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<(string User, string Group), byte> _memberships = new();
     private int _failNextCalls = failNextCalls;
     private int _createUserCalls;
     private int _setQuotaCalls;
     private int _createGroupCalls;
+    private int _disableUserCalls;
 
     public ProvisionerMode Mode => ProvisionerMode.Mock;
 
@@ -36,12 +38,25 @@ public sealed class MockNextcloudProvisioner(int failNextCalls = 0) : INextcloud
 
     public int UserCount => _users.Count;
 
+    public int GroupCount => _groups.Count;
+
+    public int DisableUserCalls => Volatile.Read(ref _disableUserCalls);
+
+    /// <summary>Current members of <paramref name="groupId"/>, sorted.</summary>
+    public IReadOnlyList<string> GroupMembers(string groupId) =>
+        [.. _memberships.Keys.Where(k => k.Group == groupId).Select(k => k.User).Order(StringComparer.Ordinal)];
+
     public Task<ProvisionResult> EnsureUserAsync(EnsureUserCommand cmd, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(cmd);
         if (TryConsumeFailure(out var failure))
         {
             return Task.FromResult(failure);
+        }
+
+        if (cmd.Groups.Any(g => !_groups.ContainsKey(g)))
+        {
+            return Task.FromResult(ProvisionResult.Error("group_not_found", "Mock: group does not exist."));
         }
 
         var created = false;
@@ -54,6 +69,12 @@ public sealed class MockNextcloudProvisioner(int failNextCalls = 0) : INextcloud
         if (created)
         {
             Interlocked.Increment(ref _createUserCalls);
+
+            // Like OCS: groups given at creation are applied only when the account is new.
+            foreach (var group in cmd.Groups)
+            {
+                _memberships.TryAdd((cmd.ExternalUserId, group), 0);
+            }
         }
 
         return Task.FromResult(ProvisionResult.Ok(alreadyExisted: !created));
@@ -77,7 +98,9 @@ public sealed class MockNextcloudProvisioner(int failNextCalls = 0) : INextcloud
     }
 
     public Task<ExternalUserStatus?> GetUserAsync(string externalUserId, CancellationToken ct) =>
-        Task.FromResult(_users.GetValueOrDefault(externalUserId));
+        Task.FromResult(_users.TryGetValue(externalUserId, out var user)
+            ? user with { Groups = [.. _memberships.Keys.Where(k => k.User == externalUserId).Select(k => k.Group).Order(StringComparer.Ordinal)] }
+            : null);
 
     public Task<ProvisionResult> EnsureGroupAsync(string groupId, CancellationToken ct)
     {
@@ -93,6 +116,55 @@ public sealed class MockNextcloudProvisioner(int failNextCalls = 0) : INextcloud
         }
 
         return Task.FromResult(ProvisionResult.Ok(alreadyExisted: !created));
+    }
+
+    public Task<ProvisionResult> AddUserToGroupAsync(string externalUserId, string groupId, CancellationToken ct)
+    {
+        if (TryConsumeFailure(out var failure))
+        {
+            return Task.FromResult(failure);
+        }
+
+        if (!_users.ContainsKey(externalUserId))
+        {
+            return Task.FromResult(ProvisionResult.Error("user_not_found", "Mock: user does not exist."));
+        }
+
+        if (!_groups.ContainsKey(groupId))
+        {
+            return Task.FromResult(ProvisionResult.Error("group_not_found", "Mock: group does not exist."));
+        }
+
+        var added = _memberships.TryAdd((externalUserId, groupId), 0);
+        return Task.FromResult(ProvisionResult.Ok(alreadyExisted: !added));
+    }
+
+    public Task<ProvisionResult> RemoveUserFromGroupAsync(string externalUserId, string groupId, CancellationToken ct)
+    {
+        if (TryConsumeFailure(out var failure))
+        {
+            return Task.FromResult(failure);
+        }
+
+        _memberships.TryRemove((externalUserId, groupId), out _);
+        return Task.FromResult(ProvisionResult.Ok());
+    }
+
+    public Task<ProvisionResult> DisableUserAsync(string externalUserId, CancellationToken ct)
+    {
+        if (TryConsumeFailure(out var failure))
+        {
+            return Task.FromResult(failure);
+        }
+
+        if (!_users.TryGetValue(externalUserId, out var user))
+        {
+            return Task.FromResult(ProvisionResult.Error("user_not_found", "Mock: user does not exist."));
+        }
+
+        Interlocked.Increment(ref _disableUserCalls);
+        _users[externalUserId] = user with { Enabled = false };
+        return Task.FromResult(ProvisionResult.Ok());
     }
 
     private bool TryConsumeFailure(out ProvisionResult failure)

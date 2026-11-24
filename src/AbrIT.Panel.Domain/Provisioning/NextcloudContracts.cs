@@ -21,7 +21,7 @@ public sealed record ProvisionResult(bool Succeeded, bool AlreadyExisted, string
     public static ProvisionResult Error(string code, string message) => new(false, false, code, message);
 }
 
-public sealed record ExternalUserStatus(string ExternalUserId, long? QuotaBytes, bool Enabled);
+public sealed record ExternalUserStatus(string ExternalUserId, long? QuotaBytes, bool Enabled, IReadOnlyList<string>? Groups = null);
 
 /// <summary>Nextcloud account provisioning (AGENTS.md §6). Implementations: Mock (in-memory) and Real (OCS API).</summary>
 public interface INextcloudProvisioner
@@ -35,4 +35,13 @@ public interface INextcloudProvisioner
     Task<ExternalUserStatus?> GetUserAsync(string externalUserId, CancellationToken ct);
 
     Task<ProvisionResult> EnsureGroupAsync(string groupId, CancellationToken ct);
+
+    /// <summary>Idempotent: adding an existing member succeeds.</summary>
+    Task<ProvisionResult> AddUserToGroupAsync(string externalUserId, string groupId, CancellationToken ct);
+
+    /// <summary>Idempotent: removing a non-member succeeds.</summary>
+    Task<ProvisionResult> RemoveUserFromGroupAsync(string externalUserId, string groupId, CancellationToken ct);
+
+    /// <summary>Disables (does not delete) the account, so the member's files stay recoverable by an admin.</summary>
+    Task<ProvisionResult> DisableUserAsync(string externalUserId, CancellationToken ct);
 }
