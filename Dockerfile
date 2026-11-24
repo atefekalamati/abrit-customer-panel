@@ -8,6 +8,8 @@ COPY src/AbrIT.Panel.Nextcloud/AbrIT.Panel.Nextcloud.csproj src/AbrIT.Panel.Next
 COPY src/AbrIT.Theme/AbrIT.Theme.csproj src/AbrIT.Theme/
 RUN dotnet restore src/AbrIT.Panel.Web/AbrIT.Panel.Web.csproj
 COPY src/ src/
+# Single-source design tokens + font, linked into AbrIT.Theme as embedded assets (D-20).
+COPY design-system/ design-system/
 RUN dotnet publish src/AbrIT.Panel.Web/AbrIT.Panel.Web.csproj -c Release --no-restore -o /app/publish
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
