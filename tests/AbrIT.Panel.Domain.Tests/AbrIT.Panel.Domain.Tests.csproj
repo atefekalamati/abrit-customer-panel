@@ -13,5 +13,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../../src/AbrIT.Panel.Domain/AbrIT.Panel.Domain.csproj" />
+    <ProjectReference Include="../../src/AbrIT.Panel.Nextcloud/AbrIT.Panel.Nextcloud.csproj" />
   </ItemGroup>
 </Project>
