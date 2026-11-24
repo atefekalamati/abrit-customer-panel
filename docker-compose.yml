@@ -43,5 +43,28 @@ services:
       - "5080:80"
       - "2525:25"
 
+  # Optional local Nextcloud for Real-mode verification only (not an AbrIT environment):
+  #   docker compose --profile nextcloud up -d nextcloud   → http://localhost:8081
+  # Auto-installs with SQLite when LOCAL_NEXTCLOUD_ADMIN_PASSWORD is set; welcome mails go to smtp4dev.
+  nextcloud:
+    image: nextcloud:stable
+    profiles: ["nextcloud"]
+    ports:
+      - "8081:80"
+    environment:
+      SQLITE_DATABASE: nextcloud
+      NEXTCLOUD_ADMIN_USER: ${LOCAL_NEXTCLOUD_ADMIN_USER:-ncadmin}
+      NEXTCLOUD_ADMIN_PASSWORD: ${LOCAL_NEXTCLOUD_ADMIN_PASSWORD:-}
+      NEXTCLOUD_TRUSTED_DOMAINS: localhost nextcloud
+      SMTP_HOST: smtp4dev
+      SMTP_PORT: "25"
+      MAIL_FROM_ADDRESS: nextcloud
+      MAIL_DOMAIN: example.test
+    volumes:
+      - nextcloud_data:/var/www/html
+    depends_on:
+      - smtp4dev
+
 volumes:
   app_data:
+  nextcloud_data:

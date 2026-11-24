@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Net;
 using AbrIT.Panel.Domain.Orders;
 using AbrIT.Panel.Domain.Provisioning;
+using AbrIT.Panel.Domain.Workspaces;
 using Microsoft.AspNetCore.Html;
 
 namespace AbrIT.Panel.Module.Display;
@@ -53,4 +54,14 @@ public static class Labels
         SystemActors.Provisioning => "سیستم",
         _ => actorId,
     };
+
+    public static string MemberStatus(WorkspaceMemberStatus status) => status switch
+    {
+        WorkspaceMemberStatus.Active => "فعال",
+        WorkspaceMemberStatus.Removed => "حذف‌شده",
+        WorkspaceMemberStatus.Failed => "خطا در افزودن",
+        _ => "در حال افزودن",
+    };
+
+    public static string Number(int value) => value.ToString(Fa);
 }

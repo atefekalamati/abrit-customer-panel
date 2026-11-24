@@ -26,7 +26,13 @@ internal sealed class Harness
             OrderRepo, Requests, Connector, new FakeCustomerDirectory(), authorizer, Lock, ids, Clock);
         Approval = new PaymentApprovalService(OrderRepo, Lock, authorizer, Provisioning, Clock);
         AdminOrders = new AdminOrderService(OrderRepo, Lock, authorizer, Clock);
+        Workspaces = new AbrIT.Panel.Domain.Workspaces.TeamWorkspaceService(
+            OrderRepo, Requests, WorkspaceRepo, Connector, new FakeCustomerDirectory(), Lock, Clock);
     }
+
+    public InMemoryTeamWorkspaceRepository WorkspaceRepo { get; } = new();
+
+    public AbrIT.Panel.Domain.Workspaces.TeamWorkspaceService Workspaces { get; }
 
     public FakeClock Clock { get; } = new(new DateTime(2026, 11, 23, 9, 30, 0, DateTimeKind.Utc));
 
@@ -253,15 +259,16 @@ public class RequiredScenarioTests
 
         var request = await h.Requests.GetByOrderIdAsync(order.OrderId);
         Assert.Equal(OrderStatus.Active, result.Status);
-        Assert.Equal("abrit-ord1405-000001-team", request!.ExternalGroupId);
+        Assert.Equal("abrit-team-1405-000001", request!.ExternalGroupId);
         Assert.Equal(500L * 1024 * 1024, request.QuotaBytes);
         Assert.Equal(1, h.Mock.CreateGroupCalls);
+        Assert.Equal(["abrit-ord1405-000001"], h.Mock.GroupMembers("abrit-team-1405-000001"));
     }
 
     [Fact]
     public async Task Connector_exception_becomes_Failed_with_safe_error()
     {
-        var h = new Harness(new NotConfiguredRealProvisioner());
+        var h = new Harness(new ThrowingProvisioner());
         var order = await h.PlaceAsync();
         var result = await h.Approval.ApproveAsync(order.OrderId, Harness.Admin);
 
@@ -269,6 +276,28 @@ public class RequiredScenarioTests
         Assert.Equal(OrderStatus.Failed, result.Status);
         Assert.Equal(ProvisionerMode.Real, request!.Mode);
         Assert.Equal("connector_exception", request.LastErrorCode);
-        Assert.Equal(nameof(NotImplementedException), request.LastErrorMessage);
+        Assert.Equal(nameof(HttpRequestException), request.LastErrorMessage);
     }
+}
+
+/// <summary>A Real-mode connector whose transport blows up on every call.</summary>
+internal sealed class ThrowingProvisioner : INextcloudProvisioner
+{
+    public ProvisionerMode Mode => ProvisionerMode.Real;
+
+    public Task<ProvisionResult> EnsureUserAsync(EnsureUserCommand cmd, CancellationToken ct) => throw Boom();
+
+    public Task<ProvisionResult> SetQuotaAsync(string externalUserId, long quotaBytes, CancellationToken ct) => throw Boom();
+
+    public Task<ExternalUserStatus?> GetUserAsync(string externalUserId, CancellationToken ct) => throw Boom();
+
+    public Task<ProvisionResult> EnsureGroupAsync(string groupId, CancellationToken ct) => throw Boom();
+
+    public Task<ProvisionResult> AddUserToGroupAsync(string externalUserId, string groupId, CancellationToken ct) => throw Boom();
+
+    public Task<ProvisionResult> RemoveUserFromGroupAsync(string externalUserId, string groupId, CancellationToken ct) => throw Boom();
+
+    public Task<ProvisionResult> DisableUserAsync(string externalUserId, CancellationToken ct) => throw Boom();
+
+    private static HttpRequestException Boom() => new("https://admin:app-secret@cloud.example/ocs failed");
 }

@@ -1,9 +1,11 @@
 using System.Security.Claims;
 using AbrIT.Panel.Domain.Orders;
 using AbrIT.Panel.Domain.Provisioning;
+using AbrIT.Panel.Domain.Workspaces;
 using AbrIT.Panel.Module.Orders;
 using AbrIT.Panel.Module.Provisioning;
 using AbrIT.Panel.Module.Security;
+using AbrIT.Panel.Module.Workspaces;
 using AbrIT.Panel.Module.ViewModels;
 using AbrIT.Panel.Nextcloud;
 using Microsoft.AspNetCore.Authorization;
@@ -52,9 +54,14 @@ public sealed class OrdersAdminController(
             : (await session.Query<ProvisioningRequest, ProvisioningRequestIndex>(x => x.OrderId.IsIn(ids)).ListAsync())
                 .GroupBy(r => r.OrderId)
                 .ToDictionary(g => g.Key, g => g.OrderBy(r => r.CreatedUtc).First());
+        var teams = ids.Length == 0
+            ? []
+            : (await session.Query<TeamWorkspace, TeamWorkspaceIndex>(x => x.OrderId.IsIn(ids)).ListAsync())
+                .GroupBy(w => w.OrderId)
+                .ToDictionary(g => g.Key, g => g.First());
 
         return View(new AdminOrdersViewModel(
-            [.. orders.Select(o => new AdminOrderRow(o, requests.GetValueOrDefault(o.OrderId)))],
+            [.. orders.Select(o => new AdminOrderRow(o, requests.GetValueOrDefault(o.OrderId), teams.GetValueOrDefault(o.OrderId)))],
             filter,
             page,
             Math.Max(1, (int)Math.Ceiling(total / (double)PageSize)),
@@ -71,6 +78,21 @@ public sealed class OrdersAdminController(
     [ValidateAntiForgeryToken]
     public Task<IActionResult> Retry(string orderId) =>
         RunAsync(orderId, "تلاش مجدد", async adminId => (await provisioning.RetryAsync(orderId, adminId)).Order.Status);
+
+    /// <summary>Bonus §12: read the account's state from Nextcloud (Mock: in-memory) and store a snapshot.</summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public Task<IActionResult> RefreshStatus(string orderId) =>
+        RunAsync(orderId, "به‌روزرسانی وضعیت از Nextcloud", async adminId =>
+        {
+            var outcome = await provisioning.RefreshStatusAsync(orderId, adminId);
+            if (outcome.Request?.LastStatusSnapshot?.ErrorCode is { } code)
+            {
+                logger.LogWarning("Status refresh for order {OrderId} failed: {ErrorCode}", orderId, code);
+            }
+
+            return outcome.Order.Status;
+        });
 
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -133,7 +155,8 @@ public sealed class ProvisioningAdminController(
             options.IsAppPasswordSet,
             ProvisioningRequest.DefaultMaxAttempts,
             options.Mode == ProvisionerMode.Mock ? mock.FailNextCalls : null,
-            options.Mode == ProvisionerMode.Mock ? mock.UserCount : null));
+            options.Mode == ProvisionerMode.Mock ? mock.UserCount : null,
+            options.Mode == ProvisionerMode.Mock ? mock.GroupCount : null));
     }
 
     /// <param name="failNext">Number of upcoming connector calls that fail (0 clears the toggle).</param>

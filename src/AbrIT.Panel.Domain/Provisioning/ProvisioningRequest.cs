@@ -53,7 +53,31 @@ public sealed class ProvisioningRequest
     /// <summary>Always passed through <see cref="ErrorSanitizer"/> before being stored.</summary>
     public string? LastErrorMessage { get; set; }
 
+    /// <summary>Last admin "refresh status from Nextcloud" (bonus §12: reading status from the API).</summary>
+    public DateTime? LastCheckedUtc { get; set; }
+
+    public ExternalStatusSnapshot? LastStatusSnapshot { get; set; }
+
     public bool CanRetry => Status == ProvisioningStatus.Failed && Attempts < MaxAttempts;
+}
+
+/// <summary>What Nextcloud reported for the order's (owner) account at <see cref="ProvisioningRequest.LastCheckedUtc"/>.</summary>
+public sealed class ExternalStatusSnapshot
+{
+    public ProvisionerMode Mode { get; set; }
+
+    public bool Found { get; set; }
+
+    public bool? Enabled { get; set; }
+
+    public long? QuotaBytes { get; set; }
+
+    public long? UsedBytes { get; set; }
+
+    public List<string> Groups { get; set; } = [];
+
+    /// <summary>Sanitized code when the read failed; then the other fields are empty.</summary>
+    public string? ErrorCode { get; set; }
 }
 
 /// <summary>Deterministic external identifiers (DECISIONS A-06).</summary>
@@ -68,15 +92,25 @@ public static class ExternalIds
     public static string ExternalUserId(Order order)
     {
         var number = order.OrderNumber;
-        if (number.StartsWith("ABR-", StringComparison.Ordinal) && number.Length > 4)
-        {
-            return "abrit-ord" + number[4..].ToLower(CultureInfo.InvariantCulture);
-        }
-
-        return "abrit-" + order.OrderId.ToLower(CultureInfo.InvariantCulture);
+        return number.StartsWith("ABR-", StringComparison.Ordinal) && number.Length > 4
+            ? "abrit-ord" + NumberPart(order)
+            : "abrit-" + order.OrderId.ToLower(CultureInfo.InvariantCulture);
     }
 
-    public static string TeamGroupId(string externalUserId) => externalUserId + "-team";
+    private static string NumberPart(Order order) =>
+        order.OrderNumber.StartsWith("ABR-", StringComparison.Ordinal) && order.OrderNumber.Length > 4
+            ? order.OrderNumber[4..].ToLower(CultureInfo.InvariantCulture)
+            : order.OrderId.ToLower(CultureInfo.InvariantCulture);
+
+    /// <summary><c>ABR-1405-000124</c> → <c>abrit-team-1405-000124</c> (Team plans only).</summary>
+    public static string TeamGroupId(Order order) => "abrit-team-" + NumberPart(order);
+
+    /// <summary>
+    /// Workspace member <paramref name="memberNumber"/> (≥ 2; the owner is seat 1): <c>abrit-ord1405-000124-m2</c>.
+    /// Numbers are never reused, so a removed (disabled) member's account is never handed to someone else.
+    /// </summary>
+    public static string MemberExternalUserId(Order order, int memberNumber) =>
+        ExternalUserId(order) + "-m" + memberNumber.ToString(CultureInfo.InvariantCulture);
 
     public static long QuotaBytes(PlanSnapshot plan) => plan.QuotaPerUserMB * BytesPerMegabyte;
 }

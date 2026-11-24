@@ -1,10 +1,12 @@
 using AbrIT.Panel.Domain.Orders;
 using AbrIT.Panel.Domain.Provisioning;
+using AbrIT.Panel.Domain.Workspaces;
 using AbrIT.Panel.Module.Catalog;
 using AbrIT.Panel.Module.Orders;
 using AbrIT.Panel.Module.Provisioning;
 using AbrIT.Panel.Module.Recipes;
 using AbrIT.Panel.Module.Security;
+using AbrIT.Panel.Module.Workspaces;
 using AbrIT.Panel.Nextcloud;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
@@ -51,16 +53,17 @@ public sealed class Startup : StartupBase
         services.AddScoped<IAdminOrderService, AdminOrderService>();
         services.AddScoped<CatalogReader>();
 
-        // Provisioning (phase 05). One connector per tenant, chosen by Nextcloud:Mode.
+        // Provisioning (phases 05 + B). Connector chosen by Nextcloud:Mode (Mock default; Real = OCS client).
         services.AddIndexProvider<ProvisioningRequestIndexProvider>();
         services.AddScoped<IProvisioningRequestRepository, YesSqlProvisioningRequestRepository>();
         services.AddScoped<ICustomerDirectory, UserManagerCustomerDirectory>();
         services.AddScoped<IProvisioningService, ProvisioningService>();
-        services.AddSingleton(sp => new MockNextcloudProvisioner(sp.GetRequiredService<NextcloudOptions>().Mock.FailNextCalls));
-        services.AddSingleton<INextcloudProvisioner>(sp =>
-            sp.GetRequiredService<NextcloudOptions>().Mode == ProvisionerMode.Real
-                ? new NotConfiguredRealProvisioner()
-                : sp.GetRequiredService<MockNextcloudProvisioner>());
+        services.AddNextcloudConnector();
+
+        // Team workspace (phase B, bonus §12).
+        services.AddIndexProvider<TeamWorkspaceIndexProvider>();
+        services.AddScoped<ITeamWorkspaceRepository, YesSqlTeamWorkspaceRepository>();
+        services.AddScoped<ITeamWorkspaceService, TeamWorkspaceService>();
     }
 
     public override void Configure(IApplicationBuilder app, IEndpointRouteBuilder routes, IServiceProvider serviceProvider)
@@ -73,11 +76,14 @@ public sealed class Startup : StartupBase
         Map(routes, "AbrIT.Dashboard", "dashboard", "Dashboard", "Index");
         Map(routes, "AbrIT.Dashboard.Order", "dashboard/orders/{orderId}", "Dashboard", "Order");
         Map(routes, "AbrIT.Dashboard.Cancel", "dashboard/orders/{orderId}/cancel", "Dashboard", "Cancel");
+        Map(routes, "AbrIT.Dashboard.AddMember", "dashboard/orders/{orderId}/members", "Dashboard", "AddMember");
+        Map(routes, "AbrIT.Dashboard.RemoveMember", "dashboard/orders/{orderId}/members/{memberNumber:int}/remove", "Dashboard", "RemoveMember");
         Map(routes, "AbrIT.MockPaymentCallback", "api/payments/mock-callback", "MockPaymentCallback", "Post");
 
         Map(routes, "AbrIT.Admin.Orders", $"{admin}/AbrIT/Orders", "OrdersAdmin", "Index");
         Map(routes, "AbrIT.Admin.Orders.Approve", $"{admin}/AbrIT/Orders/{{orderId}}/ApprovePayment", "OrdersAdmin", "ApprovePayment");
         Map(routes, "AbrIT.Admin.Orders.Retry", $"{admin}/AbrIT/Orders/{{orderId}}/Retry", "OrdersAdmin", "Retry");
+        Map(routes, "AbrIT.Admin.Orders.RefreshStatus", $"{admin}/AbrIT/Orders/{{orderId}}/RefreshStatus", "OrdersAdmin", "RefreshStatus");
         Map(routes, "AbrIT.Admin.Orders.Cancel", $"{admin}/AbrIT/Orders/{{orderId}}/Cancel", "OrdersAdmin", "Cancel");
         Map(routes, "AbrIT.Admin.Provisioning", $"{admin}/AbrIT/Provisioning", "ProvisioningAdmin", "Index");
         Map(routes, "AbrIT.Admin.Provisioning.Mock", $"{admin}/AbrIT/Provisioning/MockFailures", "ProvisioningAdmin", "SetMockFailures");

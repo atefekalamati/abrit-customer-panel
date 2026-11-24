@@ -20,7 +20,8 @@ public static class AbrPermissions
 
     public static Permission For(OperatorAction action) => action switch
     {
-        OperatorAction.ApprovePayment or OperatorAction.RetryProvisioning or OperatorAction.CancelOrder => ApproveTestPayments,
+        OperatorAction.ApprovePayment or OperatorAction.RetryProvisioning or OperatorAction.CancelOrder
+            or OperatorAction.RefreshExternalStatus => ApproveTestPayments,
         _ => throw new ArgumentOutOfRangeException(nameof(action)),
     };
 }

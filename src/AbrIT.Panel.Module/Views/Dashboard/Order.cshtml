@@ -2,6 +2,7 @@
 @{
     var order = Model.Order;
     var request = Model.Request;
+    var workspace = Model.Workspace;
 }
 <div dir="rtl" lang="fa">
     <h1>سفارش <bdi>@order.OrderNumber</bdi></h1>
@@ -34,6 +35,52 @@
                 <dt>فضا</dt><dd>@Labels.Quota(order.PlanSnapshot.QuotaPerUserMB)</dd>
                 <dt>رمز عبور</dt><dd>رمز عبور را از طریق ایمیل ارسال‌شده از Nextcloud تعیین کنید. ابریت رمز عبور شما را نگه نمی‌دارد.</dd>
             </dl>
+        </section>
+    }
+
+    @if (workspace is not null && order.Status == OrderStatus.Active)
+    {
+        <section id="workspace">
+            <h2>اعضای فضای تیمی</h2>
+            <p>ظرفیت استفاده‌شده: <bdi>@Labels.Number(workspace.SeatsUsed)/@Labels.Number(workspace.SeatLimit)</bdi> (شامل مالک)</p>
+            <p>گروه: <bdi>@workspace.GroupId</bdi> – فضای هر عضو: @Labels.Quota(order.PlanSnapshot.QuotaPerUserMB)</p>
+            <table>
+                <thead><tr><th>#</th><th>ایمیل</th><th>نام کاربری</th><th>وضعیت</th><th>تاریخ افزودن</th><th></th></tr></thead>
+                <tbody>
+                    <tr><td>@Labels.Number(1)</td><td>شما (مالک)</td><td><bdi>@workspace.OwnerExternalUserId</bdi></td><td>فعال</td><td>@Labels.Date(order.ActivatedUtc)</td><td></td></tr>
+                    @foreach (var member in workspace.Members)
+                    {
+                        <tr>
+                            <td>@Labels.Number(member.MemberNumber)</td>
+                            <td><bdi>@member.Email</bdi></td>
+                            <td><bdi>@member.ExternalUserId</bdi></td>
+                            <td>@Labels.MemberStatus(member.Status)</td>
+                            <td>@Labels.Date(member.AddedUtc)</td>
+                            <td>
+                                @if (member.Status == WorkspaceMemberStatus.Active)
+                                {
+                                    <form asp-area="AbrIT.Panel.Module" asp-controller="Dashboard" asp-action="RemoveMember" asp-route-orderId="@order.OrderId" asp-route-memberNumber="@member.MemberNumber" method="post">
+                                        <button type="submit">حذف عضو</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            @if (workspace.SeatsUsed < workspace.SeatLimit)
+            {
+                <form asp-area="AbrIT.Panel.Module" asp-controller="Dashboard" asp-action="AddMember" asp-route-orderId="@order.OrderId" method="post">
+                    <label for="member-email">ایمیل عضو جدید</label>
+                    <input id="member-email" name="email" type="email" required maxlength="254" dir="ltr" autocomplete="off" />
+                    <button type="submit">افزودن عضو</button>
+                </form>
+                <p>حساب عضو با همین ایمیل ساخته می‌شود و @(request?.Mode == ProvisionerMode.Mock ? "در حالت آزمایشی (Mock) ایمیلی ارسال نمی‌شود." : "Nextcloud ایمیل تعیین رمز عبور را برای او می‌فرستد.")</p>
+            }
+            else
+            {
+                <p>ظرفیت این پلن تکمیل است؛ برای افزودن عضو جدید ابتدا یک عضو را حذف کنید.</p>
+            }
         </section>
     }
 

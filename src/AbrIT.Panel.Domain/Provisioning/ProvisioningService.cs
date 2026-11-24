@@ -32,6 +32,15 @@ public interface IProvisioningService
     /// <exception cref="InvalidOrderTransitionException">The order is not <c>Failed</c>.</exception>
     /// <exception cref="ProvisioningAttemptsExhaustedException">MaxAttempts reached.</exception>
     Task<ProvisioningOutcome> RetryAsync(string orderId, string adminUserId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Admin-only: reads the order's account from Nextcloud (Mock: its in-memory state) and stores
+    /// <see cref="ProvisioningRequest.LastStatusSnapshot"/>. Never changes the order status. The outcome's request is
+    /// <c>null</c> when the order was never provisioned.
+    /// </summary>
+    /// <exception cref="OperatorNotAuthorizedException">Actor lacks <see cref="OperatorAction.RefreshExternalStatus"/>.</exception>
+    /// <exception cref="OrderNotFoundException">No such order.</exception>
+    Task<ProvisioningOutcome> RefreshStatusAsync(string orderId, string adminUserId, CancellationToken ct = default);
 }
 
 public sealed class ProvisioningAttemptsExhaustedException(int maxAttempts)
@@ -98,17 +107,62 @@ public sealed class ProvisioningService(
         }
     }
 
+    public async Task<ProvisioningOutcome> RefreshStatusAsync(string orderId, string adminUserId, CancellationToken ct = default)
+    {
+        if (string.IsNullOrEmpty(adminUserId)
+            || !await authorizer.IsAuthorizedAsync(adminUserId, OperatorAction.RefreshExternalStatus, ct))
+        {
+            throw new OperatorNotAuthorizedException(OperatorAction.RefreshExternalStatus);
+        }
+
+        await using (await orderLock.AcquireAsync(OrderService.LockKey(orderId), ct))
+        {
+            var order = await orders.GetAsync(orderId, ct) ?? throw new OrderNotFoundException(orderId);
+            var request = await requests.GetByOrderIdAsync(orderId, ct);
+            if (request is null)
+            {
+                return new(order, null);
+            }
+
+            var snapshot = new ExternalStatusSnapshot { Mode = provisioner.Mode };
+            try
+            {
+                if (await provisioner.GetUserAsync(request.ExternalUserId, ct) is { } user)
+                {
+                    snapshot.Found = true;
+                    snapshot.Enabled = user.Enabled;
+                    snapshot.QuotaBytes = user.QuotaBytes;
+                    snapshot.UsedBytes = user.UsedBytes;
+                    snapshot.Groups = [.. user.Groups ?? []];
+                }
+            }
+            catch (NextcloudConnectorException ex)
+            {
+                snapshot.ErrorCode = ErrorSanitizer.Sanitize(ex.ErrorCode);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException || !ct.IsCancellationRequested)
+            {
+                // Only a fixed code: transport exception messages may echo URLs or headers.
+                snapshot.ErrorCode = "connector_exception";
+            }
+
+            request.LastCheckedUtc = clock.UtcNow;
+            request.LastStatusSnapshot = snapshot;
+            await requests.SaveAsync(request, ct);
+            return new(order, request);
+        }
+    }
+
     private ProvisioningRequest CreateRequest(Order order)
     {
-        var externalUserId = ExternalIds.ExternalUserId(order);
         return new ProvisioningRequest
         {
             RequestId = ids.NewId(),
             OrderId = order.OrderId,
             IdempotencyKey = OrderService.LockKey(order.OrderId),
             Mode = provisioner.Mode,
-            ExternalUserId = externalUserId,
-            ExternalGroupId = order.PlanSnapshot.MaxUsers > 1 ? ExternalIds.TeamGroupId(externalUserId) : null,
+            ExternalUserId = ExternalIds.ExternalUserId(order),
+            ExternalGroupId = order.PlanSnapshot.MaxUsers > 1 ? ExternalIds.TeamGroupId(order) : null,
             QuotaBytes = ExternalIds.QuotaBytes(order.PlanSnapshot),
             Status = ProvisioningStatus.Pending,
             CreatedUtc = clock.UtcNow,
@@ -180,6 +234,16 @@ public sealed class ProvisioningService(
         if (!user.Succeeded)
         {
             return user;
+        }
+
+        // Create-with-groups is skipped by Nextcloud when the account already existed, so membership is ensured explicitly.
+        if (request.ExternalGroupId is { } ownerGroup)
+        {
+            var membership = await provisioner.AddUserToGroupAsync(request.ExternalUserId, ownerGroup, ct);
+            if (!membership.Succeeded)
+            {
+                return membership;
+            }
         }
 
         return await provisioner.SetQuotaAsync(request.ExternalUserId, request.QuotaBytes, ct);
