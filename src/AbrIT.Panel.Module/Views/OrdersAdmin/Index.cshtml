@@ -1,0 +1,102 @@
+@model AdminOrdersViewModel
+<div dir="rtl" lang="fa">
+    <h1>سفارش‌ها</h1>
+    <partial name="_Message" />
+    <form method="get" asp-area="AbrIT.Panel.Module" asp-controller="OrdersAdmin" asp-action="Index">
+        <label for="status">وضعیت</label>
+        <select id="status" name="status">
+            <option value="">همه</option>
+            @foreach (var status in Enum.GetValues<OrderStatus>())
+            {
+                <option value="@status" selected="@(Model.Filter == status)">@Labels.Status(status)</option>
+            }
+        </select>
+        <button type="submit" class="btn btn-sm btn-primary">فیلتر</button>
+    </form>
+    <p>@Model.Total سفارش</p>
+    <table class="table">
+        <thead><tr><th>شماره</th><th>مشتری</th><th>پلن</th><th>مبلغ</th><th>وضعیت</th><th>ثبت</th><th>عملیات</th></tr></thead>
+        <tbody>
+            @foreach (var row in Model.Rows)
+            {
+                var order = row.Order;
+                var request = row.Request;
+                <tr>
+                    <td><bdi>@order.OrderNumber</bdi></td>
+                    <td><bdi>@order.OwnerUserName</bdi></td>
+                    <td>@order.PlanSnapshot.Title</td>
+                    <td>@Labels.Price(order.AmountToman)</td>
+                    <td>@Labels.StatusHtml(order.Status, request?.Mode)</td>
+                    <td>@Labels.Date(order.CreatedUtc)</td>
+                    <td>
+                        @if (Model.CanManage && order.Status == OrderStatus.PendingPayment)
+                        {
+                            <form method="post" asp-area="AbrIT.Panel.Module" asp-controller="OrdersAdmin" asp-action="ApprovePayment" asp-route-orderId="@order.OrderId">
+                                <button type="submit" class="btn btn-sm btn-success">تأیید پرداخت آزمایشی</button>
+                            </form>
+                            <form method="post" asp-area="AbrIT.Panel.Module" asp-controller="OrdersAdmin" asp-action="Cancel" asp-route-orderId="@order.OrderId">
+                                <button type="submit" class="btn btn-sm btn-secondary">لغو</button>
+                            </form>
+                        }
+                        @if (Model.CanManage && order.Status == OrderStatus.Failed && request?.CanRetry == true)
+                        {
+                            <form method="post" asp-area="AbrIT.Panel.Module" asp-controller="OrdersAdmin" asp-action="Retry" asp-route-orderId="@order.OrderId">
+                                <button type="submit" class="btn btn-sm btn-warning">تلاش مجدد</button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="7">
+                        <details>
+                            <summary>جزئیات فعال‌سازی و تاریخچه</summary>
+                            @if (request is null)
+                            {
+                                <p>هنوز درخواست فعال‌سازی ثبت نشده است.</p>
+                            }
+                            else
+                            {
+                                <dl>
+                                    <dt>حالت اتصال</dt><dd><bdi>@request.Mode</bdi></dd>
+                                    <dt>شناسه کاربر خارجی</dt><dd><bdi>@request.ExternalUserId</bdi></dd>
+                                    @if (request.ExternalGroupId is not null)
+                                    {
+                                        <dt>گروه</dt><dd><bdi>@request.ExternalGroupId</bdi></dd>
+                                    }
+                                    <dt>سهمیه (بایت)</dt><dd><bdi>@request.QuotaBytes</bdi></dd>
+                                    <dt>وضعیت درخواست</dt><dd><bdi>@request.Status</bdi></dd>
+                                    <dt>تلاش‌ها</dt><dd><bdi>@request.Attempts/@request.MaxAttempts</bdi></dd>
+                                    <dt>آخرین تلاش</dt><dd>@Labels.Date(request.LastAttemptUtc)</dd>
+                                    @if (request.LastErrorCode is not null)
+                                    {
+                                        <dt>آخرین خطا</dt><dd><bdi>@request.LastErrorCode: @request.LastErrorMessage</bdi></dd>
+                                    }
+                                </dl>
+                            }
+                            <ol>
+                                @foreach (var change in order.History)
+                                {
+                                    <li>@Labels.Date(change.AtUtc): @Labels.Status(change.From) ← @Labels.Status(change.To) (<bdi>@Labels.Actor(change.ActorUserId)</bdi>) @change.Note</li>
+                                }
+                            </ol>
+                        </details>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    @if (Model.PageCount > 1)
+    {
+        <nav>
+            @if (Model.Page > 1)
+            {
+                <a asp-area="AbrIT.Panel.Module" asp-controller="OrdersAdmin" asp-action="Index" asp-route-status="@Model.Filter" asp-route-page="@(Model.Page - 1)">قبلی</a>
+            }
+            <span>صفحه @Model.Page از @Model.PageCount</span>
+            @if (Model.Page < Model.PageCount)
+            {
+                <a asp-area="AbrIT.Panel.Module" asp-controller="OrdersAdmin" asp-action="Index" asp-route-status="@Model.Filter" asp-route-page="@(Model.Page + 1)">بعدی</a>
+            }
+        </nav>
+    }
+</div>
