@@ -1,15 +1,106 @@
-@model PlanCard
-<div dir="rtl" lang="fa">
-    <h1>بررسی و تأیید سفارش</h1>
-    <dl>
-        <dt>پلن</dt><dd>@Model.Title</dd>
-        <dt>فضا برای هر کاربر</dt><dd>@Labels.Quota(Model.QuotaPerUserMB)</dd>
-        <dt>تعداد کاربر</dt><dd>@Model.MaxUsers</dd>
-        <dt>مبلغ ماهانه</dt><dd>@Labels.Price(Model.PriceToman)</dd>
-    </dl>
-    <p>پرداخت در این نسخه آزمایشی است: پس از ثبت، سفارش «در انتظار تأیید پرداخت» می‌ماند تا مدیر آن را تأیید کند.</p>
-    <form asp-area="AbrIT.Panel.Module" asp-controller="Orders" asp-action="New" asp-route-plan="@Model.ContentItemId" method="post">
-        <button type="submit">ثبت سفارش</button>
-    </form>
-    <p><a asp-area="AbrIT.Panel.Module" asp-controller="Services" asp-action="Drive">انصراف</a></p>
+@model OrderReviewViewModel
+@{
+    var plan = Model.Plan;
+    var team = plan.MaxUsers > 1;
+    var serviceTitle = Model.ServiceTitle ?? "AbrIT Drive";
+    RenderTitleSegments(new HtmlString("بازبینی و ثبت سفارش"));
+    ViewData["AbrNav"] = "orders";
+    ViewData["AbrArt"] = "cloud-folder";
+    var servicesUrl = Url.Action("Index", "Services", new { area = "AbrIT.Panel.Module" });
+    var driveUrl = Url.Action("Drive", "Services", new { area = "AbrIT.Panel.Module" });
+    var totalMb = (long)plan.QuotaPerUserMB * Math.Max(1, plan.MaxUsers);
+    var period = plan.BillingPeriod == "Monthly" ? "ماه" : Labels.BillingPeriod(plan.BillingPeriod);
+
+    var flow = new FlowModel(
+        "بعد از ثبت سفارش چه می‌شود؟",
+        [
+            new FlowStep("clipboard", "بررسی و تأیید پرداخت", "پرداخت آزمایشی شما توسط مدیر سیستم تأیید می‌شود."),
+            new FlowStep("gear", "فعال‌سازی سرویس", "حساب شما در Nextcloud (یا حالت آزمایشی Mock) ایجاد و تنظیم می‌شود."),
+            new FlowStep("mail", "نمایش اطلاعات دسترسی در داشبورد", "نام کاربری، فضا و راهنمای تعیین رمز عبور در داشبورد نمایش داده می‌شود."),
+            new FlowStep("check-circle", "شروع استفاده", "می‌توانید از فضای ابری خود استفاده کنید."),
+        ],
+        Icon: "rocket");
+}
+<div class="abr-page">
+    @await DisplayAsync(await New.AbrPageHeader(
+        Title: "بازبینی و ثبت سفارش",
+        Subtitle: "مشخصات سفارش خود را بررسی کنید و در صورت تأیید، سفارش را ثبت کنید.",
+        Crumbs: new[] { new Crumb("سرویس‌ها", servicesUrl), new Crumb(serviceTitle, driveUrl), new Crumb("ثبت سفارش") }))
+
+    <div class="abr-container abr-stepbar">
+        @await DisplayAsync(await New.AbrStepper(
+            Label: "مراحل سفارش",
+            Steps: new[]
+            {
+                new StepItem("انتخاب پلن", StepState.Done),
+                new StepItem("بازبینی و ثبت سفارش", StepState.Current),
+                new StepItem("نتیجه‌ی سفارش", StepState.Upcoming),
+            }))
+    </div>
+
+    <section class="abr-container abr-review" aria-labelledby="abr-review-title">
+        <div class="abr-review__grid">
+            <div class="abr-review__main">
+                <h2 class="abr-container__title abr-titleicon" id="abr-review-title">@Icons.Svg("clipboard", 26) خلاصه‌ی سفارش</h2>
+                <dl class="abr-summary">
+                    <div><dt>سرویس</dt><dd>@Icons.Svg("cloud", 22)<bdi>@serviceTitle</bdi></dd></div>
+                    <div>
+                        <dt>پلن</dt>
+                        <dd>
+                            @Icons.Svg(team ? "users" : "user", 22)<bdi>@plan.Title</bdi>
+                            @if (team)
+                            {
+                                <span class="abr-badge abr-badge--plain">@Icons.Svg("star", 14) پیشنهاد برای تیم‌ها</span>
+                            }
+                        </dd>
+                    </div>
+                    <div><dt>دوره‌ی اشتراک</dt><dd>@Icons.Svg("calendar", 22)@Labels.BillingPeriod(plan.BillingPeriod)</dd></div>
+                    <div>
+                        <dt>ظرفیت</dt>
+                        <dd>
+                            @Icons.Svg("layers", 22)
+                            @if (team)
+                            {
+                                <span>@Labels.Digits(plan.MaxUsers) کاربر × @Labels.Quota(plan.QuotaPerUserMB) (مجموع @Labels.Quota(totalMb))</span>
+                            }
+                            else
+                            {
+                                <span>@Labels.Digits(plan.MaxUsers) کاربر — @Labels.Quota(plan.QuotaPerUserMB)</span>
+                            }
+                        </dd>
+                    </div>
+                    <div>
+                        <dt>مالک سفارش</dt>
+                        <dd>
+                            @Icons.Svg("user", 22)<bdi>@Model.OwnerName</bdi>
+                            @if (!string.IsNullOrEmpty(Model.OwnerEmail))
+                            {
+                                <bdi class="ltr abr-muted">(@Model.OwnerEmail)</bdi>
+                            }
+                        </dd>
+                    </div>
+                </dl>
+                <div class="abr-amount">
+                    <span class="abr-amount__label">@Icons.Svg("card", 24) مبلغ قابل پرداخت (آزمایشی)</span>
+                    <span class="abr-amount__value"><b>@Labels.Amount(plan.PriceToman)</b> تومان / @period</span>
+                </div>
+            </div>
+            <aside class="abr-review__art" aria-hidden="true">
+                <img src="~/AbrIT.Theme/img/cloud-folder.webp" alt="" width="900" height="700" decoding="async" />
+                <strong><bdi>@serviceTitle</bdi></strong>
+                <span>فضای ابری امن برای ذخیره، اشتراک‌گذاری و دسترسی آسان به فایل‌های سازمانی.</span>
+            </aside>
+        </div>
+
+        @await DisplayAsync(await New.AbrAlert(
+            Kind: "info",
+            Body: "پرداخت در این نسخه آزمایشی است: پس از ثبت، سفارش «در انتظار تأیید پرداخت» می‌ماند تا مدیر آن را تأیید کند."))
+
+        <form class="abr-review__actions" data-abr-once asp-area="AbrIT.Panel.Module" asp-controller="Orders" asp-action="New" asp-route-plan="@plan.ContentItemId" method="post">
+            <button type="submit" class="abr-btn abr-btn--primary abr-btn--lg">@Icons.Svg("check", 20) ثبت سفارش</button>
+            <a class="abr-btn abr-btn--normal abr-btn--lg" href="@driveUrl">@Icons.Svg("close", 20) انصراف</a>
+        </form>
+    </section>
+
+    <partial name="_Flow" model="flow" />
 </div>

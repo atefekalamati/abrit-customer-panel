@@ -78,4 +78,13 @@
     input.addEventListener('input', check);
     check();
   });
+
+  // ---- Single-submit forms (order placement): disable the button after the first submit ----
+  document.querySelectorAll('form[data-abr-once]').forEach(function (form) {
+    form.addEventListener('submit', function () {
+      form.querySelectorAll('button[type=submit]').forEach(function (b) {
+        window.setTimeout(function () { b.disabled = true; b.setAttribute('aria-busy', 'true'); }, 0);
+      });
+    });
+  });
 })();

@@ -1,0 +1,35 @@
+@model FlowModel
+@* «چطور کار می‌کند؟» flow: numbered step cards with arrows (desktop) → stacked list (phones). *@
+<section class="abr-container abr-flow" aria-labelledby="abr-flow-@Model.Icon">
+    <div class="abr-flow__head">
+        <span class="abr-flow__icon">@Icons.Svg(Model.Icon, 30)</span>
+        <div>
+            <h2 class="abr-container__title" id="abr-flow-@Model.Icon">@Model.Title</h2>
+            @if (!string.IsNullOrEmpty(Model.Description))
+            {
+                <p class="abr-container__desc">@Model.Description</p>
+            }
+        </div>
+    </div>
+    <div class="abr-flow__body">
+        <ol class="abr-flow__steps">
+            @for (var i = 0; i < Model.Steps.Count; i++)
+            {
+                var step = Model.Steps[i];
+                <li class="abr-flow__step">
+                    <span class="abr-flow__n" aria-hidden="true">@Labels.Digits(i + 1)</span>
+                    @Icons.Svg(step.Icon, 32, "abr-flow__ico")
+                    <strong>@step.Title</strong>
+                    @if (!string.IsNullOrEmpty(step.Note))
+                    {
+                        <span>@step.Note</span>
+                    }
+                </li>
+            }
+        </ol>
+        @if (Model.Art is { } art)
+        {
+            <img class="abr-flow__art" src="@Url.Content($"~/AbrIT.Theme/img/{art}.webp")" alt="" width="900" height="586" loading="lazy" decoding="async" />
+        }
+    </div>
+</section>

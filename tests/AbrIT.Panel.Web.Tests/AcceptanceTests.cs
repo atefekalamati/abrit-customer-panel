@@ -1,3 +1,4 @@
+using AbrIT.Panel.Module.Display;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -75,6 +76,26 @@ public sealed partial class AcceptanceTests(SharedPanelHost shared)
     }
 
     [Fact]
+    public async Task AC01_Register_RejectsPasswordShorterThan8_AndShowsRule()
+    {
+        var userName = $"it-short-{Guid.NewGuid().ToString("N")[..8]}";
+        using var client = new PanelClient(Host.CreatePanelClient());
+        Assert.Contains("حداقل ۸ کاراکتر", (await client.GetAsync("/Register")).Text);
+
+        const string sevenChars = "Ab1!xyz";
+        var register = await client.SubmitFormAsync("/Register", "/Register", new Dictionary<string, string>
+        {
+            ["UserName"] = userName,
+            ["Email"] = $"{userName}@example.test",
+            ["Password"] = sevenChars,
+            ["ConfirmPassword"] = sevenChars,
+        });
+
+        Assert.False(PanelClient.IsRedirect(register), "a 7-character password must not create an account");
+        Assert.Contains("رمز عبور باید حداقل", await register.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
     public async Task AC02_CustomerA_OrdersStarter_IsPendingPayment_WithOwnerAndAmount()
     {
         using var customerA = await Host.LoginAsync(PanelHost.CustomerA, PanelHost.CustomerAPassword);
@@ -124,8 +145,7 @@ public sealed partial class AcceptanceTests(SharedPanelHost shared)
         Assert.Equal(OneGiB, account.QuotaBytes);
 
         var page = await customerA.GetAsync($"/dashboard/orders/{orderId}");
-        Assert.Contains("فعال آزمایشی", page.Text);
-        Assert.Contains("(Mock)", page.Text);
+        Assert.Contains(Labels.ActiveMockHtml, page.Text);
         Assert.Contains(request.ExternalUserId, page.Text);
     }
 
@@ -198,7 +218,7 @@ public sealed partial class AcceptanceTests(SharedPanelHost shared)
             var request = await Host.GetProvisioningRequestAsync(orderId);
             Assert.Equal(ProvisioningStatus.Succeeded, request!.Status);
             Assert.Equal(2, request.Attempts);
-            Assert.Contains("فعال آزمایشی", (await customerA.GetAsync($"/dashboard/orders/{orderId}")).Text);
+            Assert.Contains(Labels.ActiveMockHtml, (await customerA.GetAsync($"/dashboard/orders/{orderId}")).Text);
         }
         finally
         {

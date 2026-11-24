@@ -52,7 +52,8 @@ Rules:
 | Token | Size / line | Weight | Use |
 |---|---|---|---|
 | display | 32 / 44 | 700 | prices, stat numbers |
-| h1 | 28 / 42 (mobile 22 / 34) | 700 | page title, one per page |
+| h1 | 34 / 50 (mobile 24 / 36) | 800 | page title, one per page |
+| card-title | 26 / 40 | 800 | auth / hero card titles |
 | h2 | 20 / 32 | 700 | section, plan name |
 | h3 | 18 / 28 | 700 | container title |
 | body | **15 / 26** | 400 | default text |

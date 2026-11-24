@@ -130,7 +130,7 @@ PendingPayment ──approve(admin)──▶ Paid ──start──▶ Provision
 
 Persian labels: PendingPayment «در انتظار تأیید پرداخت», Paid «پرداخت‌شده», Provisioning «در حال فعال‌سازی»,
 Active «فعال», Failed «خطا در فعال‌سازی», Cancelled «لغوشده». In Mock mode Active is shown as
-«فعال آزمایشی (Mock)» (wrap "(Mock)" in <bdi>) — **never** as a real active service (spec §7).
+«فعال (آزمایشی – Mock)» (wrap "Mock" in <bdi>) — **never** as a real active service (spec §7).
 
 ## 5. Services (Domain)
 

@@ -47,7 +47,7 @@ Bootstrap 5 RTL mapping: `--bs-primary: var(--abr-primary)`, `--bs-body-bg: var(
 | TopNav `.abr-nav` | theme `Layout.cshtml` | dark bar; brand on the right; burger below 640px |
 | Footer `.abr-footer` | `Layout.cshtml` | "محیط ارزیابی" note always visible |
 | Button `.abr-btn--primary/normal/link/danger` | tag helper or plain class | one Primary per page |
-| StatusBadge `.abr-badge[data-status]` | `_StatusBadge.cshtml(OrderStatus, ProvisionerMode)` | Active + Mock → `ActiveMock` «فعال آزمایشی <bdi>(Mock)</bdi>»; `Active` only when Mode=Real succeeded |
+| StatusBadge `.abr-badge[data-status]` | `_StatusBadge.cshtml(OrderStatus, ProvisionerMode)` | Active + Mock → `ActiveMock` «فعال (آزمایشی – <bdi>Mock</bdi>)»; `Active` only when Mode=Real succeeded |
 | Container `.abr-container` | `_Container.cshtml` (title, desc, actions slot) | |
 | KeyValue `.abr-kv-grid` / `.abr-kv` | `_KeyValueGrid.cshtml` | 3 cols desktop, 2 mobile |
 | Alert `.abr-alert--info/error/mock/success` | `_Alert.cshtml` | error uses `role="alert"` |
