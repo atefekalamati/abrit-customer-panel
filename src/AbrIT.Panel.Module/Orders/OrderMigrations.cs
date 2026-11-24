@@ -1,4 +1,5 @@
 using AbrIT.Panel.Module.Provisioning;
+using AbrIT.Panel.Module.Workspaces;
 using OrchardCore.Data.Migration;
 using YesSql.Sql;
 
@@ -26,13 +27,29 @@ public sealed class OrderMigrations : DataMigration
         });
 
         await CreateProvisioningRequestIndexAsync();
-        return 2;
+        await CreateTeamWorkspaceIndexAsync();
+        return 3;
     }
 
     public async Task<int> UpdateFrom1Async()
     {
         await CreateProvisioningRequestIndexAsync();
         return 2;
+    }
+
+    public async Task<int> UpdateFrom2Async()
+    {
+        await CreateTeamWorkspaceIndexAsync();
+        return 3;
+    }
+
+    private async Task CreateTeamWorkspaceIndexAsync()
+    {
+        await SchemaBuilder.CreateMapIndexTableAsync<TeamWorkspaceIndex>(table => table
+            .Column<string>(nameof(TeamWorkspaceIndex.OrderId), c => c.WithLength(IdLength)));
+
+        await SchemaBuilder.AlterIndexTableAsync<TeamWorkspaceIndex>(table =>
+            table.CreateIndex("IDX_TeamWorkspaceIndex_OrderId", "DocumentId", nameof(TeamWorkspaceIndex.OrderId)));
     }
 
     private async Task CreateProvisioningRequestIndexAsync()

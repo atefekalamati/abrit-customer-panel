@@ -73,6 +73,16 @@
                                     }
                                 </dl>
                             }
+                            @if (row.Workspace is { } team)
+                            {
+                                <p>اعضای فضای تیمی (<bdi>@team.SeatsUsed/@team.SeatLimit</bdi>):</p>
+                                <ul>
+                                    @foreach (var member in team.Members)
+                                    {
+                                        <li><bdi>@member.MemberNumber · @member.Email · @member.ExternalUserId</bdi> – @Labels.MemberStatus(member.Status)@if (member.LastErrorCode is not null) { <bdi> (@member.LastErrorCode)</bdi> }</li>
+                                    }
+                                </ul>
+                            }
                             <ol>
                                 @foreach (var change in order.History)
                                 {

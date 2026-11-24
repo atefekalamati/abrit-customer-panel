@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using AbrIT.Panel.Domain.Orders;
 using AbrIT.Panel.Domain.Provisioning;
+using AbrIT.Panel.Domain.Workspaces;
 using AbrIT.Panel.Module.Catalog;
 using AbrIT.Panel.Module.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -56,7 +57,11 @@ public sealed class OrdersController(CatalogReader catalog, IOrderService orders
 }
 
 [Authorize]
-public sealed class DashboardController(IOrderService orders, IProvisioningRequestRepository requests) : Controller
+public sealed class DashboardController(
+    IOrderService orders,
+    IProvisioningRequestRepository requests,
+    ITeamWorkspaceService workspaces,
+    ILogger<DashboardController> logger) : Controller
 {
     [HttpGet]
     public async Task<IActionResult> Index() => View(await orders.ListForOwnerAsync(User.UserId()));
@@ -71,7 +76,71 @@ public sealed class DashboardController(IOrderService orders, IProvisioningReque
             return NotFound();
         }
 
-        return View(new CustomerOrderViewModel(order, await requests.GetByOrderIdAsync(order.OrderId)));
+        return View(new CustomerOrderViewModel(
+            order,
+            await requests.GetByOrderIdAsync(order.OrderId),
+            await workspaces.GetForOwnerAsync(User.UserId(), order.OrderId)));
+    }
+
+    /// <summary>Team workspace (bonus §12): owner-only, Active Team orders only; anything else is 404.</summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public Task<IActionResult> AddMember(string orderId, string? email) =>
+        RunWorkspaceAsync(orderId, async userId =>
+        {
+            var member = await workspaces.AddMemberAsync(userId, orderId, email ?? string.Empty);
+            if (member is not null)
+            {
+                logger.LogInformation("Workspace member {MemberNumber} added to order {OrderId}", member.MemberNumber, orderId);
+                TempData["AbrMessage"] = "عضو جدید به فضای تیمی اضافه شد.";
+            }
+
+            return member is not null;
+        });
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public Task<IActionResult> RemoveMember(string orderId, int memberNumber) =>
+        RunWorkspaceAsync(orderId, async userId =>
+        {
+            var member = await workspaces.RemoveMemberAsync(userId, orderId, memberNumber);
+            if (member is not null)
+            {
+                logger.LogInformation("Workspace member {MemberNumber} removed from order {OrderId}", memberNumber, orderId);
+                TempData["AbrMessage"] = "عضو از فضای تیمی حذف و حساب او غیرفعال شد.";
+            }
+
+            return member is not null;
+        });
+
+    private async Task<IActionResult> RunWorkspaceAsync(string orderId, Func<string, Task<bool>> action)
+    {
+        try
+        {
+            if (!await action(User.UserId()))
+            {
+                return NotFound();
+            }
+        }
+        catch (WorkspaceException ex)
+        {
+            if (ex.Error == WorkspaceError.ConnectorFailed)
+            {
+                logger.LogWarning("Workspace action on order {OrderId} failed: {ErrorCode}", orderId, ex.ConnectorErrorCode);
+            }
+
+            TempData["AbrMessage"] = ex.Error switch
+            {
+                WorkspaceError.NotAvailable => "مدیریت اعضا فقط برای سفارش تیمی فعال امکان‌پذیر است.",
+                WorkspaceError.InvalidEmail => "نشانی ایمیل معتبر نیست.",
+                WorkspaceError.DuplicateEmail => "این ایمیل قبلاً در این فضای تیمی ثبت شده است.",
+                WorkspaceError.SeatLimitReached => "ظرفیت اعضای این پلن تکمیل است.",
+                WorkspaceError.MemberNotFound => "عضو موردنظر پیدا نشد.",
+                _ => "ارتباط با سرویس درایو ناموفق بود؛ تغییری اعمال نشد. بعداً دوباره تلاش کنید.",
+            };
+        }
+
+        return RedirectToAction(nameof(Order), new { orderId });
     }
 
     [HttpPost]
