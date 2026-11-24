@@ -21,6 +21,7 @@ Format: `D-xx | decision | why | status`. Add new entries; never silently change
 | A-12 | Email confirmation on registration is off in the demo; password reset email goes to smtp4dev. | Keeps AC-01 testable locally. |
 | A-13 | Order number = `ABR-{Jalali year}-{6-digit sequence}` (e.g. `ABR-1405-000124`); the Jalali year comes from `UtcNow` via `PersianCalendar` and the sequence restarts at 1 each Jalali year. Allocation is serialized by a per-year lock and committed immediately, so numbers are unique but may have gaps if an order save fails afterwards. | Human-readable and sortable; gaps are harmless, duplicates are not. Using UTC means the year can roll over up to 3.5h off Tehran's Nowruz midnight - acceptable for a demo. |
 | A-14 | Ordering an unknown plan id and ordering a plan with `IsOrderable=false` both fail with the same `PlanNotOrderableException`. | Input validation without revealing which ids exist. |
+| A-15 | In Mock mode the customer's access info shows no Drive URL; the «آدرس درایو» row reads «در حالت آزمایشی آدرس واقعی وجود ندارد». Real mode points to the Nextcloud welcome email / configured instance. | A fake URL would imply a real account exists (spec §7: Mock must never look like a real activation). |
 
 ## Technical decisions
 
