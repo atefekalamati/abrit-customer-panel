@@ -31,3 +31,6 @@ Thumbs.db
 src/AbrIT.Panel.Web/Localization/
 
 .claude/settings.local.json
+
+# Python virtual environments (local helper scripts)
+.venv/
