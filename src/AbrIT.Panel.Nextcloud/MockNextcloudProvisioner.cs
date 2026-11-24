@@ -97,9 +97,14 @@ public sealed class MockNextcloudProvisioner(int failNextCalls = 0) : INextcloud
         return Task.FromResult(ProvisionResult.Ok());
     }
 
+    /// <remarks>The mock stores no files, so <c>UsedBytes</c> is always 0. Reads do not consume injected failures.</remarks>
     public Task<ExternalUserStatus?> GetUserAsync(string externalUserId, CancellationToken ct) =>
         Task.FromResult(_users.TryGetValue(externalUserId, out var user)
-            ? user with { Groups = [.. _memberships.Keys.Where(k => k.User == externalUserId).Select(k => k.Group).Order(StringComparer.Ordinal)] }
+            ? user with
+            {
+                UsedBytes = 0,
+                Groups = [.. _memberships.Keys.Where(k => k.User == externalUserId).Select(k => k.Group).Order(StringComparer.Ordinal)],
+            }
             : null);
 
     public Task<ProvisionResult> EnsureGroupAsync(string groupId, CancellationToken ct)

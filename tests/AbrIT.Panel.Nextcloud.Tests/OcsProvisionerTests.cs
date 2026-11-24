@@ -316,7 +316,7 @@ public class OcsProvisionerTests
     public async Task GetUser_parses_quota_enabled_and_groups()
     {
         var (sut, _, _) = Create(Always(() => FakeOcsHandler.Ocs(
-            100, """{"id":"u","enabled":false,"quota":{"quota":524288000,"used":1},"groups":["abrit-team-1405-000001"]}""")));
+            100, """{"id":"u","enabled":false,"quota":{"quota":524288000,"used":12345,"free":1},"groups":["abrit-team-1405-000001"]}""")));
 
         var user = await sut.GetUserAsync("u", default);
 
@@ -324,6 +324,42 @@ public class OcsProvisionerTests
         Assert.Equal(524_288_000, user.QuotaBytes);
         Assert.False(user.Enabled);
         Assert.Equal(["abrit-team-1405-000001"], user.Groups);
+        Assert.Equal(12_345, user.UsedBytes);
+    }
+
+    [Fact]
+    public async Task GetUser_unlimited_quota_is_null()
+    {
+        var (sut, _, _) = Create(Always(() => FakeOcsHandler.Ocs(100, """{"id":"u","enabled":true,"quota":{"quota":"none","used":0}}""")));
+
+        var user = await sut.GetUserAsync("u", default);
+
+        Assert.Null(user!.QuotaBytes);
+        Assert.Equal(0, user.UsedBytes);
+        Assert.True(user.Enabled);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.Unauthorized, "NC_AUTH")]
+    [InlineData(HttpStatusCode.ServiceUnavailable, "NC_HTTP_503")]
+    public async Task GetUser_read_failure_throws_sanitized_code_not_null(HttpStatusCode status, string expected)
+    {
+        var (sut, _, _) = Create(Always(() => new HttpResponseMessage(status) { Content = new StringContent(AppPassword) }));
+
+        var ex = await Assert.ThrowsAsync<NextcloudConnectorException>(() => sut.GetUserAsync("u", default));
+
+        Assert.Equal(expected, ex.ErrorCode);
+        AssertNoSecret(ex.Message);
+    }
+
+    [Fact]
+    public async Task GetUser_unexpected_ocs_code_throws()
+    {
+        var (sut, _, _) = Create(Always(() => FakeOcsHandler.Ocs(997)));
+
+        var ex = await Assert.ThrowsAsync<NextcloudConnectorException>(() => sut.GetUserAsync("u", default));
+
+        Assert.Equal("NC_OCS_997", ex.ErrorCode);
     }
 
     [Fact]

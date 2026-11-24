@@ -83,6 +83,7 @@ public sealed class Startup : StartupBase
         Map(routes, "AbrIT.Admin.Orders", $"{admin}/AbrIT/Orders", "OrdersAdmin", "Index");
         Map(routes, "AbrIT.Admin.Orders.Approve", $"{admin}/AbrIT/Orders/{{orderId}}/ApprovePayment", "OrdersAdmin", "ApprovePayment");
         Map(routes, "AbrIT.Admin.Orders.Retry", $"{admin}/AbrIT/Orders/{{orderId}}/Retry", "OrdersAdmin", "Retry");
+        Map(routes, "AbrIT.Admin.Orders.RefreshStatus", $"{admin}/AbrIT/Orders/{{orderId}}/RefreshStatus", "OrdersAdmin", "RefreshStatus");
         Map(routes, "AbrIT.Admin.Orders.Cancel", $"{admin}/AbrIT/Orders/{{orderId}}/Cancel", "OrdersAdmin", "Cancel");
         Map(routes, "AbrIT.Admin.Provisioning", $"{admin}/AbrIT/Provisioning", "ProvisioningAdmin", "Index");
         Map(routes, "AbrIT.Admin.Provisioning.Mock", $"{admin}/AbrIT/Provisioning/MockFailures", "ProvisioningAdmin", "SetMockFailures");

@@ -53,7 +53,31 @@ public sealed class ProvisioningRequest
     /// <summary>Always passed through <see cref="ErrorSanitizer"/> before being stored.</summary>
     public string? LastErrorMessage { get; set; }
 
+    /// <summary>Last admin "refresh status from Nextcloud" (bonus §12: reading status from the API).</summary>
+    public DateTime? LastCheckedUtc { get; set; }
+
+    public ExternalStatusSnapshot? LastStatusSnapshot { get; set; }
+
     public bool CanRetry => Status == ProvisioningStatus.Failed && Attempts < MaxAttempts;
+}
+
+/// <summary>What Nextcloud reported for the order's (owner) account at <see cref="ProvisioningRequest.LastCheckedUtc"/>.</summary>
+public sealed class ExternalStatusSnapshot
+{
+    public ProvisionerMode Mode { get; set; }
+
+    public bool Found { get; set; }
+
+    public bool? Enabled { get; set; }
+
+    public long? QuotaBytes { get; set; }
+
+    public long? UsedBytes { get; set; }
+
+    public List<string> Groups { get; set; } = [];
+
+    /// <summary>Sanitized code when the read failed; then the other fields are empty.</summary>
+    public string? ErrorCode { get; set; }
 }
 
 /// <summary>Deterministic external identifiers (DECISIONS A-06).</summary>

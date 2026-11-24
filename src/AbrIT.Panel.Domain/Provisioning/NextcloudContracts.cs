@@ -21,7 +21,16 @@ public sealed record ProvisionResult(bool Succeeded, bool AlreadyExisted, string
     public static ProvisionResult Error(string code, string message) => new(false, false, code, message);
 }
 
-public sealed record ExternalUserStatus(string ExternalUserId, long? QuotaBytes, bool Enabled, IReadOnlyList<string>? Groups = null);
+/// <summary>Account state read from Nextcloud. <see cref="QuotaBytes"/> <c>null</c> = unlimited / unknown.</summary>
+public sealed record ExternalUserStatus(
+    string ExternalUserId, long? QuotaBytes, bool Enabled, IReadOnlyList<string>? Groups = null, long? UsedBytes = null);
+
+/// <summary>A read failed (as opposed to "account does not exist"). <see cref="ErrorCode"/> is a sanitized code.</summary>
+public sealed class NextcloudConnectorException(string errorCode)
+    : InvalidOperationException($"Nextcloud call failed ({errorCode}).")
+{
+    public string ErrorCode { get; } = errorCode;
+}
 
 /// <summary>Nextcloud account provisioning (AGENTS.md §6). Implementations: Mock (in-memory) and Real (OCS API).</summary>
 public interface INextcloudProvisioner
@@ -32,6 +41,8 @@ public interface INextcloudProvisioner
 
     Task<ProvisionResult> SetQuotaAsync(string externalUserId, long quotaBytes, CancellationToken ct);
 
+    /// <summary>Returns <c>null</c> when the account does not exist.</summary>
+    /// <exception cref="NextcloudConnectorException">Nextcloud could not be read (auth, network, timeout, ...).</exception>
     Task<ExternalUserStatus?> GetUserAsync(string externalUserId, CancellationToken ct);
 
     Task<ProvisionResult> EnsureGroupAsync(string groupId, CancellationToken ct);

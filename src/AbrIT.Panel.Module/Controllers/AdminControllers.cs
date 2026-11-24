@@ -79,6 +79,21 @@ public sealed class OrdersAdminController(
     public Task<IActionResult> Retry(string orderId) =>
         RunAsync(orderId, "تلاش مجدد", async adminId => (await provisioning.RetryAsync(orderId, adminId)).Order.Status);
 
+    /// <summary>Bonus §12: read the account's state from Nextcloud (Mock: in-memory) and store a snapshot.</summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public Task<IActionResult> RefreshStatus(string orderId) =>
+        RunAsync(orderId, "به‌روزرسانی وضعیت از Nextcloud", async adminId =>
+        {
+            var outcome = await provisioning.RefreshStatusAsync(orderId, adminId);
+            if (outcome.Request?.LastStatusSnapshot?.ErrorCode is { } code)
+            {
+                logger.LogWarning("Status refresh for order {OrderId} failed: {ErrorCode}", orderId, code);
+            }
+
+            return outcome.Order.Status;
+        });
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public Task<IActionResult> Cancel(string orderId) =>

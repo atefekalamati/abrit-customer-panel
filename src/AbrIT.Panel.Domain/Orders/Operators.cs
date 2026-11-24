@@ -6,6 +6,9 @@ public enum OperatorAction
     ApprovePayment,
     RetryProvisioning,
     CancelOrder,
+
+    /// <summary>Read the account state from Nextcloud and store a snapshot.</summary>
+    RefreshExternalStatus,
 }
 
 /// <summary>Decides whether a back-office actor may perform an action (module: Orchard <c>IAuthorizationService</c>).</summary>

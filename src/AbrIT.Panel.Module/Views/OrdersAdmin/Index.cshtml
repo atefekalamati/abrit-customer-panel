@@ -71,7 +71,32 @@
                                     {
                                         <dt>آخرین خطا</dt><dd><bdi>@request.LastErrorCode: @request.LastErrorMessage</bdi></dd>
                                     }
+                                    <dt>آخرین بررسی وضعیت</dt><dd>@(request.LastCheckedUtc is null ? "هنوز بررسی نشده" : Labels.Date(request.LastCheckedUtc))</dd>
+                                    @if (request.LastStatusSnapshot is { } snap)
+                                    {
+                                        <dt>وضعیت در Nextcloud <bdi>(@snap.Mode)</bdi></dt>
+                                        <dd>
+                                            @if (snap.ErrorCode is not null)
+                                            {
+                                                <span>خواندن ناموفق: <bdi>@snap.ErrorCode</bdi></span>
+                                            }
+                                            else if (!snap.Found)
+                                            {
+                                                <span>حساب پیدا نشد</span>
+                                            }
+                                            else
+                                            {
+                                                <span>@(snap.Enabled == true ? "فعال" : "غیرفعال") – سهمیه: <bdi>@(snap.QuotaBytes?.ToString() ?? "نامحدود")</bdi> بایت – مصرف: <bdi>@(snap.UsedBytes?.ToString() ?? "-")</bdi> بایت – گروه‌ها: <bdi>@(snap.Groups.Count == 0 ? "-" : string.Join(", ", snap.Groups))</bdi></span>
+                                            }
+                                        </dd>
+                                    }
                                 </dl>
+                                @if (Model.CanManage)
+                                {
+                                    <form method="post" asp-area="AbrIT.Panel.Module" asp-controller="OrdersAdmin" asp-action="RefreshStatus" asp-route-orderId="@order.OrderId">
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary">به‌روزرسانی وضعیت از Nextcloud</button>
+                                    </form>
+                                }
                             }
                             @if (row.Workspace is { } team)
                             {

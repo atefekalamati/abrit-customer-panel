@@ -115,23 +115,42 @@ public sealed class OcsNextcloudProvisioner : INextcloudProvisioner
     public async Task<ExternalUserStatus?> GetUserAsync(string externalUserId, CancellationToken ct)
     {
         var response = await SendAsync(HttpMethod.Get, UserPath(externalUserId), null, ct);
-        if (response.Error is not null || response.StatusCode != OcsOk || response.Data is not { ValueKind: JsonValueKind.Object } data)
+        if (response.Error is { } error)
+        {
+            throw new NextcloudConnectorException(error.ErrorCode ?? "NC_ERROR");
+        }
+
+        if (response.StatusCode is OcsNotFound or OcsUserNotFoundOnCreate)
         {
             return null;
         }
 
-        long? quota = null;
-        if (data.TryGetProperty("quota", out var q) && q.ValueKind == JsonValueKind.Object
-            && q.TryGetProperty("quota", out var qv) && qv.ValueKind == JsonValueKind.Number && qv.TryGetInt64(out var bytes) && bytes >= 0)
+        if (response.StatusCode != OcsOk || response.Data is not { ValueKind: JsonValueKind.Object } data)
         {
-            quota = bytes;
+            throw new NextcloudConnectorException(response.StatusCode == OcsOk ? "NC_BAD_RESPONSE" : $"NC_OCS_{response.StatusCode}");
+        }
+
+        // quota.quota: bytes (negative or a string = unlimited); quota.used: bytes in use.
+        long? quota = null;
+        long? used = null;
+        if (data.TryGetProperty("quota", out var q) && q.ValueKind == JsonValueKind.Object)
+        {
+            if (q.TryGetProperty("quota", out var qv) && qv.ValueKind == JsonValueKind.Number && qv.TryGetInt64(out var bytes) && bytes >= 0)
+            {
+                quota = bytes;
+            }
+
+            if (q.TryGetProperty("used", out var uv) && uv.ValueKind == JsonValueKind.Number && uv.TryGetInt64(out var usedBytes) && usedBytes >= 0)
+            {
+                used = usedBytes;
+            }
         }
 
         var enabled = !data.TryGetProperty("enabled", out var e) || e.ValueKind != JsonValueKind.False;
         var groups = data.TryGetProperty("groups", out var g) && g.ValueKind == JsonValueKind.Array
             ? g.EnumerateArray().Where(x => x.ValueKind == JsonValueKind.String).Select(x => x.GetString()!).ToList()
             : [];
-        return new ExternalUserStatus(externalUserId, quota, enabled, groups);
+        return new ExternalUserStatus(externalUserId, quota, enabled, groups, used);
     }
 
     public async Task<ProvisionResult> EnsureGroupAsync(string groupId, CancellationToken ct)
