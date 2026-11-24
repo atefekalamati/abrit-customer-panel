@@ -85,14 +85,15 @@ jobs:
           done
           echo "app did not become healthy"; exit 1
 
-      # Phase 00 ships only the health check above. Remove `if: false` in phase 06/08 once /services
-      # and the admin orders page exist.
+      # Health alone does not prove AutoSetup ran: wait for the seeded catalog, then check RTL + admin protection.
       - name: Smoke checks
-        if: false
         run: |
-          curl -fsS http://localhost:8080/services -o services.html
+          for i in $(seq 1 40); do
+            curl -fsS http://localhost:8080/services -o services.html && grep -q '/services/drive' services.html && break
+            sleep 3
+          done
           grep -q 'dir="rtl"' services.html
-          grep -q 'AbrIT Drive' services.html
+          grep -q '/services/drive' services.html
           code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/Admin/AbrIT/Orders)
           echo "anonymous admin access -> $code"
           test "$code" != "200"

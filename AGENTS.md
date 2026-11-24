@@ -241,15 +241,15 @@ UI contract: `docs/DESIGN.md` (tokens, components, screens from the Figma file).
 
 | AC | Proof |
 |---|---|
-| AC-01 auth + reset | Orchard Users features; reset email visible in smtp4dev; integration smoke |
-| AC-02 A orders Starter → PendingPayment | Domain test + screenshot |
-| AC-03 admin approves → Paid → Provisioning/Active | Domain test + screenshot |
-| AC-04 Mock creates fake account + 1 GB quota | Domain test (quota bytes = 1 073 741 824) |
-| AC-05 double approve/callback → no 2nd service | **Required test: idempotency** (connector create count == 1) |
-| AC-06 error → Failed + safe Retry | **Required test: failure/retry** |
-| AC-07 B cannot see A's order | **Required test: ownership** + integration test (404) |
-| AC-08 non-admin approve → denied | Integration test (403/redirect, no state change) |
-| AC-09 restart keeps data | Integration test on temp SQLite file (dispose host, start again) |
+| AC-01 auth + reset | `AC01_Register_Login_Logout_ForgotPassword_Reset_LoginWithNewPassword` (captured e-mail); manual: smtp4dev / `App_Data/mail` |
+| AC-02 A orders Starter → PendingPayment | `AC02_CustomerA_OrdersStarter_IsPendingPayment_WithOwnerAndAmount` + Domain test + screenshot |
+| AC-03 admin approves → Paid → Provisioning/Active | `AC03_AC04_AdminApproves_BecomesActiveMock_With1GiBQuota` + Domain test + screenshot |
+| AC-04 Mock creates fake account + 1 GB quota | `AC03_AC04_AdminApproves_BecomesActiveMock_With1GiBQuota` (quota bytes = 1 073 741 824) + Domain test |
+| AC-05 double approve/callback → no 2nd service | `AC05_DoubleApproveAndCallback_CreatesOneExternalAccount` (create count == 1) + **required** Domain idempotency test |
+| AC-06 error → Failed + safe Retry | `AC06_ProvisioningFailure_SetsFailed_RetryActivates` + **required** Domain failure/retry test |
+| AC-07 B cannot see A's order | `AC07_CustomerB_GetsNotFound_OnCustomerAOrder` (404) + **required** Domain ownership test |
+| AC-08 non-admin approve → denied | `AC08_NonAdmin_ApprovePost_IsDenied_AndOrderUnchanged` (403/redirect, no state change) |
+| AC-09 restart keeps data | `AC09_RestartHost_SameAppData_OrderAndStatusPersist` (dispose host, start again on same SQLite) |
 | AC-10 mobile + desktop RTL | Manual check at 375px & 1440px; screenshots in `docs/screenshots/` |
 
 ## 11. Commands
