@@ -1,0 +1,9 @@
+<form asp-area="OrchardCore.Users" asp-controller="Registration" asp-action="Register" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post" class="abr-form no-multisubmit" novalidate>
+    @if (Model.Content != null)
+    {
+        @await DisplayAsync(Model.Content)
+    }
+
+    <button type="submit" class="abr-btn abr-btn--primary abr-btn--block abr-btn--lg">ایجاد حساب</button>
+</form>
+<p class="abr-auth__alt">حساب دارید؟ <a asp-area="OrchardCore.Users" asp-controller="Account" asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]">ورود به حساب</a></p>

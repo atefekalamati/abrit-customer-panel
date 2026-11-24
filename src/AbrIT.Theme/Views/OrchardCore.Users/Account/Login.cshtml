@@ -1,0 +1,43 @@
+@inject SignInManager<IUser> SignInManager
+@{
+    var loginProviders = await SignInManager.GetExternalAuthenticationSchemesAsync();
+    var disableLocalLogin = Site.GetOrCreate<LoginSettings>().DisableLocalLogin;
+    RenderTitleSegments(new HtmlString("ورود"));
+}
+<div class="abr-authpage">
+    @await DisplayAsync(await New.AbrPageHeader(
+        Title: "ورود به حساب کاربری",
+        Subtitle: "برای دسترسی به سرویس‌ها و مدیریت سفارش‌های خود وارد شوید.",
+        Crumbs: new[] { new Crumb("ورود به حساب کاربری") }))
+
+    <div class="abr-auth-split">
+        <partial name="_AuthHero" />
+
+        <section class="abr-auth" aria-labelledby="abr-auth-title">
+            <span class="abr-badge abr-badge--plain abr-auth__badge">@Icons.Svg("flask", 16) محیط ارزیابی</span>
+            <div class="abr-auth__head">
+                <span class="abr-auth__logo" aria-hidden="true">@Icons.Svg("cloud", 44)<span>ABRIT</span></span>
+                <h2 class="abr-auth__title" id="abr-auth-title">ورود به <bdi>AbrIT</bdi></h2>
+                <p class="abr-auth__sub">به حساب کاربری خود وارد شوید.</p>
+            </div>
+
+            <partial name="_FormErrors" />
+
+            @if (!disableLocalLogin)
+            {
+                @await DisplayAsync(Model)
+            }
+
+            @if (loginProviders.Any())
+            {
+                <form asp-area="OrchardCore.Users" asp-controller="ExternalAuthentications" asp-action="ExternalLogin" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post" class="abr-form no-multisubmit">
+                    <p class="abr-auth__divider"><span>یا ورود با</span></p>
+                    @foreach (var provider in loginProviders)
+                    {
+                        <button type="submit" class="abr-btn abr-btn--normal abr-btn--block" name="provider" value="@provider.Name"><bdi>@provider.DisplayName</bdi></button>
+                    }
+                </form>
+            }
+        </section>
+    </div>
+</div>

@@ -1,0 +1,20 @@
+<form asp-controller="Account" asp-action="Login" asp-area="OrchardCore.Users" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post" class="abr-form no-multisubmit" novalidate>
+    @if (Model.Content != null)
+    {
+        @await DisplayAsync(Model.Content)
+    }
+
+    <button type="submit" class="abr-btn abr-btn--primary abr-btn--block abr-btn--lg">ورود</button>
+
+    @if (Model.Links != null)
+    {
+        <div class="abr-auth__foot">
+            @await DisplayAsync(Model.Links)
+        </div>
+    }
+
+    @if (Model.Footer != null)
+    {
+        @await DisplayAsync(Model.Footer)
+    }
+</form>

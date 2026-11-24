@@ -1,0 +1,112 @@
+# Persian (fa-IR) messages for the restyled sign-in pages.
+# Entries have no msgctxt, so they apply to every localizer (Orchard falls back to context-less entries).
+# Source strings: OrchardCore.Users 3.0.1 controllers, view models (data annotations) and UserService.
+# No PO header entry: Orchard's PoParser would merge it into the first message.
+
+# --- Login ---
+msgid "Invalid login attempt."
+msgstr "نام کاربری یا رمز عبور نادرست است."
+
+msgid "The account is locked out"
+msgstr "حساب کاربری به‌طور موقت قفل شده است. کمی بعد دوباره تلاش کنید."
+
+msgid "Username is required."
+msgstr "نام کاربری را وارد کنید."
+
+msgid "Password is required."
+msgstr "رمز عبور را وارد کنید."
+
+msgid "The specified username/password couple is invalid."
+msgstr "نام کاربری یا رمز عبور نادرست است."
+
+msgid "The specified user is not allowed to sign in."
+msgstr "این کاربر اجازه‌ی ورود ندارد."
+
+msgid "The specified user is not allowed to sign in using password authentication."
+msgstr "این کاربر اجازه‌ی ورود با رمز عبور ندارد."
+
+msgid "The user is locked out."
+msgstr "حساب کاربری به‌طور موقت قفل شده است."
+
+msgid "Local login is disabled."
+msgstr "ورود با نام کاربری و رمز عبور غیرفعال است."
+
+# --- Register ---
+msgid "Email is required."
+msgstr "ایمیل را وارد کنید."
+
+msgid "Invalid Email."
+msgstr "ایمیل معتبر نیست."
+
+msgid "The new password and confirmation password do not match."
+msgstr "رمز عبور و تکرار آن یکسان نیستند."
+
+msgid "A user with the same email address already exists."
+msgstr "کاربری با این ایمیل از قبل وجود دارد."
+
+msgid "A user with the same username already exists."
+msgstr "کاربری با این نام کاربری از قبل وجود دارد."
+
+msgid "A user name is required."
+msgstr "نام کاربری را وارد کنید."
+
+msgid "A password is required."
+msgstr "رمز عبور را وارد کنید."
+
+msgid "Email '{0}' is already used."
+msgstr "ایمیل «{0}» قبلاً استفاده شده است."
+
+msgid "Email '{0}' is invalid."
+msgstr "ایمیل «{0}» معتبر نیست."
+
+msgid "User name '{0}' is already used."
+msgstr "نام کاربری «{0}» قبلاً استفاده شده است."
+
+msgid "User name '{0}' is invalid, can only contain letters or digits."
+msgstr "نام کاربری «{0}» معتبر نیست؛ فقط حروف و اعداد مجاز است."
+
+msgid "Passwords must be at least {0} characters."
+msgstr "رمز عبور باید حداقل {0} کاراکتر باشد."
+
+msgid "Passwords must contain at least {0} unique characters."
+msgstr "رمز عبور باید حداقل {0} نویسه‌ی متفاوت داشته باشد."
+
+msgid "Passwords must have at least one digit character ('0'-'9')."
+msgstr "رمز عبور باید حداقل یک عدد داشته باشد."
+
+msgid "Passwords must have at least one lowercase character ('a'-'z')."
+msgstr "رمز عبور باید حداقل یک حرف کوچک انگلیسی داشته باشد."
+
+msgid "Passwords must have at least one uppercase character ('A'-'Z')."
+msgstr "رمز عبور باید حداقل یک حرف بزرگ انگلیسی داشته باشد."
+
+msgid "Passwords must have at least one non letter or digit character."
+msgstr "رمز عبور باید حداقل یک نماد (غیر از حرف و عدد) داشته باشد."
+
+msgid "Unexpected error: '{0}'."
+msgstr "خطای پیش‌بینی‌نشده: «{0}»."
+
+# --- Forgot / reset password ---
+msgid "Username or email address is required."
+msgstr "ایمیل یا نام کاربری را وارد کنید."
+
+msgid "A username or email address is required."
+msgstr "ایمیل یا نام کاربری را وارد کنید."
+
+msgid "New password is required."
+msgstr "رمز عبور جدید را وارد کنید."
+
+msgid "A token is required."
+msgstr "لینک بازیابی ناقص است. دوباره درخواست بازیابی بدهید."
+
+msgid "The reset token is invalid. Please request a new token."
+msgstr "لینک بازیابی نامعتبر یا منقضی شده است. لطفاً دوباره درخواست بازیابی بدهید."
+
+msgid "Before you can reset your password, you need to verify your email address."
+msgstr "پیش از بازیابی رمز عبور، باید ایمیل خود را تأیید کنید."
+
+msgid "Incorrect password."
+msgstr "رمز عبور نادرست است."
+
+msgid "Invalid email address."
+msgstr "ایمیل معتبر نیست."

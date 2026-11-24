@@ -1,0 +1,25 @@
+@* All validation messages of the request in one announced alert: keys added by Orchard drivers / UserService don't
+   always match the rendered field names, so one summary is the reliable place. Messages are localized via fa-IR.po. *@
+@{
+    var errors = ViewData.ModelState.Values
+        .SelectMany(v => v.Errors)
+        .Select(e => e.ErrorMessage)
+        .Where(m => !string.IsNullOrWhiteSpace(m))
+        .Distinct()
+        .ToList();
+}
+@if (errors.Count > 0)
+{
+    <div class="abr-alert abr-alert--error" role="alert">
+        @Icons.Svg("alert", 22, "abr-alert__svg")
+        <div>
+            <strong>لطفاً موارد زیر را بررسی کنید:</strong>
+            <ul class="abr-alert__list">
+                @foreach (var error in errors)
+                {
+                    <li>@error</li>
+                }
+            </ul>
+        </div>
+    </div>
+}
