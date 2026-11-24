@@ -1,4 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <!-- Development uses Orchard's Razor runtime compilation, which reads the C# version from deps.json
+         compilationOptions; without them it falls back to C# 8 and views using newer syntax fail. -->
+    <PreserveCompilationContext>true</PreserveCompilationContext>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="OrchardCore.Application.Cms.Targets" />
     <ProjectReference Include="..\AbrIT.Panel.Module\AbrIT.Panel.Module.csproj" />
