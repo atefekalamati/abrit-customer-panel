@@ -28,9 +28,16 @@ namespace AbrIT.Panel.Module;
 /// </remarks>
 public sealed class Startup : StartupBase
 {
+    public const int MinPasswordLength = 8;
+
     public override void ConfigureServices(IServiceCollection services)
     {
         services.AddRecipeExecutionStep<DemoUsersStep>();
+
+        // Passwords: at least 8 characters (ASP.NET Identity default is 6; Orchard 3.0.1 has no site setting for it).
+        // Configured per tenant start, so existing sites get it too; PostConfigure wins over any Configure order.
+        // The sign-in pages' rule checklist reads the same IdentityOptions.
+        services.PostConfigure<Microsoft.AspNetCore.Identity.IdentityOptions>(o => o.Password.RequiredLength = Math.Max(o.Password.RequiredLength, MinPasswordLength));
 
         // Orders (phase 03): YesSql persistence + Orchard adapters for the pure Domain services.
         services.AddIndexProvider<OrderIndexProvider>();

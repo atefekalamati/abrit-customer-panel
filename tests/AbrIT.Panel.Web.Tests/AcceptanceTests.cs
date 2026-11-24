@@ -75,6 +75,26 @@ public sealed partial class AcceptanceTests(SharedPanelHost shared)
     }
 
     [Fact]
+    public async Task AC01_Register_RejectsPasswordShorterThan8_AndShowsRule()
+    {
+        var userName = $"it-short-{Guid.NewGuid().ToString("N")[..8]}";
+        using var client = new PanelClient(Host.CreatePanelClient());
+        Assert.Contains("حداقل ۸ کاراکتر", (await client.GetAsync("/Register")).Text);
+
+        const string sevenChars = "Ab1!xyz";
+        var register = await client.SubmitFormAsync("/Register", "/Register", new Dictionary<string, string>
+        {
+            ["UserName"] = userName,
+            ["Email"] = $"{userName}@example.test",
+            ["Password"] = sevenChars,
+            ["ConfirmPassword"] = sevenChars,
+        });
+
+        Assert.False(PanelClient.IsRedirect(register), "a 7-character password must not create an account");
+        Assert.Contains("رمز عبور باید حداقل", await register.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
     public async Task AC02_CustomerA_OrdersStarter_IsPendingPayment_WithOwnerAndAmount()
     {
         using var customerA = await Host.LoginAsync(PanelHost.CustomerA, PanelHost.CustomerAPassword);
