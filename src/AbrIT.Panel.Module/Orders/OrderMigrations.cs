@@ -1,3 +1,4 @@
+using AbrIT.Panel.Module.Provisioning;
 using OrchardCore.Data.Migration;
 using YesSql.Sql;
 
@@ -24,6 +25,23 @@ public sealed class OrderMigrations : DataMigration
             table.CreateIndex("IDX_OrderIndex_Status", "DocumentId", nameof(OrderIndex.Status), nameof(OrderIndex.CreatedUtc));
         });
 
-        return 1;
+        await CreateProvisioningRequestIndexAsync();
+        return 2;
+    }
+
+    public async Task<int> UpdateFrom1Async()
+    {
+        await CreateProvisioningRequestIndexAsync();
+        return 2;
+    }
+
+    private async Task CreateProvisioningRequestIndexAsync()
+    {
+        await SchemaBuilder.CreateMapIndexTableAsync<ProvisioningRequestIndex>(table => table
+            .Column<string>(nameof(ProvisioningRequestIndex.OrderId), c => c.WithLength(IdLength))
+            .Column<string>(nameof(ProvisioningRequestIndex.Status), c => c.WithLength(32)));
+
+        await SchemaBuilder.AlterIndexTableAsync<ProvisioningRequestIndex>(table =>
+            table.CreateIndex("IDX_ProvisioningRequestIndex_OrderId", "DocumentId", nameof(ProvisioningRequestIndex.OrderId)));
     }
 }
