@@ -1,5 +1,8 @@
+using System.Text.Encodings.Web;
+using System.Text.Unicode;
 using AbrIT.Panel.Module;
 using AbrIT.Panel.Nextcloud;
+using Microsoft.Extensions.WebEncoders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +28,10 @@ if (string.IsNullOrWhiteSpace(builder.Configuration[smtp + "Host"]))
         [smtp + "PickupDirectoryLocation"] = "/",
     });
 }
+
+// Razor encodes every non-ASCII char as &#x..; by default. Allow all Unicode ranges so Persian is emitted as
+// readable UTF-8 (HTML-sensitive chars such as < > & " are still encoded). Tenants inherit host services.
+builder.Services.Configure<WebEncoderOptions>(o => o.TextEncoderSettings = new TextEncoderSettings(UnicodeRanges.All));
 
 // AutoSetup is configured exclusively through environment variables (see docker-compose.yml / .env.example).
 builder.Services.AddOrchardCms(orchard => orchard.AddSetupFeatures("OrchardCore.AutoSetup"));

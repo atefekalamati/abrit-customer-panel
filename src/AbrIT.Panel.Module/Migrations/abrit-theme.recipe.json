@@ -1,0 +1,28 @@
+{
+  "name": "AbrITThemeMigration",
+  "displayName": "AbrIT theme + Persian localization",
+  "description": "Switches existing sites to AbrIT.Theme and enables fa-IR localization (Persian validation messages).",
+  "author": "AbrIT",
+  "website": "https://abrit.ir",
+  "version": "1.0.0",
+  "issetuprecipe": false,
+  "categories": [ "AbrIT" ],
+  "tags": [ "abrit" ],
+  "steps": [
+    {
+      "name": "feature",
+      "enable": [ "OrchardCore.Localization", "AbrIT.Theme" ]
+    },
+    {
+      "name": "themes",
+      "site": "AbrIT.Theme"
+    },
+    {
+      "name": "settings",
+      "LocalizationSettings": {
+        "DefaultCulture": "fa-IR",
+        "SupportedCultures": [ "fa-IR" ]
+      }
+    }
+  ]
+}

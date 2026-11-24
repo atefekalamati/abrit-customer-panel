@@ -35,6 +35,7 @@ public sealed class Startup : StartupBase
         // Orders (phase 03): YesSql persistence + Orchard adapters for the pure Domain services.
         services.AddIndexProvider<OrderIndexProvider>();
         services.AddDataMigration<OrderMigrations>();
+        services.AddDataMigration<Migrations.ThemeMigrations>();
         services.AddScoped<IOrderRepository, YesSqlOrderRepository>();
         services.AddScoped<ISequenceStore, YesSqlSequenceStore>();
         services.AddScoped<IPlanCatalog, ContentPlanCatalog>();

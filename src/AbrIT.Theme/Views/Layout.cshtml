@@ -1,0 +1,135 @@
+@{
+    var path = Context.Request.Path.Value ?? "/";
+    var signedIn = User.Identity?.IsAuthenticated == true;
+    var userName = User.Identity?.Name ?? string.Empty;
+    var loginUrl = Url.Action("Login", "Account", new { area = "OrchardCore.Users" }) ?? "/Login";
+    var registerUrl = Url.Action("Register", "Registration", new { area = "OrchardCore.Users" }) ?? "/Register";
+    var accountUrl = Url.Action("ChangePassword", "Account", new { area = "OrchardCore.Users" }) ?? "/ChangePassword";
+    const string supportUrl = "https://abrit.ir";
+
+    bool Starts(string prefix) => path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase);
+    var onAuthFlow = Starts("/Login") || Starts("/ForgotPassword") || Starts("/ResetPassword");
+
+    // (text, href, icon, current, external) — customer vs guest menu (docs/SCREENS.md "اجزای مشترک").
+    var menu = signedIn
+        ? new List<(string Text, string Href, string Icon, bool Current, bool External)>
+        {
+            ("داشبورد", Url.Content("~/dashboard"), "dashboard", path.Equals("/dashboard", StringComparison.OrdinalIgnoreCase), false),
+            ("سرویس‌ها", Url.Content("~/services"), "grid", Starts("/services") || Starts("/orders/new") || path == "/", false),
+            ("سفارش‌های من", Url.Content("~/dashboard#orders"), "cart", Starts("/dashboard/orders"), false),
+            ("حساب کاربری", accountUrl, "user", Starts("/ChangePassword"), false),
+            ("پشتیبانی", supportUrl, "headset", false, true),
+        }
+        : new List<(string Text, string Href, string Icon, bool Current, bool External)>
+        {
+            ("خانه", Url.Content("~/"), "home", path == "/", false),
+            ("سرویس‌ها", Url.Content("~/services"), "grid", Starts("/services"), false),
+            ("پشتیبانی", supportUrl, "headset", false, true),
+            ("ورود", loginUrl, "login", onAuthFlow, false),
+            ("ثبت‌نام", registerUrl, "user-plus", Starts("/Register"), false),
+        };
+}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>@RenderTitleSegments(Site.SiteName, "before")</title>
+    <link rel="preload" href="~/AbrIT.Theme/css/fonts/Vazirmatn-Variable.woff2" as="font" type="font/woff2" crossorigin />
+    <style asp-name="abrit-tokens" asp-src="~/AbrIT.Theme/css/tokens.css" at="Head"></style>
+    <style asp-name="abrit-theme" asp-src="~/AbrIT.Theme/css/theme.css" depends-on="abrit-tokens" at="Head"></style>
+    <script asp-name="abrit-theme" asp-src="~/AbrIT.Theme/js/theme.js" at="Foot"></script>
+    <resources type="Header" />
+    @await RenderSectionAsync("HeadMeta", required: false)
+</head>
+<body class="abr-app">
+    <a class="abr-skip" href="#main">پرش به محتوای اصلی</a>
+    <div class="abr-shell">
+        <aside class="abr-side" id="abr-drawer" aria-label="منوی کناری">
+            <div class="abr-side__head">
+                <partial name="_Brand" />
+                <button type="button" class="abr-side__close" data-abr-drawer-close aria-label="بستن منو">@Icons.Svg("close", 22)</button>
+            </div>
+            <nav class="abr-sidenav" aria-label="منوی اصلی">
+                <ul>
+                    @foreach (var item in menu)
+                    {
+                        <li>
+                            <a href="@item.Href" aria-current="@(item.Current ? "page" : null)"
+                               target="@(item.External ? "_blank" : null)" rel="@(item.External ? "noopener" : null)">
+                                @Icons.Svg(item.Icon, 22)
+                                <span>@item.Text</span>
+                                @if (item.External)
+                                {
+                                    @Icons.Svg("external", 16, "abr-sidenav__ext")
+                                    <span class="sr-only">(در زبانه‌ی جدید)</span>
+                                }
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+            <div class="abr-helpcard">
+                @Icons.Svg("headset", 30)
+                <strong>نیاز به راهنمایی دارید؟</strong>
+                <p>تیم پشتیبانی <bdi>AbrIT</bdi> آماده‌ی پاسخ‌گویی به شماست.</p>
+                <a class="abr-btn abr-btn--inverse" href="@supportUrl" target="_blank" rel="noopener">
+                    @Icons.Svg("external", 18) تماس با پشتیبانی<span class="sr-only">(در زبانه‌ی جدید)</span>
+                </a>
+            </div>
+        </aside>
+        <div class="abr-backdrop" data-abr-drawer-close hidden></div>
+
+        <div class="abr-body">
+            <header class="abr-top @(signedIn ? "abr-top--user" : "abr-top--guest")">
+                <partial name="_Brand" />
+                @if (signedIn)
+                {
+                    <div class="abr-top__actions">
+                        <details class="abr-usermenu">
+                            <summary aria-label="منوی کاربر @userName">
+                                <span class="abr-avatar" aria-hidden="true">@(userName.Length > 0 ? char.ToUpperInvariant(userName[0]) : '?')</span>
+                                <bdi class="abr-usermenu__name">@userName</bdi>
+                                @Icons.Svg("chevron-down", 18)
+                            </summary>
+                            <div class="abr-usermenu__panel">
+                                <a href="~/dashboard">@Icons.Svg("dashboard") داشبورد</a>
+                                <a href="@accountUrl">@Icons.Svg("key") تغییر رمز عبور</a>
+                                <form asp-area="OrchardCore.Users" asp-controller="Account" asp-action="LogOff" method="post" class="no-multisubmit">
+                                    <button type="submit">@Icons.Svg("logout") خروج</button>
+                                </form>
+                            </div>
+                        </details>
+                    </div>
+                }
+                else
+                {
+                    <nav class="abr-top__links" aria-label="پیوندهای سریع">
+                        <a href="~/services">@Icons.Svg("grid") سرویس‌ها</a>
+                        <a href="@supportUrl" target="_blank" rel="noopener">@Icons.Svg("headset") پشتیبانی<span class="sr-only">(در زبانه‌ی جدید)</span></a>
+                    </nav>
+                    <div class="abr-top__actions">
+                        <span class="abr-top__sep" aria-hidden="true"></span>
+                        <a class="abr-btn abr-btn--ghost-inverse" href="@loginUrl">@Icons.Svg("login", 18) ورود</a>
+                        <a class="abr-btn abr-btn--primary" href="@registerUrl">@Icons.Svg("user-plus", 18) ثبت‌نام</a>
+                    </div>
+                }
+                <button type="button" class="abr-burger" data-abr-drawer-open aria-controls="abr-drawer" aria-expanded="false" aria-label="باز کردن منو">@Icons.Svg("menu", 24)</button>
+            </header>
+
+            <main id="main" class="abr-main" tabindex="-1">
+                @await RenderSectionAsync("Header", required: false)
+                @await RenderSectionAsync("Messages", required: false)
+                @await RenderBodyAsync()
+            </main>
+
+            <footer class="abr-evalbar">
+                <p>محیط ارزیابی — قیمت‌ها آزمایشی‌اند و هیچ خرید واقعی انجام نمی‌شود.</p>
+                @await RenderSectionAsync("Footer", required: false)
+            </footer>
+        </div>
+    </div>
+    <resources type="FootScript" />
+</body>
+</html>
