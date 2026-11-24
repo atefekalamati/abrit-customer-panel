@@ -1,0 +1,24 @@
+@* Shape: AbrAlert(Kind: info|success|error|warning|mock, Title?, Body: string|IHtmlContent). Errors use role="alert". *@
+@{
+    string kind = Model.Kind ?? "info";
+    string? title = Model.Title;
+    object? body = Model.Body;
+    var icon = kind switch { "success" => "check-circle", "error" => "alert", "warning" => "alert", "mock" => "flask", _ => "info" };
+}
+<div class="abr-alert abr-alert--@kind" role="@(kind == "error" ? "alert" : null)">
+    @Icons.Svg(icon, 22, "abr-alert__svg")
+    <div>
+        @if (!string.IsNullOrEmpty(title))
+        {
+            <strong>@title</strong>
+        }
+        @if (body is IHtmlContent html)
+        {
+            <p>@html</p>
+        }
+        else if (body is string text && text.Length > 0)
+        {
+            <p>@text</p>
+        }
+    </div>
+</div>

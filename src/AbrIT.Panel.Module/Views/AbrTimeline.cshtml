@@ -1,0 +1,18 @@
+@* Shape: AbrTimeline(Items: IEnumerable<TimelineEntry>, Label?) *@
+@{
+    var items = (Model.Items as IEnumerable<TimelineEntry>)?.ToList() ?? [];
+    string label = Model.Label ?? "تاریخچه";
+}
+<ol class="abr-timeline" aria-label="@label">
+    @foreach (var item in items)
+    {
+        <li data-tone="@item.Tone">
+            <strong>@item.Title</strong>
+            <small>@item.Meta</small>
+            @if (!string.IsNullOrEmpty(item.Note))
+            {
+                <span class="abr-timeline__note">@item.Note</span>
+            }
+        </li>
+    }
+</ol>
