@@ -1,0 +1,29 @@
+@model IReadOnlyList<ServiceCard>
+<div dir="rtl" lang="fa">
+    <h1>سرویس‌های ابریت</h1>
+    <ul>
+        @foreach (var service in Model)
+        {
+            <li>
+                <h2>@service.Title</h2>
+                @if (!string.IsNullOrEmpty(service.Summary))
+                {
+                    <p>@service.Summary</p>
+                }
+                @if (service.Availability == "Orderable" && service.ServiceKey == CatalogReader.DriveServiceKey)
+                {
+                    <a asp-area="AbrIT.Panel.Module" asp-controller="Services" asp-action="Drive">مشاهده پلن‌ها و سفارش</a>
+                }
+                else if (service.Availability == "ComingSoon")
+                {
+                    <span>به‌زودی</span>
+                }
+                else if (!string.IsNullOrEmpty(service.MoreInfoUrl))
+                {
+                    <a href="@service.MoreInfoUrl" rel="noopener" target="_blank">@(service.MoreInfoText ?? "اطلاعات بیشتر")</a>
+                }
+            </li>
+        }
+    </ul>
+    <p><a asp-area="AbrIT.Panel.Module" asp-controller="Dashboard" asp-action="Index">داشبورد من</a></p>
+</div>

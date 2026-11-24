@@ -1,0 +1,35 @@
+@model DriveViewModel
+<div dir="rtl" lang="fa">
+    <h1>@Model.Service.Title</h1>
+    @if (!string.IsNullOrEmpty(Model.Service.Summary))
+    {
+        <p>@Model.Service.Summary</p>
+    }
+    <table>
+        <thead>
+            <tr><th>پلن</th><th>فضا برای هر کاربر</th><th>تعداد کاربر</th><th>قیمت ماهانه</th><th></th></tr>
+        </thead>
+        <tbody>
+            @foreach (var plan in Model.Plans)
+            {
+                <tr>
+                    <td>@plan.Title<br /><small>@plan.Description</small></td>
+                    <td>@Labels.Quota(plan.QuotaPerUserMB)</td>
+                    <td>@plan.MaxUsers</td>
+                    <td>@Labels.Price(plan.PriceToman)</td>
+                    <td>
+                        @if (plan.IsOrderable)
+                        {
+                            <a asp-area="AbrIT.Panel.Module" asp-controller="Orders" asp-action="New" asp-route-plan="@plan.ContentItemId">سفارش</a>
+                        }
+                        else
+                        {
+                            <span>غیرقابل سفارش</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <p><a asp-area="AbrIT.Panel.Module" asp-controller="Services" asp-action="Index">بازگشت به سرویس‌ها</a></p>
+</div>
