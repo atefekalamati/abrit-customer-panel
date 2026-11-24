@@ -11,6 +11,12 @@ public sealed record StatusChange(OrderStatus From, OrderStatus To, DateTime AtU
 /// </summary>
 public sealed class Order
 {
+    /// <summary>
+    /// Storage document id (YesSql sets it on save/load). Lets an instance that is no longer tracked by the session
+    /// (e.g. after a commit) update its own document instead of inserting a copy (DECISIONS D-12).
+    /// </summary>
+    public long Id { get; set; }
+
     public string OrderId { get; set; } = string.Empty;
 
     public string OrderNumber { get; set; } = string.Empty;

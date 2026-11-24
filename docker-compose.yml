@@ -18,7 +18,14 @@ services:
       # Demo customers (optional; empty = skipped). Read by the DemoUsers recipe step.
       DEMO_CUSTOMER_A_PASSWORD: ${DEMO_CUSTOMER_A_PASSWORD:-}
       DEMO_CUSTOMER_B_PASSWORD: ${DEMO_CUSTOMER_B_PASSWORD:-}
-      NEXTCLOUD_MODE: ${NEXTCLOUD_MODE:-Mock}
+      # Connector + mock payment (bound by Program.cs as Nextcloud:* / MockPayment:*; Real mode fails fast if incomplete).
+      Nextcloud__Mode: ${NEXTCLOUD_MODE:-Mock}
+      Nextcloud__BaseUrl: ${NEXTCLOUD_BASE_URL:-}
+      Nextcloud__AdminUser: ${NEXTCLOUD_ADMIN_USER:-}
+      Nextcloud__AppPassword: ${NEXTCLOUD_APP_PASSWORD:-}
+      Nextcloud__TimeoutSeconds: ${NEXTCLOUD_TIMEOUT_SECONDS:-15}
+      Nextcloud__Mock__FailNextCalls: ${NEXTCLOUD_MOCK_FAIL_NEXT_CALLS:-0}
+      MockPayment__WebhookSecret: ${MOCK_PAYMENT_WEBHOOK_SECRET:-}
     volumes:
       - app_data:/app/App_Data
     healthcheck:

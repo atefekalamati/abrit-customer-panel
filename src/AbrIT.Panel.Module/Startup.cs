@@ -38,7 +38,7 @@ public sealed class Startup : StartupBase
         services.AddScoped<IPlanCatalog, ContentPlanCatalog>();
         services.AddSingleton<AbrIT.Panel.Domain.Orders.IClock, OrchardClock>();
         services.AddSingleton<IIdSource, OrchardIdSource>();
-        services.AddSingleton<IOrderLock, DistributedOrderLock>();
+        services.AddScoped<IOrderLock, DistributedOrderLock>();
         services.AddScoped<IOrderNumberGenerator, SequentialOrderNumberGenerator>();
         services.AddScoped<IOrderService, OrderService>();
 

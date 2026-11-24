@@ -38,8 +38,10 @@ public sealed class OrdersAdminController(
         OrderStatus? filter = Enum.TryParse<OrderStatus>(status, ignoreCase: false, out var parsed) && Enum.IsDefined(parsed) ? parsed : null;
         page = Math.Max(1, page);
 
-        var query = filter is { } f
-            ? session.Query<Order, OrderIndex>(x => x.Status == f.ToString())
+        // Evaluate outside the predicate: YesSql does not translate method calls on captured values.
+        var statusText = filter?.ToString();
+        var query = statusText is not null
+            ? session.Query<Order, OrderIndex>(x => x.Status == statusText)
             : session.Query<Order, OrderIndex>();
         var total = await query.CountAsync();
         var orders = (await query.OrderByDescending(x => x.CreatedUtc).Skip((page - 1) * PageSize).Take(PageSize).ListAsync()).ToList();
@@ -48,7 +50,8 @@ public sealed class OrdersAdminController(
         var requests = ids.Length == 0
             ? []
             : (await session.Query<ProvisioningRequest, ProvisioningRequestIndex>(x => x.OrderId.IsIn(ids)).ListAsync())
-                .ToDictionary(r => r.OrderId);
+                .GroupBy(r => r.OrderId)
+                .ToDictionary(g => g.Key, g => g.OrderBy(r => r.CreatedUtc).First());
 
         return View(new AdminOrdersViewModel(
             [.. orders.Select(o => new AdminOrderRow(o, requests.GetValueOrDefault(o.OrderId)))],

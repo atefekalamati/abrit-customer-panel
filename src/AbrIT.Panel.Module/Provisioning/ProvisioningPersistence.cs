@@ -1,4 +1,5 @@
 using AbrIT.Panel.Domain.Provisioning;
+using AbrIT.Panel.Module.Orders;
 using YesSql;
 using YesSql.Indexes;
 
@@ -28,7 +29,8 @@ public sealed class ProvisioningRequestIndexProvider : IndexProvider<Provisionin
 public sealed class YesSqlProvisioningRequestRepository(ISession session) : IProvisioningRequestRepository
 {
     public Task<ProvisioningRequest?> GetByOrderIdAsync(string orderId, CancellationToken ct = default) =>
-        session.Query<ProvisioningRequest, ProvisioningRequestIndex>(x => x.OrderId == orderId).FirstOrDefaultAsync(ct)!;
+        session.GetFreshAsync(() =>
+            session.Query<ProvisioningRequest, ProvisioningRequestIndex>(x => x.OrderId == orderId).FirstOrDefaultAsync(ct));
 
     public async Task SaveAsync(ProvisioningRequest request, CancellationToken ct = default)
     {

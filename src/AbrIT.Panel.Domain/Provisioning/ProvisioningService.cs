@@ -57,8 +57,9 @@ public sealed class ProvisioningService(
             var order = await orders.GetAsync(orderId, ct) ?? throw new OrderNotFoundException(orderId);
             var request = await requests.GetByOrderIdAsync(orderId, ct);
 
-            // Layer 1: only a Paid order may enter provisioning here (Failed goes through RetryAsync).
-            if (order.Status != OrderStatus.Paid || request?.Status is ProvisioningStatus.Succeeded or ProvisioningStatus.InProgress)
+            // Layer 1: only a Paid order may enter provisioning here (Failed goes through RetryAsync), and only
+            // once: an existing request that has been attempted is never re-run from this path.
+            if (order.Status != OrderStatus.Paid || request is { Status: not ProvisioningStatus.Pending })
             {
                 return new(order, request);
             }

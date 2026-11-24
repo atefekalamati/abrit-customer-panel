@@ -16,6 +16,12 @@ public sealed class ProvisioningRequest
 {
     public const int DefaultMaxAttempts = 5;
 
+    /// <summary>
+    /// Storage document id (YesSql sets it on save/load). Lets an instance that is no longer tracked by the session
+    /// (e.g. after a commit) update its own document instead of inserting a copy (DECISIONS D-12).
+    /// </summary>
+    public long Id { get; set; }
+
     public string RequestId { get; set; } = string.Empty;
 
     public string OrderId { get; set; } = string.Empty;

@@ -7,12 +7,12 @@ namespace AbrIT.Panel.Module.Orders;
 /// <summary>
 /// Orders as YesSql documents in the request's session. <see cref="SaveAsync"/> commits immediately, so a change
 /// made inside the per-order lock is visible to the next lock holder (another request) before the lock is released
-/// (DECISIONS D-12).
+/// (DECISIONS D-12). <see cref="GetAsync"/> always returns the stored state, never a stale tracked instance.
 /// </summary>
 public sealed class YesSqlOrderRepository(ISession session) : IOrderRepository
 {
     public Task<Order?> GetAsync(string orderId, CancellationToken ct = default) =>
-        session.Query<Order, OrderIndex>(x => x.OrderId == orderId).FirstOrDefaultAsync(ct)!;
+        session.GetFreshAsync(() => session.Query<Order, OrderIndex>(x => x.OrderId == orderId).FirstOrDefaultAsync(ct));
 
     public async Task<IReadOnlyList<Order>> ListByOwnerAsync(string ownerUserId, CancellationToken ct = default)
     {
