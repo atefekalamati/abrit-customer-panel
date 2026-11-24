@@ -133,3 +133,24 @@ internal sealed class FakeCustomerDirectory : AbrIT.Panel.Domain.Provisioning.IC
     public Task<string?> GetEmailAsync(string userId, CancellationToken ct = default) =>
         Task.FromResult<string?>($"{userId}@example.test");
 }
+
+/// <summary>Stores a serialized copy, so unsaved changes to a loaded instance never leak (like a database).</summary>
+internal sealed class InMemoryTeamWorkspaceRepository : AbrIT.Panel.Domain.Workspaces.ITeamWorkspaceRepository
+{
+    private readonly ConcurrentDictionary<string, string> _json = new();
+    private int _saveCount;
+
+    public int SaveCount => Volatile.Read(ref _saveCount);
+
+    public Task<AbrIT.Panel.Domain.Workspaces.TeamWorkspace?> GetByOrderIdAsync(string orderId, CancellationToken ct = default) =>
+        Task.FromResult(_json.TryGetValue(orderId, out var json)
+            ? System.Text.Json.JsonSerializer.Deserialize<AbrIT.Panel.Domain.Workspaces.TeamWorkspace>(json)
+            : null);
+
+    public Task SaveAsync(AbrIT.Panel.Domain.Workspaces.TeamWorkspace workspace, CancellationToken ct = default)
+    {
+        _json[workspace.OrderId] = System.Text.Json.JsonSerializer.Serialize(workspace);
+        Interlocked.Increment(ref _saveCount);
+        return Task.CompletedTask;
+    }
+}
