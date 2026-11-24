@@ -39,6 +39,14 @@
   --abr-primary-soft:   var(--abr-blue-50);
   --abr-on-primary:     var(--abr-gray-0);       /* 6.08:1 */
 
+  /* bright CTA gradient (E-1 polish). White text: 4.56:1 on the light end, 6.21:1 on the dark end.
+     (#2B7BFF from the references measured 3.90:1, so the light end was darkened to #1E6EF5.) */
+  --abr-cta-from:       #1E6EF5;
+  --abr-cta-to:         #0A58D6;
+  --abr-cta-gradient:   linear-gradient(135deg, var(--abr-cta-from) 0%, var(--abr-cta-to) 100%);
+  --abr-cta-glow:       0 8px 22px rgba(30, 110, 245, .35);
+  --abr-hero-gradient:  linear-gradient(160deg, #EAF3FF 0%, #F8FBFF 100%);   /* hero/welcome card fill */
+
   --abr-nav-bg:         var(--abr-navy-900);
   --abr-nav-text:       var(--abr-gray-0);
   --abr-nav-muted:      var(--abr-gray-500);     /* 9.25:1 on nav */
@@ -68,14 +76,15 @@
 
   /* scale (px / line-height). Persian needs taller lines than Latin. */
   --abr-fs-display: 32px; --abr-lh-display: 44px;   /* prices, stat numbers */
-  --abr-fs-h1:      28px; --abr-lh-h1:      42px;   /* page title (mobile: h1-m) */
-  --abr-fs-h1-m:    22px; --abr-lh-h1-m:    34px;
+  --abr-fs-h1:      34px; --abr-lh-h1:      50px;   /* page title (mobile: h1-m), weight 800 */
+  --abr-fs-h1-m:    24px; --abr-lh-h1-m:    36px;
+  --abr-fs-card-title: 26px; --abr-lh-card-title: 40px; /* auth/hero card titles, weight 800 */
   --abr-fs-h2:      20px; --abr-lh-h2:      32px;   /* plan name, section */
   --abr-fs-h3:      18px; --abr-lh-h3:      28px;   /* container title */
   --abr-fs-body:    15px; --abr-lh-body:    26px;   /* default */
   --abr-fs-sm:      13px; --abr-lh-sm:      22px;   /* labels, notes, table head */
   --abr-fs-xs:      12px; --abr-lh-xs:      20px;   /* badges, captions — minimum size */
-  --abr-fw-regular: 400; --abr-fw-medium: 500; --abr-fw-semibold: 600; --abr-fw-bold: 700;
+  --abr-fw-regular: 400; --abr-fw-medium: 500; --abr-fw-semibold: 600; --abr-fw-bold: 700; --abr-fw-heavy: 800;
 
   /* ---------- 4. Spacing (4-pt grid) ---------- */
   --abr-space-1: 4px;  --abr-space-2: 8px;  --abr-space-3: 12px; --abr-space-4: 16px;
