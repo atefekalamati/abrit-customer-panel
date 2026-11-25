@@ -59,3 +59,15 @@ AbrIT** or at the **local container below**. Our own verification used the local
 
 Connector errors are stored as safe codes only (`NC_AUTH`, `NC_TIMEOUT`, `NC_HTTP_{status}`, `NC_OCS_{code}`,
 `NC_NETWORK`, `NC_BAD_RESPONSE`) and the admin can use the controlled Retry.
+
+## Managing services and plans
+
+The catalog (services and their plans) lives in Orchard Core content types `AbrService` and `AbrPlan`
+([D-02](docs/DECISIONS.md)), so it is edited in Orchard's own admin: **Admin → Content → Content Items**, filtered by
+type. There is no custom catalog screen. The design image `16-admin-manage-content.png` (in the design references)
+only illustrates what this built-in screen covers: listing, editing, publishing and ordering services and plans.
+
+## Known limitations (so far)
+
+- Plan snapshots on an order do not store the billing period; the order page shows «ماهانه», which is true for every
+  seeded plan. A non-monthly plan would need the period added to the snapshot.

@@ -10,7 +10,7 @@
     bool Starts(string prefix) => path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase);
 
     // Pages may pin the active menu item (ViewData["AbrNav"] = dashboard|services|orders) and the corner art
-    // (ViewData["AbrArt"] = file name in ~/AbrIT.Theme/img, ViewData["AbrArtMobile"] = true to keep it on phones).
+    // (ViewData["AbrArt"] = file name in ~/AbrIT.Theme/img or "none", ViewData["AbrArtMobile"] = true to keep it on phones).
     var nav = ViewData["AbrNav"] as string;
     bool Cur(string key, bool byPath) => nav is null ? byPath : nav == key;
     var art = ViewData["AbrArt"] as string ?? "cloud-servers";
@@ -133,7 +133,10 @@
             </header>
 
             <main id="main" class="abr-main" tabindex="-1">
-                <img class="abr-corner-art @(artMobile ? "abr-corner-art--m" : null)" src="@Url.Content($"~/AbrIT.Theme/img/{art}.webp")" alt="" width="900" height="@(art == "cloud-servers" ? 619 : 700)" decoding="async" />
+                @if (art != "none")
+                {
+                    <img class="abr-corner-art @(artMobile ? "abr-corner-art--m" : null)" src="@Url.Content($"~/AbrIT.Theme/img/{art}.webp")" alt="" width="900" height="@(art == "cloud-servers" ? 619 : 700)" decoding="async" />
+                }
                 @await RenderSectionAsync("Header", required: false)
                 @await RenderSectionAsync("Messages", required: false)
                 @await RenderBodyAsync()

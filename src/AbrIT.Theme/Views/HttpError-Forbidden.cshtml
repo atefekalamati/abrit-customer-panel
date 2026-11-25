@@ -1,0 +1,20 @@
+@* Access denied (design 15). Orchard's Diagnostics module renders the HttpError shape for /Error/403 (where a
+   signed-in user without permission is sent, e.g. a customer opening /Admin/...); this template (HttpError__Forbidden, see the Diagnostics docs) replaces its
+   default English text. The page says nothing about what the protected resource contains. *@
+@{
+    RenderTitleSegments(new HtmlString("عدم دسترسی"));
+    // The cookie handler redirects to /Error/403, which Orchard serves as a normal page (200); answer 403 here instead.
+    Context.Response.StatusCode = Microsoft.AspNetCore.Http.StatusCodes.Status403Forbidden;
+    ViewData["AbrArt"] = "none"; // the lock illustration is the page's art
+    var signedIn = User.Identity?.IsAuthenticated == true;
+    var backUrl = Url.Content(signedIn ? "~/dashboard" : "~/");
+}
+<div class="abr-page">
+    <section class="abr-container abr-notfound abr-denied" aria-labelledby="abr-denied-title">
+        <img src="~/AbrIT.Theme/img/cloud-lock.webp" alt="" width="900" height="660" decoding="async" />
+        <h1 id="abr-denied-title">عدم دسترسی</h1>
+        <p>این بخش فقط برای نقش مدیر در دسترس است. اگر فکر می‌کنید این یک اشتباه است، با پشتیبانی تماس بگیرید.</p>
+        <a class="abr-btn abr-btn--primary abr-btn--lg" href="@backUrl">@(signedIn ? "بازگشت به داشبورد" : "بازگشت به صفحه‌ی اصلی") @Icons.Svg("chevron-left", 18)</a>
+        <a class="abr-btn abr-btn--link" href="https://abrit.ir" target="_blank" rel="noopener">تماس با پشتیبانی @Icons.Svg("external", 16)<span class="sr-only">(در زبانه‌ی جدید)</span></a>
+    </section>
+</div>

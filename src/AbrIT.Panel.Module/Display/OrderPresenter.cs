@@ -26,7 +26,9 @@ public static class OrderPresenter
             [
                 new("ثبت سفارش", StepState.Done, created),
                 new("تأیید پرداخت", StepState.Done, Labels.Date(order.PaidUtc)),
-                new("فعال‌سازی سرویس", StepState.Current, "در حال ایجاد حساب و تنظیم سهمیه", "refresh"),
+                order.Status == OrderStatus.Paid
+                    ? new("فعال‌سازی سرویس", StepState.Current, "در صف فعال‌سازی", "clock")
+                    : new("فعال‌سازی سرویس", StepState.Current, "در حال ایجاد حساب و تنظیم سهمیه", "refresh"),
                 new("آماده‌ی استفاده", StepState.Upcoming, "دسترسی به سرویس پس از فعال‌سازی"),
             ],
             OrderStatus.Active =>

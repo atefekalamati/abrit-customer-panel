@@ -1,6 +1,7 @@
-@* Shape: AbrPageHeader(Title, Subtitle?, Crumbs?: IEnumerable<Crumb>, Illustration?: IHtmlContent) *@
+@* Shape: AbrPageHeader(Title: string|IHtmlContent, Subtitle?, Crumbs?: IEnumerable<Crumb>, Illustration?: IHtmlContent, Badge?: IHtmlContent) *@
 @{
-    string title = Model.Title;
+    object title = Model.Title;
+    var badge = Model.Badge as IHtmlContent;
     string? subtitle = Model.Subtitle;
     var crumbs = (Model.Crumbs as IEnumerable<Crumb>)?.ToList() ?? [];
     var illustration = Model.Illustration as IHtmlContent;
@@ -28,7 +29,17 @@
                 </ol>
             </nav>
         }
-        <h1 class="abr-h1 abr-h1--bar">@title</h1>
+        @if (badge is null)
+        {
+            <h1 class="abr-h1 abr-h1--bar">@title</h1>
+        }
+        else
+        {
+            <div class="abr-pagehead__titlerow">
+                <h1 class="abr-h1 abr-h1--bar">@title</h1>
+                @badge
+            </div>
+        }
         @if (!string.IsNullOrEmpty(subtitle))
         {
             <p class="abr-sub">@subtitle</p>
