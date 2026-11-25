@@ -55,6 +55,15 @@ public static class Icons
         ["server"] = "<rect x=\"3.5\" y=\"4\" width=\"17\" height=\"7\" rx=\"2\"/><rect x=\"3.5\" y=\"13\" width=\"17\" height=\"7\" rx=\"2\"/><path d=\"M7.5 7.5h.01M7.5 16.5h.01\"/>",
         ["file"] = "<path d=\"M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z\"/><path d=\"M14 3v5h5M9 13h6M9 17h4\"/>",
         ["database"] = "<ellipse cx=\"12\" cy=\"6\" rx=\"7.5\" ry=\"3\"/><path d=\"M4.5 6v12c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3V6\"/><path d=\"M4.5 12c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3\"/>",
+        ["refresh"] = "<path d=\"M20 11a8 8 0 0 0-14.6-4.5L4 8\"/><path d=\"M4 3.5V8h4.5\"/><path d=\"M4 13a8 8 0 0 0 14.6 4.5L20 16\"/><path d=\"M20 20.5V16h-4.5\"/>",
+        ["copy"] = "<rect x=\"8.5\" y=\"8.5\" width=\"12\" height=\"12\" rx=\"2\"/><path d=\"M15.5 8.5V5.5a2 2 0 0 0-2-2h-8a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h3\"/>",
+        ["trash"] = "<path d=\"M4 7h16\"/><path d=\"M9.5 7V4.5h5V7\"/><path d=\"M6 7l1 13a1.5 1.5 0 0 0 1.5 1.4h7A1.5 1.5 0 0 0 17 20l1-13\"/><path d=\"M10 11v6M14 11v6\"/>",
+        ["ban"] = "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M5.7 5.7l12.6 12.6\"/>",
+        ["search"] = "<circle cx=\"11\" cy=\"11\" r=\"6.5\"/><path d=\"M16 16l4.5 4.5\"/>",
+        ["warning"] = "<path d=\"M12 3.5 2.5 20h19Z\"/><path d=\"M12 10v4.5\"/><path d=\"M12 17.4h.01\"/>",
+        ["save"] = "<path d=\"M5 3.5h11l3.5 3.5v12a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 19V5A1.5 1.5 0 0 1 5 3.5Z\"/><path d=\"M7.5 3.5v5h8v-5\"/><rect x=\"7\" y=\"13\" width=\"10\" height=\"7.5\" rx=\"1\"/>",
+        ["book"] = "<path d=\"M12 6.5C10 5 7 4.5 3.5 5v13.5c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5C17 4.5 14 5 12 6.5Z\"/><path d=\"M12 6.5V20\"/>",
+        ["dots"] = "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M8 12h.01M12 12h.01M16 12h.01\"/>",
         ["clock"] = "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 7v5l3.2 2\"/>",
     }.ToFrozenDictionary(StringComparer.Ordinal);
 

@@ -10,6 +10,9 @@ public sealed class ProvisioningRequestIndex : MapIndex
     public string OrderId { get; set; } = string.Empty;
 
     public string Status { get; set; } = string.Empty;
+
+    /// <summary>For «آخرین درخواست Provisioning» on the connection settings page (migration step 4).</summary>
+    public DateTime? LastAttemptUtc { get; set; }
 }
 
 public sealed class ProvisioningRequestIndexProvider : IndexProvider<ProvisioningRequest>
@@ -19,6 +22,7 @@ public sealed class ProvisioningRequestIndexProvider : IndexProvider<Provisionin
         {
             OrderId = request.OrderId,
             Status = request.Status.ToString(),
+            LastAttemptUtc = request.LastAttemptUtc,
         });
 }
 

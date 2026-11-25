@@ -1,18 +1,41 @@
-@* Shape: AbrTimeline(Items: IEnumerable<TimelineEntry>, Label?) *@
+@* Shape: AbrTimeline(Entries: IEnumerable<TimelineEntry>, Label?, ShowActor?: bool). Rows: icon · title/note · time/date. *@
 @{
-    var items = (Model.Items as IEnumerable<TimelineEntry>)?.ToList() ?? [];
+    var items = (Model.Entries as IEnumerable<TimelineEntry>)?.ToList() ?? [];
     string label = Model.Label ?? "تاریخچه";
+    bool showActor = Model.ShowActor is true;
 }
-<ol class="abr-timeline" aria-label="@label">
+<ol class="abr-history" aria-label="@label">
     @foreach (var item in items)
     {
-        <li data-tone="@item.Tone">
-            <strong>@item.Title</strong>
-            <small>@item.Meta</small>
-            @if (!string.IsNullOrEmpty(item.Note))
-            {
-                <span class="abr-timeline__note">@item.Note</span>
-            }
+        var icon = item.Tone switch
+        {
+            "success" or "mock" => "check-circle",
+            "error" => "close",
+            "info" => "refresh",
+            "pending" => "dots",
+            "neutral" => "ban",
+            _ => "circle",
+        };
+        <li class="abr-history__row" data-tone="@item.Tone">
+            <span class="abr-history__icon">@Icons.Svg(icon, 20)</span>
+            <div class="abr-history__text">
+                <strong>@item.Title</strong>
+                @if (showActor && !string.IsNullOrEmpty(item.Actor))
+                {
+                    <span class="abr-history__actor"><bdi>@item.Actor</bdi></span>
+                }
+                @if (!string.IsNullOrEmpty(item.Note))
+                {
+                    <span class="abr-history__note">@item.Note</span>
+                }
+            </div>
+            <span class="abr-history__when">
+                <span>@item.Meta</span>
+                @if (!string.IsNullOrEmpty(item.Day))
+                {
+                    <span>@item.Day</span>
+                }
+            </span>
         </li>
     }
 </ol>

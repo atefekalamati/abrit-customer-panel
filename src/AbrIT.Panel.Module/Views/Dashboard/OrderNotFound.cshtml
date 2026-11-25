@@ -1,0 +1,19 @@
+@* 404 for unknown orders AND other customers' orders: same page, never "access denied" (DECISIONS A-10). *@
+@{
+    RenderTitleSegments(new HtmlString("سفارش پیدا نشد"));
+    ViewData["AbrNav"] = "orders";
+}
+<div class="abr-page">
+    @await DisplayAsync(await New.AbrPageHeader(
+        Title: "سفارش‌های من",
+        Subtitle: "مشاهده و پیگیری سفارش‌های شما در AbrIT",
+        Crumbs: new[] { new Crumb("سفارش‌های من", Url.Content("~/dashboard/orders")), new Crumb("پیدا نشد") }))
+
+    <section class="abr-container abr-notfound" aria-labelledby="abr-nf-title">
+        <img src="~/AbrIT.Theme/img/cloud-question.webp" alt="" width="900" height="679" decoding="async" />
+        <h2 id="abr-nf-title">سفارشی با این شماره پیدا نشد</h2>
+        <p>ممکن است شماره اشتباه باشد یا این سفارش متعلق به حساب دیگری باشد.</p>
+        <a class="abr-btn abr-btn--primary abr-btn--lg" href="~/dashboard/orders">بازگشت به سفارش‌های من @Icons.Svg("chevron-left", 18)</a>
+        <a class="abr-btn abr-btn--link" href="~/dashboard">داشبورد @Icons.Svg("chevron-left", 16)</a>
+    </section>
+</div>

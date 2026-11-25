@@ -1,4 +1,9 @@
+@* One-shot feedback after a POST/redirect. TempData["AbrMessageKind"] = error|success (default info). *@
 @if (TempData["AbrMessage"] is string message)
 {
-    <p role="status"><strong>@message</strong></p>
+    var kind = TempData["AbrMessageKind"] as string ?? "success";
+    <div class="abr-alert abr-alert--@kind abr-flash" role="@(kind == "error" ? "alert" : "status")">
+        @Icons.Svg(kind == "error" ? "alert" : "check-circle", 22, "abr-alert__svg")
+        <div><p>@message</p></div>
+    </div>
 }

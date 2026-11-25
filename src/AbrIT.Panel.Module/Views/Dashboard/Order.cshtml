@@ -1,102 +1,319 @@
 @model CustomerOrderViewModel
+<script asp-name="abrit-ui" asp-src="~/AbrIT.Panel.Module/js/abr-ui.js" at="Foot"></script>
 @{
+    // Confirm dialogs, copy buttons, auto-refresh while provisioning.
     var order = Model.Order;
     var request = Model.Request;
     var workspace = Model.Workspace;
+    var plan = order.PlanSnapshot;
+    var status = order.Status;
+    var active = status == OrderStatus.Active;
+    var provisioning = status is OrderStatus.Paid or OrderStatus.Provisioning;
+    var serviceName = Labels.ServiceName(plan.PlanKey) is { Length: > 0 } s ? s : "AbrIT Drive";
+    var title = active ? "جزئیات سرویس" : "جزئیات سفارش";
+    var subtitle = status switch
+    {
+        OrderStatus.PendingPayment => "سفارش شما ثبت شد و منتظر تأیید پرداخت توسط مدیر است.",
+        OrderStatus.Paid or OrderStatus.Provisioning => "پرداخت تأیید شد؛ سرویس شما در حال ایجاد است.",
+        OrderStatus.Active => "سرویس شما فعال است.",
+        OrderStatus.Failed => "در فعال‌سازی سرویس خطایی رخ داد؛ تیم فنی در حال بررسی است.",
+        _ => "این سفارش لغو شده و سرویسی برای آن ایجاد نمی‌شود.",
+    };
+    var badgeIcon = status switch
+    {
+        OrderStatus.PendingPayment => "clock",
+        OrderStatus.Paid or OrderStatus.Provisioning => "refresh",
+        OrderStatus.Active => Model.IsMock ? "flask" : "check-circle",
+        OrderStatus.Failed => "warning",
+        _ => "ban",
+    };
+    var period = plan.MaxUsers > 0 ? "ماه" : string.Empty;
+    var quotaText = Labels.Quota(plan.QuotaPerUserMB);
+    var capacityText = $"{Labels.Digits(plan.MaxUsers)} کاربر × {quotaText}";
+    var ordersUrl = Url.Content("~/dashboard/orders");
+    var driveUrl = Url.Action("Drive", "Services", new { area = "AbrIT.Panel.Module" });
+    var supportUrl = "https://abrit.ir";
+    var attemptsText = Labels.OutOf(Model.Attempts, Model.MaxAttempts);
+
+    RenderTitleSegments(new HtmlString(title));
+    ViewData["AbrNav"] = "orders";
+
+    // Facts row (DESIGN_PROMPTS pages 1–4): icon, label, value. Never usage / remaining-space numbers.
+    var facts = new List<(string Icon, string Label, IHtmlContent Value, string? Tone)>
+    {
+        ("file", "شماره سفارش", new HtmlString($"<bdi class=\"ltr\">{System.Net.WebUtility.HtmlEncode(order.OrderNumber)}</bdi>"), "primary"),
+    };
+    switch (status)
+    {
+        case OrderStatus.Active:
+            facts.Add(("layers", "پلن", new HtmlString($"<bdi>{System.Net.WebUtility.HtmlEncode(plan.Title)}</bdi>"), null));
+            facts.Add(("database", Model.IsTeam ? "سهمیه‌ی هر کاربر" : "سهمیه", new HtmlString(quotaText), null));
+            facts.Add(("users", "کاربران", new HtmlString($"{Labels.Digits(plan.MaxUsers)} کاربر"), null));
+            facts.Add(("calendar", "دوره", new HtmlString("ماهانه"), null));
+            break;
+        case OrderStatus.Failed:
+            facts.Add(("layers", "پلن", new HtmlString($"<bdi>{System.Net.WebUtility.HtmlEncode(plan.Title)}</bdi>"), null));
+            facts.Add(("database", Model.IsTeam ? "سهمیه‌ی هر کاربر" : "سهمیه", new HtmlString(quotaText), null));
+            facts.Add(("users", "کاربران", new HtmlString($"{Labels.Digits(plan.MaxUsers)} کاربر"), null));
+            facts.Add(("refresh", "تعداد تلاش", new HtmlString(attemptsText), "error"));
+            break;
+        case OrderStatus.Cancelled:
+            facts.Add(("card", "مبلغ", new HtmlString($"{Labels.Price(order.AmountToman)} / {period}"), null));
+            facts.Add(("layers", Model.IsTeam ? "ظرفیت" : "سهمیه", new HtmlString(Model.IsTeam ? capacityText : quotaText), null));
+            facts.Add(("calendar", "تاریخ لغو", new HtmlString(order.CancelledUtc is { } c ? Labels.Day(c) : "—"), null));
+            break;
+        case OrderStatus.Paid or OrderStatus.Provisioning:
+            facts.Add(("card", "مبلغ", new HtmlString($"{Labels.Price(order.AmountToman)} / {period}"), null));
+            facts.Add(("database", Model.IsTeam ? "ظرفیت" : "سهمیه", new HtmlString(Model.IsTeam ? capacityText : quotaText), null));
+            facts.Add(("refresh", "تلاش", new HtmlString(attemptsText), null));
+            break;
+        default:
+            facts.Add(("card", "مبلغ", new HtmlString($"{Labels.Price(order.AmountToman)} / {period}"), null));
+            facts.Add(("database", Model.IsTeam ? "ظرفیت" : "سهمیه", new HtmlString(Model.IsTeam ? capacityText : quotaText), null));
+            facts.Add(("users", "کاربران", new HtmlString($"{Labels.Digits(plan.MaxUsers)} کاربر"), null));
+            break;
+    }
 }
-<div dir="rtl" lang="fa">
-    <h1>سفارش <bdi>@order.OrderNumber</bdi></h1>
+<div class="abr-page abr-od" data-status="@status">
+    @await DisplayAsync(await New.AbrPageHeader(
+        Title: title,
+        Subtitle: subtitle,
+        Crumbs: new[] { new Crumb("سفارش‌های من", ordersUrl), new Crumb(order.OrderNumber) }))
+
     <partial name="_Message" />
-    <dl>
-        <dt>پلن</dt><dd>@order.PlanSnapshot.Title</dd>
-        <dt>مبلغ</dt><dd>@Labels.Price(order.AmountToman)</dd>
-        <dt>وضعیت</dt><dd>@Labels.StatusHtml(order.Status, request?.Mode)</dd>
-        <dt>تاریخ ثبت</dt><dd>@Labels.Date(order.CreatedUtc)</dd>
-        <dt>تاریخ تأیید پرداخت</dt><dd>@Labels.Date(order.PaidUtc)</dd>
-    </dl>
 
-    @if (order.Status == OrderStatus.Failed)
-    {
-        <p>خطا در فعال‌سازی – در حال پیگیری توسط پشتیبانی.</p>
-    }
+    <div class="abr-container abr-od__steps">
+        @await DisplayAsync(await New.AbrStepper(Label: "مراحل سفارش", Steps: OrderPresenter.Steps(order)))
+    </div>
 
-    @if (order.Status == OrderStatus.Active && request is not null)
-    {
-        <section>
-            <h2>اطلاعات دسترسی</h2>
-            @if (request.Mode == ProvisionerMode.Mock)
-            {
-                <p><strong>حالت آزمایشی <bdi>(Mock)</bdi>:</strong> هیچ حساب واقعی در Nextcloud ساخته نشده است.</p>
-            }
-            <dl>
-                <dt>آدرس درایو</dt>
-                <dd>@(request.Mode == ProvisionerMode.Mock ? "در حالت آزمایشی آدرس واقعی وجود ندارد" : "در ایمیل خوش‌آمدگویی Nextcloud")</dd>
-                <dt>نام کاربری</dt><dd><bdi>@request.ExternalUserId</bdi></dd>
-                <dt>فضا</dt><dd>@Labels.Quota(order.PlanSnapshot.QuotaPerUserMB)</dd>
-                <dt>رمز عبور</dt><dd>رمز عبور را از طریق ایمیل ارسال‌شده از Nextcloud تعیین کنید. ابریت رمز عبور شما را نگه نمی‌دارد.</dd>
-            </dl>
-        </section>
-    }
+    <div class="abr-od__grid">
+        <div class="abr-od__main">
+            <section class="abr-container abr-od__card" aria-labelledby="abr-od-title" data-abr-refresh="@(provisioning ? "5" : null)">
+                <div class="abr-od__head">
+                    <div class="abr-od__headtext">
+                        <span class="abr-badge abr-badge--lg" data-status="@Labels.StatusKey(status, Model.Mode)">@Icons.Svg(badgeIcon, 18)<span>@Labels.StatusHtml(status, Model.Mode)</span></span>
+                        <h2 class="abr-od__title" id="abr-od-title">@Icons.Svg("cloud", 30)<span><bdi>@serviceName</bdi> — پلن <bdi>@plan.Title</bdi></span></h2>
+                        @if (active || status == OrderStatus.Failed)
+                        {
+                            <p class="abr-muted">فضای ابری امن برای ذخیره و اشتراک‌گذاری فایل‌ها</p>
+                        }
+                    </div>
+                    <img class="abr-od__art" src="~/AbrIT.Theme/img/cloud-folder.webp" alt="" width="900" height="700" decoding="async" />
+                </div>
 
-    @if (workspace is not null && order.Status == OrderStatus.Active)
-    {
-        <section id="workspace">
-            <h2>اعضای فضای تیمی</h2>
-            <p>ظرفیت استفاده‌شده: <bdi>@Labels.Number(workspace.SeatsUsed)/@Labels.Number(workspace.SeatLimit)</bdi> (شامل مالک)</p>
-            <p>گروه: <bdi>@workspace.GroupId</bdi> – فضای هر عضو: @Labels.Quota(order.PlanSnapshot.QuotaPerUserMB)</p>
-            <table>
-                <thead><tr><th>#</th><th>ایمیل</th><th>نام کاربری</th><th>وضعیت</th><th>تاریخ افزودن</th><th></th></tr></thead>
-                <tbody>
-                    <tr><td>@Labels.Number(1)</td><td>شما (مالک)</td><td><bdi>@workspace.OwnerExternalUserId</bdi></td><td>فعال</td><td>@Labels.Date(order.ActivatedUtc)</td><td></td></tr>
-                    @foreach (var member in workspace.Members)
+                <dl class="abr-od__facts">
+                    @foreach (var fact in facts)
                     {
-                        <tr>
-                            <td>@Labels.Number(member.MemberNumber)</td>
-                            <td><bdi>@member.Email</bdi></td>
-                            <td><bdi>@member.ExternalUserId</bdi></td>
-                            <td>@Labels.MemberStatus(member.Status)</td>
-                            <td>@Labels.Date(member.AddedUtc)</td>
-                            <td>
-                                @if (member.Status == WorkspaceMemberStatus.Active)
-                                {
-                                    <form asp-area="AbrIT.Panel.Module" asp-controller="Dashboard" asp-action="RemoveMember" asp-route-orderId="@order.OrderId" asp-route-memberNumber="@member.MemberNumber" method="post">
-                                        <button type="submit">حذف عضو</button>
-                                    </form>
-                                }
-                            </td>
-                        </tr>
+                        <div data-tone="@fact.Tone">
+                            <dt>@Icons.Svg(fact.Icon, 20)@fact.Label</dt>
+                            <dd>@fact.Value</dd>
+                        </div>
                     }
-                </tbody>
-            </table>
-            @if (workspace.SeatsUsed < workspace.SeatLimit)
-            {
-                <form asp-area="AbrIT.Panel.Module" asp-controller="Dashboard" asp-action="AddMember" asp-route-orderId="@order.OrderId" method="post">
-                    <label for="member-email">ایمیل عضو جدید</label>
-                    <input id="member-email" name="email" type="email" required maxlength="254" dir="ltr" autocomplete="off" />
-                    <button type="submit">افزودن عضو</button>
-                </form>
-                <p>حساب عضو با همین ایمیل ساخته می‌شود و @(request?.Mode == ProvisionerMode.Mock ? "در حالت آزمایشی (Mock) ایمیلی ارسال نمی‌شود." : "Nextcloud ایمیل تعیین رمز عبور را برای او می‌فرستد.")</p>
-            }
-            else
-            {
-                <p>ظرفیت این پلن تکمیل است؛ برای افزودن عضو جدید ابتدا یک عضو را حذف کنید.</p>
-            }
-        </section>
-    }
+                </dl>
 
-    @if (order.Status == OrderStatus.PendingPayment)
-    {
-        <form asp-area="AbrIT.Panel.Module" asp-controller="Dashboard" asp-action="Cancel" asp-route-orderId="@order.OrderId" method="post">
-            <button type="submit">لغو سفارش</button>
-        </form>
-    }
+                @switch (status)
+                {
+                    case OrderStatus.PendingPayment:
+                        @await DisplayAsync(await New.AbrAlert(Kind: "info", Body: "پرداخت در این محیط آزمایشی است و توسط مدیر سیستم تأیید می‌شود. پس از تأیید، سرویس شما به‌صورت خودکار فعال می‌شود."))
+                        break;
+                    case OrderStatus.Paid or OrderStatus.Provisioning:
+                        <div class="abr-od__progress">
+                            <div class="abr-progress abr-progress--indeterminate" role="progressbar" aria-label="در حال فعال‌سازی سرویس" aria-describedby="abr-od-progress"><span></span></div>
+                            <p id="abr-od-progress" class="abr-muted" role="status">در حال ایجاد حساب <bdi>Drive</bdi> و تنظیم سهمیه… این صفحه را می‌توانید ببندید.</p>
+                        </div>
+                        break;
+                    case OrderStatus.Failed:
+                        @await DisplayAsync(await New.AbrAlert(Kind: "error", Title: "فعال‌سازی انجام نشد", Body: "در فرآیند فعال‌سازی سرویس شما خطایی رخ داد. تیم فنی در حال بررسی و رفع مشکل است و به‌زودی نتیجه را به شما اطلاع می‌دهد."))
+                        break;
+                    case OrderStatus.Cancelled:
+                        <div class="abr-alert abr-alert--neutral">
+                            @Icons.Svg("info", 22, "abr-alert__svg")
+                            <div><p>هیچ پرداختی برای این سفارش انجام نشده و هیچ سرویسی ایجاد نشده است.</p></div>
+                        </div>
+                        break;
+                }
+            </section>
 
-    <h2>تاریخچه</h2>
-    <ol>
-        @foreach (var change in order.History)
-        {
-            <li>@Labels.Date(change.AtUtc): @Labels.Status(change.From) ← @Labels.Status(change.To)</li>
-        }
-    </ol>
-    <p><a asp-area="AbrIT.Panel.Module" asp-controller="Dashboard" asp-action="Index">بازگشت به داشبورد</a></p>
+            @if (active && workspace is not null)
+            {
+                var seatsPercent = workspace.SeatLimit == 0 ? 0 : (int)Math.Round(100d * workspace.SeatsUsed / workspace.SeatLimit);
+                var full = workspace.SeatsUsed >= workspace.SeatLimit;
+                <section class="abr-container abr-members" id="workspace" aria-labelledby="abr-members-title">
+                    <div class="abr-members__head">
+                        <h2 class="abr-container__title abr-titleicon" id="abr-members-title"><span class="abr-titleicon__box">@Icons.Svg("users", 24)</span>اعضای فضای تیمی</h2>
+                        <span class="abr-members__seats" id="abr-seats-label">ظرفیت: <b>@Labels.OutOf(workspace.SeatsUsed, workspace.SeatLimit)</b> کاربر</span>
+                    </div>
+                    <div class="abr-progress abr-members__bar" role="progressbar" aria-labelledby="abr-seats-label"
+                         aria-valuemin="0" aria-valuemax="@workspace.SeatLimit" aria-valuenow="@workspace.SeatsUsed"
+                         aria-valuetext="@Labels.OutOf(workspace.SeatsUsed, workspace.SeatLimit) کاربر"><span style="width:@(seatsPercent)%"></span></div>
+                    <p class="abr-muted abr-members__meta">گروه: <bdi class="ltr">@workspace.GroupId</bdi> · سهمیه‌ی هر عضو: @quotaText · مالک هم یکی از کاربران است.</p>
+
+                    <ul class="abr-members__list" role="list">
+                        <li class="abr-member">
+                            <span class="abr-member__avatar" aria-hidden="true">@Icons.Svg("user", 20)</span>
+                            <span class="abr-member__who"><strong>شما (مالک)</strong><bdi class="ltr abr-muted">@workspace.OwnerExternalUserId</bdi></span>
+                            <span class="abr-badge" data-status="@Labels.StatusKey(OrderStatus.Active, Model.Mode)"><span>@Labels.StatusHtml(OrderStatus.Active, Model.Mode)</span></span>
+                            <span class="abr-member__action"></span>
+                        </li>
+                        @foreach (var member in workspace.Members)
+                        {
+                            var memberKey = member.Status switch
+                            {
+                                WorkspaceMemberStatus.Active => Labels.StatusKey(OrderStatus.Active, Model.Mode),
+                                WorkspaceMemberStatus.Failed => "Failed",
+                                WorkspaceMemberStatus.Removed => "Cancelled",
+                                _ => "Provisioning",
+                            };
+                            <li class="abr-member" data-member-status="@member.Status">
+                                <span class="abr-member__avatar" aria-hidden="true">@(member.Email.Length > 0 ? char.ToUpperInvariant(member.Email[0]) : '?')</span>
+                                <span class="abr-member__who"><bdi class="ltr">@member.Email</bdi><bdi class="ltr abr-muted">@member.ExternalUserId</bdi></span>
+                                <span class="abr-badge" data-status="@memberKey"><span>@(member.Status == WorkspaceMemberStatus.Active ? Labels.StatusHtml(OrderStatus.Active, Model.Mode) : new HtmlString(Labels.MemberStatus(member.Status)))</span></span>
+                                <span class="abr-member__action">
+                                    @if (member.Status == WorkspaceMemberStatus.Active)
+                                    {
+                                        <form asp-area="AbrIT.Panel.Module" asp-controller="Dashboard" asp-action="RemoveMember" asp-route-orderId="@order.OrderId" asp-route-memberNumber="@member.MemberNumber" method="post"
+                                              data-abr-confirm data-confirm-tone="danger" data-confirm-icon="trash" data-confirm-title="حذف عضو"
+                                              data-confirm-body="@($"حساب ⁨{member.Email}⁩ از فضای تیمی حذف و غیرفعال می‌شود. ظرفیت آن آزاد می‌شود.")"
+                                              data-confirm-ok="حذف عضو">
+                                            <button type="submit" class="abr-btn abr-btn--danger abr-btn--sm">@Icons.Svg("trash", 16) حذف<span class="sr-only"> عضو <bdi>@member.Email</bdi></span></button>
+                                        </form>
+                                    }
+                                </span>
+                            </li>
+                        }
+                    </ul>
+
+                    @if (!full)
+                    {
+                        <form class="abr-members__add" asp-area="AbrIT.Panel.Module" asp-controller="Dashboard" asp-action="AddMember" asp-route-orderId="@order.OrderId" method="post" data-abr-once>
+                            <div class="abr-field">
+                                <label for="member-email">ایمیل عضو جدید</label>
+                                <div class="abr-inputwrap">
+                                    @Icons.Svg("mail", 20)
+                                    <input id="member-email" class="abr-input ltr" name="email" type="email" required maxlength="254" autocomplete="off" placeholder="name@example.com" aria-describedby="member-email-hint" />
+                                </div>
+                            </div>
+                            <button type="submit" class="abr-btn abr-btn--primary">@Icons.Svg("user-plus", 18) افزودن عضو</button>
+                        </form>
+                        <p class="abr-muted abr-members__hint" id="member-email-hint">
+                            حساب عضو با همین ایمیل ساخته می‌شود؛ @(Model.IsMock ? "در حالت آزمایشی ایمیلی ارسال نمی‌شود." : "Nextcloud ایمیل تعیین رمز عبور را برای او می‌فرستد.")
+                        </p>
+                    }
+                    else
+                    {
+                        <p class="abr-muted">ظرفیت این پلن تکمیل است؛ برای افزودن عضو جدید ابتدا یک عضو را حذف کنید.</p>
+                    }
+                </section>
+            }
+
+            <section class="abr-container abr-od__history" aria-labelledby="abr-history-title">
+                <h2 class="abr-container__title abr-titleicon" id="abr-history-title"><span class="abr-titleicon__box">@Icons.Svg("clock", 24)</span>تاریخچه‌ی وضعیت سفارش</h2>
+                @await DisplayAsync(await New.AbrTimeline(Label: "تاریخچه‌ی وضعیت سفارش", Entries: OrderPresenter.History(order, Model.Mode)))
+                @if (status == OrderStatus.Failed)
+                {
+                    <div class="abr-alert abr-alert--error abr-od__noreorder">
+                        @Icons.Svg("info", 22, "abr-alert__svg")
+                        <div><p><strong>نیازی به ثبت سفارش مجدد نیست.</strong> نتیجه‌ی بررسی و اقدامات بعدی از همین صفحه به شما اطلاع داده خواهد شد.</p></div>
+                    </div>
+                }
+            </section>
+        </div>
+
+        <aside class="abr-od__side" aria-label="اطلاعات تکمیلی سفارش">
+            @if (active && request is not null)
+            {
+                <section class="abr-container abr-access" aria-labelledby="abr-access-title">
+                    <h2 class="abr-container__title abr-titleicon" id="abr-access-title"><span class="abr-titleicon__box">@Icons.Svg("shield", 24)</span>اطلاعات دسترسی امن</h2>
+                    <dl class="abr-access__rows">
+                        <div>
+                            <dt>آدرس <bdi>Drive</bdi>:</dt>
+                            <dd>
+                                @if (Model.DriveUrl is { } url)
+                                {
+                                    <bdi class="ltr" id="abr-drive-url">@url</bdi>
+                                    <button type="button" class="abr-copy" data-abr-copy="abr-drive-url" aria-label="کپی آدرس Drive">@Icons.Svg("copy", 18)</button>
+                                }
+                                else
+                                {
+                                    <span class="abr-muted">در حالت آزمایشی آدرس واقعی وجود ندارد</span>
+                                }
+                            </dd>
+                        </div>
+                        <div>
+                            <dt>نام کاربری:</dt>
+                            <dd>
+                                <bdi class="ltr" id="abr-ext-user">@request.ExternalUserId</bdi>
+                                <button type="button" class="abr-copy" data-abr-copy="abr-ext-user" aria-label="کپی نام کاربری">@Icons.Svg("copy", 18)</button>
+                            </dd>
+                        </div>
+                        <div>
+                            <dt>رمز عبور:</dt>
+                            <dd class="abr-muted">نمایش داده نمی‌شود — لینک تعیین رمز به ایمیل شما ارسال می‌شود.</dd>
+                        </div>
+                    </dl>
+                    @if (Model.IsMock)
+                    {
+                        <div class="abr-alert abr-alert--mock">
+                            @Icons.Svg("flask", 22, "abr-alert__svg")
+                            <div><p>این حساب در حالت آزمایشی (<bdi>Mock</bdi>) ایجاد شده و به سرور واقعی متصل نیست.</p></div>
+                        </div>
+                        <button type="button" class="abr-btn abr-btn--primary abr-btn--block" disabled aria-describedby="abr-login-note">@Icons.Svg("external", 18) ورود به <bdi>AbrIT Drive</bdi></button>
+                        <p class="abr-tip" id="abr-login-note">در حالت آزمایشی در دسترس نیست</p>
+                    }
+                    else if (Model.DriveUrl is { } loginUrl)
+                    {
+                        <a class="abr-btn abr-btn--primary abr-btn--block" href="@loginUrl" target="_blank" rel="noopener">@Icons.Svg("external", 18) ورود به <bdi>AbrIT Drive</bdi><span class="sr-only">(در زبانه‌ی جدید)</span></a>
+                    }
+                </section>
+
+                <section class="abr-container abr-od__guide" aria-labelledby="abr-guide-title">
+                    <h2 class="abr-container__title abr-titleicon" id="abr-guide-title"><span class="abr-titleicon__box">@Icons.Svg("book", 24)</span>راهنمای استفاده</h2>
+                    <ol class="abr-od__guidelist">
+                        <li>ایمیل «تعیین رمز عبور» را که <bdi>Nextcloud</bdi> برایتان می‌فرستد باز کنید و رمز دلخواه را تعیین کنید.</li>
+                        <li>با نام کاربری بالا وارد <bdi>AbrIT Drive</bdi> شوید.</li>
+                        <li>فایل‌ها را بارگذاری کنید@(Model.IsTeam ? " و اعضای تیم را از بخش «اعضای فضای تیمی» اضافه کنید" : string.Empty).</li>
+                    </ol>
+                </section>
+            }
+            else if (status != OrderStatus.Cancelled)
+            {
+                <section class="abr-container abr-access abr-access--locked" aria-labelledby="abr-access-title">
+                    <h2 class="abr-container__title abr-titleicon" id="abr-access-title"><span class="abr-titleicon__box">@Icons.Svg("lock", 24)</span>اطلاعات دسترسی</h2>
+                    <p class="abr-muted">اطلاعات دسترسی پس از فعال‌سازی موفق نمایش داده می‌شود.</p>
+                </section>
+            }
+
+            @if (status == OrderStatus.PendingPayment)
+            {
+                <section class="abr-container abr-od__ops" aria-labelledby="abr-ops-title">
+                    <h2 class="abr-container__title abr-titleicon" id="abr-ops-title"><span class="abr-titleicon__box">@Icons.Svg("gear", 24)</span>عملیات</h2>
+                    <form asp-area="AbrIT.Panel.Module" asp-controller="Dashboard" asp-action="Cancel" asp-route-orderId="@order.OrderId" method="post"
+                          data-abr-confirm data-confirm-tone="danger" data-confirm-icon="close" data-confirm-title="لغو سفارش"
+                          data-confirm-body="@($"سفارش ⁨{order.OrderNumber}⁩ لغو می‌شود و دیگر قابل پرداخت یا فعال‌سازی نیست.")"
+                          data-confirm-ok="لغو سفارش">
+                        <button type="submit" class="abr-btn abr-btn--danger abr-btn--block abr-btn--lg" aria-describedby="abr-cancel-rule">@Icons.Svg("close", 20) لغو سفارش</button>
+                    </form>
+                    <p class="abr-muted abr-od__rule" id="abr-cancel-rule">فقط سفارش‌های در انتظار پرداخت قابل لغو هستند.</p>
+                </section>
+            }
+
+            @if (status == OrderStatus.Cancelled)
+            {
+                <section class="abr-container abr-od__neworder" aria-labelledby="abr-new-title">
+                    <img src="~/AbrIT.Theme/img/cloud-folder-plus.webp" alt="" width="900" height="712" decoding="async" />
+                    <h2 class="abr-container__title" id="abr-new-title">سفارش جدید</h2>
+                    <p class="abr-muted">می‌توانید دوباره یک پلن انتخاب کنید.</p>
+                    <a class="abr-btn abr-btn--primary abr-btn--block" href="@driveUrl">مشاهده‌ی پلن‌ها @Icons.Svg("chevron-left", 18)</a>
+                </section>
+            }
+            else if (!active)
+            {
+                <section class="abr-container abr-od__help" aria-labelledby="abr-help-title">
+                    <h2 class="abr-container__title abr-titleicon" id="abr-help-title"><span class="abr-titleicon__box">@Icons.Svg("headset", 24)</span>نیاز به راهنمایی دارید؟</h2>
+                    <p class="abr-muted">تیم پشتیبانی <bdi>AbrIT</bdi> آماده‌ی پاسخ‌گویی به پرسش‌ها و راهنمایی شماست.</p>
+                    <a class="abr-btn abr-btn--normal abr-btn--block" href="@supportUrl" target="_blank" rel="noopener">@Icons.Svg("external", 18) تماس با پشتیبانی<span class="sr-only">(در زبانه‌ی جدید)</span></a>
+                </section>
+            }
+        </aside>
+    </div>
 </div>

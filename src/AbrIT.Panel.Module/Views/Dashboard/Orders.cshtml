@@ -1,0 +1,62 @@
+@model MyOrdersViewModel
+@{
+    RenderTitleSegments(new HtmlString("سفارش‌های من"));
+    ViewData["AbrNav"] = "orders";
+    var driveUrl = Url.Action("Drive", "Services", new { area = "AbrIT.Panel.Module" });
+    string OrderUrl(Order o) => Url.Action("Order", "Dashboard", new { area = "AbrIT.Panel.Module", orderId = o.OrderId })!;
+    static string PlanLine(Order o) =>
+        string.IsNullOrEmpty(Labels.ServiceName(o.PlanSnapshot.PlanKey)) ? o.PlanSnapshot.Title : $"{Labels.ServiceName(o.PlanSnapshot.PlanKey)} / {o.PlanSnapshot.Title}";
+}
+<div class="abr-page">
+    @await DisplayAsync(await New.AbrPageHeader(
+        Title: "سفارش‌های من",
+        Subtitle: "مشاهده و پیگیری سفارش‌های شما در AbrIT",
+        Crumbs: new[] { new Crumb("سفارش‌های من") }))
+
+    <partial name="_Message" />
+
+    @if (Model.Orders.Count == 0)
+    {
+        <section class="abr-container abr-emptystate" aria-labelledby="abr-empty-title">
+            <img src="~/AbrIT.Theme/img/cloud-folder-plus.webp" alt="" width="900" height="712" decoding="async" />
+            <div class="abr-emptystate__text">
+                <h2 id="abr-empty-title">هنوز سفارشی ثبت نکرده‌اید</h2>
+                <p>با انتخاب یکی از پلن‌های <bdi>AbrIT Drive</bdi>، فضای ابری امن خود را در چند دقیقه فعال کنید.</p>
+                <div class="abr-actions">
+                    <a class="abr-btn abr-btn--primary abr-btn--lg" href="@driveUrl">مشاهده‌ی پلن‌ها @Icons.Svg("chevron-left", 18)</a>
+                </div>
+            </div>
+        </section>
+    }
+    else
+    {
+        <section class="abr-container" aria-labelledby="abr-orders-title">
+            <div class="abr-members__head">
+                <h2 class="abr-container__title abr-titleicon" id="abr-orders-title"><span class="abr-titleicon__box">@Icons.Svg("file", 24)</span>همه‌ی سفارش‌ها</h2>
+                <span class="abr-muted">@Labels.Digits(Model.Orders.Count) سفارش</span>
+            </div>
+            <table class="abr-table abr-orders">
+                <caption class="sr-only">سفارش‌های من، جدیدترین در ابتدا</caption>
+                <thead>
+                    <tr><th scope="col">شماره سفارش</th><th scope="col">سرویس / پلن</th><th scope="col">مبلغ</th><th scope="col">تاریخ ثبت</th><th scope="col">وضعیت</th><th scope="col"><span class="sr-only">عملیات</span></th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in Model.Orders)
+                    {
+                        var order = row.Order;
+                        <tr>
+                            <td data-label="شماره سفارش" class="abr-orders__no"><a href="@OrderUrl(order)"><bdi class="ltr">@order.OrderNumber</bdi></a></td>
+                            <td data-label="سرویس / پلن" class="abr-orders__plan"><bdi>@PlanLine(order)</bdi></td>
+                            <td data-label="مبلغ" class="abr-orders__amount">@Icons.Svg("card", 18, "abr-m-only")@Labels.Price(order.AmountToman)</td>
+                            <td data-label="تاریخ ثبت" class="abr-orders__date">@Icons.Svg("calendar", 18, "abr-m-only")@Labels.Day(order.CreatedUtc)</td>
+                            <td data-label="وضعیت" class="abr-orders__status">@await DisplayAsync(await New.AbrStatusBadge(Status: order.Status, Mode: row.Mode))</td>
+                            <td class="actions abr-orders__go"><a class="abr-btn abr-btn--link" href="@OrderUrl(order)">مشاهده<span class="sr-only"> سفارش <bdi>@order.OrderNumber</bdi></span> @Icons.Svg("chevron-left", 16)</a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </section>
+
+        <a class="abr-btn abr-btn--primary abr-btn--lg abr-btn--block abr-m-only" href="@driveUrl">@Icons.Svg("plus", 20) خرید سرویس جدید</a>
+    }
+</div>

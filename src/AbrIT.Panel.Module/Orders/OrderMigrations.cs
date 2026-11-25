@@ -28,7 +28,8 @@ public sealed class OrderMigrations : DataMigration
 
         await CreateProvisioningRequestIndexAsync();
         await CreateTeamWorkspaceIndexAsync();
-        return 3;
+        await AddLastAttemptColumnAsync();
+        return 4;
     }
 
     public async Task<int> UpdateFrom1Async()
@@ -42,6 +43,16 @@ public sealed class OrderMigrations : DataMigration
         await CreateTeamWorkspaceIndexAsync();
         return 3;
     }
+
+    public async Task<int> UpdateFrom3Async()
+    {
+        await AddLastAttemptColumnAsync();
+        return 4;
+    }
+
+    private Task AddLastAttemptColumnAsync() =>
+        SchemaBuilder.AlterIndexTableAsync<ProvisioningRequestIndex>(table =>
+            table.AddColumn<DateTime>(nameof(ProvisioningRequestIndex.LastAttemptUtc), c => c.Nullable()));
 
     private async Task CreateTeamWorkspaceIndexAsync()
     {
