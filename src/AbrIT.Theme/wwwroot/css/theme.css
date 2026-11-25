@@ -236,31 +236,37 @@ body.abr-noscroll{overflow:hidden}
 .abr-ico{flex:none;display:block}
 .abr-app bdi{unicode-bidi:isolate}
 
-/* ---- Shell: navy sidebar (right in RTL) + content column ---- */
+/* ---- Shell: light sidebar (right in RTL) + content column ---- */
 .abr-shell{display:grid;grid-template-columns:272px minmax(0,1fr);min-height:100vh;--abr-side-w:272px;
-  /* navy column runs the full page height; the sticky 100vh sidebar alone stops at the first screen (E-2 full-page check) */
-  background:linear-gradient(to left,var(--abr-nav-bg) var(--abr-side-w),transparent var(--abr-side-w))}
+  /* sidebar column (fill + divider) runs the full page height; the sticky 100vh sidebar alone stops at the first screen */
+  background:linear-gradient(to left,var(--abr-nav-bg) var(--abr-side-w),var(--abr-border) var(--abr-side-w),var(--abr-border) calc(var(--abr-side-w) + 1px),transparent calc(var(--abr-side-w) + 1px))}
 .abr-side{position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--abr-nav-bg);color:var(--abr-nav-text);display:flex;flex-direction:column;gap:28px;padding:0 16px 24px;isolation:isolate}
+/* desktop collapse (top-bar toggle, persisted): the sidebar leaves the layout and the content column takes the full width.
+   display:none also keeps its links out of the tab order; theme.js sets inert as well. */
+@media (min-width: 1025px){
+  .abr-side-collapsed .abr-shell{grid-template-columns:minmax(0,1fr);background:none}
+  .abr-side-collapsed .abr-side{display:none}
+  .abr-side-collapsed .abr-top>.abr-brand{display:inline-flex;font-size:22px}
+}
 .abr-wave{position:absolute;inset-inline:0;width:100%;z-index:-1;pointer-events:none;color:var(--abr-primary)}
-.abr-wave--side{bottom:0;height:380px}
 .abr-wave--top{top:72px;height:300px}
 .abr-side__head{height:72px;display:flex;align-items:center;justify-content:space-between;flex:none;padding-inline:8px}
 .abr-side__close{display:none;place-items:center;width:var(--abr-tap-min);height:var(--abr-tap-min);border:0;border-radius:var(--abr-radius-md);background:transparent;color:var(--abr-nav-text);cursor:pointer}
 .abr-brand{display:inline-flex;align-items:center;gap:10px;color:var(--abr-nav-text);font-weight:800;font-size:26px;line-height:1;direction:ltr;min-height:var(--abr-tap-min)}
-.abr-brand svg{color:color-mix(in srgb,var(--abr-primary) 55%,white)}
+.abr-brand svg{color:var(--abr-primary)}
 .abr-app .abr-brand:hover{text-decoration:none}
 
 .abr-sidenav ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
 .abr-app .abr-sidenav a{display:flex;align-items:center;gap:14px;min-height:52px;padding:0 16px;border-radius:var(--abr-radius-md);color:var(--abr-nav-muted);font-weight:500;font-size:16px;transition:background var(--abr-dur-fast) var(--abr-ease),color var(--abr-dur-fast) var(--abr-ease)}
-.abr-app .abr-sidenav a:hover{background:rgba(255,255,255,.07);color:var(--abr-nav-text);text-decoration:none}
-.abr-app .abr-sidenav a[aria-current=page]{background:var(--abr-cta-gradient);color:var(--abr-on-primary);box-shadow:var(--abr-cta-glow)}
+.abr-app .abr-sidenav a:hover{background:var(--abr-subtle);color:var(--abr-nav-text);text-decoration:none}
+.abr-app .abr-sidenav a[aria-current=page]{background:var(--abr-nav-active-bg);color:var(--abr-nav-active-text);font-weight:700;box-shadow:inset -4px 0 0 var(--abr-nav-active-text)}
 .abr-sidenav__ext{opacity:.75}
 
-.abr-helpcard{margin-top:auto;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:var(--abr-radius-lg);padding:20px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;backdrop-filter:blur(6px)}
-.abr-helpcard>.abr-ico{color:color-mix(in srgb,var(--abr-primary) 50%,white);margin-bottom:4px}
+.abr-helpcard{margin-top:auto;background:var(--abr-primary-soft);border:1px solid var(--abr-border);border-radius:var(--abr-radius-lg);padding:20px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;backdrop-filter:blur(6px)}
+.abr-helpcard>.abr-ico{color:var(--abr-primary);margin-bottom:4px}
 .abr-helpcard strong{font-size:16px;line-height:26px}
 .abr-helpcard p{color:var(--abr-nav-muted);font-size:var(--abr-fs-sm);line-height:var(--abr-lh-sm)}
-.abr-app .abr-btn--inverse{background:var(--abr-surface);color:var(--abr-text);margin-top:10px;width:100%}
+.abr-app .abr-btn--inverse{background:var(--abr-surface);color:var(--abr-primary);border-color:var(--abr-primary);margin-top:10px;width:100%}
 .abr-app .abr-btn--inverse:hover{background:var(--abr-primary-soft)}
 
 /* ---- Content column ---- */
@@ -270,19 +276,18 @@ body.abr-noscroll{overflow:hidden}
     radial-gradient(760px 320px at 0% 105%,color-mix(in srgb,var(--abr-primary) 12%,transparent) 0,transparent 70%),
     linear-gradient(165deg,var(--abr-primary-soft) 0%,var(--abr-bg) 65%)}
 .abr-top{height:72px;flex:none;display:flex;align-items:center;justify-content:space-between;gap:24px;padding:0 32px;position:sticky;top:0;z-index:var(--abr-z-nav)}
-.abr-top--guest{background:var(--abr-nav-bg);color:var(--abr-nav-text)}
-.abr-top--user{background:color-mix(in srgb,var(--abr-surface) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--abr-border);color:var(--abr-text)}
+.abr-top{background:color-mix(in srgb,var(--abr-nav-bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--abr-border);color:var(--abr-nav-text)}
 .abr-top>.abr-brand{display:none}
-.abr-top--user>.abr-brand{color:var(--abr-text)}
-.abr-top--user>.abr-brand svg{color:var(--abr-primary)}
 .abr-top__links{display:flex;gap:8px}
 .abr-app .abr-top__links a{display:inline-flex;align-items:center;gap:8px;min-height:var(--abr-tap-min);padding:0 14px;border-radius:var(--abr-radius-md);color:var(--abr-nav-text);font-weight:500}
-.abr-app .abr-top__links a:hover{background:rgba(255,255,255,.08);text-decoration:none}
+.abr-app .abr-top__links a:hover{background:var(--abr-subtle);text-decoration:none}
 .abr-top__actions{display:flex;align-items:center;gap:12px;margin-inline-start:auto}
-.abr-top__sep{width:1px;height:32px;background:rgba(255,255,255,.22);margin-inline-end:8px}
-.abr-app .abr-btn--ghost-inverse{background:transparent;color:var(--abr-nav-text);border-color:rgba(255,255,255,.8)}
-.abr-app .abr-btn--ghost-inverse:hover{background:rgba(255,255,255,.1)}
-.abr-burger{display:none;place-items:center;width:var(--abr-tap-min);height:var(--abr-tap-min);border:0;border-radius:var(--abr-radius-md);background:transparent;color:inherit;cursor:pointer}
+.abr-top__sep{width:1px;height:32px;background:var(--abr-border);margin-inline-end:8px}
+.abr-app .abr-btn--ghost-inverse{background:transparent;color:var(--abr-primary);border-color:var(--abr-primary)}
+.abr-app .abr-btn--ghost-inverse:hover{background:var(--abr-primary-soft)}
+.abr-burger{display:grid;flex:none;place-items:center;width:var(--abr-tap-min);height:var(--abr-tap-min);border:0;border-radius:var(--abr-radius-md);background:transparent;color:inherit;cursor:pointer}
+.abr-burger:hover{background:var(--abr-subtle)}
+.abr-burger:focus-visible{outline:2px solid var(--abr-focus);outline-offset:2px}
 .abr-backdrop{display:none}
 
 /* user menu (details/summary: works without JS, keyboard accessible) */
@@ -423,7 +428,17 @@ body.abr-noscroll{overflow:hidden}
 
 /* ---- Tablet ---- */
 @media (max-width: 1024px){
-  .abr-shell{grid-template-columns:240px minmax(0,1fr);--abr-side-w:240px}
+  /* off-canvas drawer below desktop (closed by default, not persisted) */
+  .abr-shell{display:block;background:none}
+  .abr-side{position:fixed;inset-block:0;inset-inline-start:0;width:min(300px,86vw);height:100dvh;z-index:var(--abr-z-dialog);transform:translateX(100%);visibility:hidden;transition:none;box-shadow:none}
+  /* animate only while the user opens/closes it (theme.js adds --anim), never on resize or page load */
+  .abr-side.abr-side--anim{transition:transform var(--abr-dur-slow) var(--abr-ease),visibility 0s linear var(--abr-dur-slow)}
+  .abr-side.is-open{transform:none;visibility:visible;box-shadow:var(--abr-shadow-3)}
+  .abr-side.abr-side--anim.is-open{transition:transform var(--abr-dur-slow) var(--abr-ease),visibility 0s}
+  .abr-side__close{display:grid}
+  .abr-backdrop{display:block;position:fixed;inset:0;background:rgba(0,7,22,.45);z-index:calc(var(--abr-z-dialog) - 1)}
+  .abr-backdrop[hidden]{display:none}
+  .abr-top>.abr-brand{display:inline-flex;font-size:22px}
   .abr-app .abr-main{padding:24px 32px 32px}
   .abr-evalbar{margin:0 32px 24px}
   .abr-auth-split{grid-template-columns:1fr}
@@ -433,22 +448,11 @@ body.abr-noscroll{overflow:hidden}
 
 /* ---- Phone ---- */
 @media (max-width: 640px){
-  .abr-shell{display:block;background:none}
-  .abr-side{position:fixed;inset-block:0;inset-inline-start:0;width:min(300px,86vw);height:100dvh;z-index:var(--abr-z-dialog);transform:translateX(100%);visibility:hidden;transition:none;box-shadow:none}
-  /* animate only while the user opens/closes it (theme.js adds --anim), never on resize or page load */
-  .abr-side.abr-side--anim{transition:transform var(--abr-dur-slow) var(--abr-ease),visibility 0s linear var(--abr-dur-slow)}
-  .abr-side.is-open{transform:none;visibility:visible;box-shadow:var(--abr-shadow-3)}
-  .abr-side.abr-side--anim.is-open{transition:transform var(--abr-dur-slow) var(--abr-ease),visibility 0s}
-  .abr-side__close{display:grid}
   .abr-side__head{height:64px}
-  .abr-backdrop{display:block;position:fixed;inset:0;background:rgba(0,7,22,.45);z-index:calc(var(--abr-z-dialog) - 1)}
-  .abr-backdrop[hidden]{display:none}
   .abr-top{height:64px;padding:0 12px}
-  .abr-top>.abr-brand{display:inline-flex;font-size:22px}
   .abr-top__links,.abr-top--guest .abr-top__actions{display:none}
   .abr-top__actions{gap:4px}
   .abr-usermenu__name{display:none}
-  .abr-burger{display:grid}
   .abr-app .abr-main{padding:20px 16px 28px}
   .abr-evalbar{margin:0 16px 16px}
   .abr-authpage{gap:20px}

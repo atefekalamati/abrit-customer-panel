@@ -42,6 +42,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light" />
+    @* Apply the saved desktop sidebar state before first paint (no flash); theme.js owns the toggle. *@
+    <script>try{if(localStorage.getItem('abr-side')==='closed'){document.documentElement.classList.add('abr-side-collapsed')}}catch(e){}</script>
     <title>@RenderTitleSegments(Site.SiteName, "before")</title>
     <link rel="preload" href="~/AbrIT.Theme/css/fonts/Vazirmatn-Variable.woff2" as="font" type="font/woff2" crossorigin />
     <style asp-name="abrit-tokens" asp-src="~/AbrIT.Theme/css/tokens.css" at="Head"></style>
@@ -54,10 +56,6 @@
     <a class="abr-skip" href="#main">پرش به محتوای اصلی</a>
     <div class="abr-shell">
         <aside class="abr-side" id="abr-drawer" aria-label="منوی کناری">
-            <svg class="abr-wave abr-wave--side" viewBox="0 0 300 300" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-                <path d="M0 300V150C70 105 150 190 220 140c30-20 55-35 80-30v190Z" fill="currentColor" opacity=".35" />
-                <path d="M0 300V215c80-45 150 35 230-15 25-15 50-20 70-15v115Z" fill="currentColor" opacity=".6" />
-            </svg>
             <div class="abr-side__head">
                 <partial name="_Brand" />
                 <button type="button" class="abr-side__close" data-abr-drawer-close aria-label="بستن منو">@Icons.Svg("close", 22)</button>
@@ -99,6 +97,7 @@
                 <path d="M1200 150c-120 60-260 40-380 70" fill="none" stroke="currentColor" stroke-opacity=".08" stroke-width="2" />
             </svg>
             <header class="abr-top @(signedIn ? "abr-top--user" : "abr-top--guest")">
+                <button type="button" class="abr-burger" data-abr-drawer-open aria-controls="abr-drawer" aria-expanded="false" aria-label="باز کردن منو">@Icons.Svg("menu", 24)</button>
                 <partial name="_Brand" />
                 @if (signedIn)
                 {
@@ -131,7 +130,6 @@
                         <a class="abr-btn abr-btn--primary" href="@registerUrl">@Icons.Svg("user-plus", 18) ثبت‌نام</a>
                     </div>
                 }
-                <button type="button" class="abr-burger" data-abr-drawer-open aria-controls="abr-drawer" aria-expanded="false" aria-label="باز کردن منو">@Icons.Svg("menu", 24)</button>
             </header>
 
             <main id="main" class="abr-main" tabindex="-1">

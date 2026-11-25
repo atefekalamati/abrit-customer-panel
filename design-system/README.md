@@ -22,7 +22,7 @@ Copy into the Orchard theme as `src/AbrIT.Theme/wwwroot/css/tokens.css` + `wwwro
 | `--abr-primary` | `#0761BD` | buttons, links, focus, active nav | 6.08 on white · 5.53 on bg · white text on it 6.08 |
 | `--abr-primary-hover` | `#033160` | hover/pressed | — |
 | `--abr-primary-soft` | `#F2F8FD` | selected rows, info bg, totals | primary on it 5.68 |
-| `--abr-nav-bg` | `#0F1B2A` | top navigation | muted text 9.25 |
+| `--abr-nav-bg` | `#FFFFFF` | top bar + sidebar (light, F-1) | text 20.1 · muted 5.43 · active `--abr-nav-active-text` on `--abr-nav-active-bg` 5.68 |
 | `--abr-bg` | `#F4F4F4` | page background | — |
 | `--abr-surface` | `#FFFFFF` | cards, containers, inputs | — |
 | `--abr-border` | `#E9EBED` | card outlines (**decorative only**) | 1.2 (never the only boundary of a control) |
