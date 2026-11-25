@@ -29,13 +29,21 @@ public sealed class ServicesController(CatalogReader catalog) : Controller
 }
 
 [Authorize]
-public sealed class OrdersController(CatalogReader catalog, IOrderService orders, ILogger<OrdersController> logger) : Controller
+public sealed class OrdersController(
+    CatalogReader catalog, IOrderService orders, ICustomerDirectory customers, ILogger<OrdersController> logger) : Controller
 {
     [HttpGet]
     public async Task<IActionResult> New(string? plan)
     {
         var card = string.IsNullOrEmpty(plan) ? null : await catalog.GetPlanAsync(plan);
-        return card is { IsOrderable: true } ? View(card) : NotFound();
+        if (card is not { IsOrderable: true })
+        {
+            return NotFound();
+        }
+
+        var service = (await catalog.ListServicesAsync()).FirstOrDefault(s => s.ContentItemId == card.ServiceContentItemId);
+        return View(new OrderReviewViewModel(
+            card, service?.Title, User.Identity?.Name ?? string.Empty, await customers.GetEmailAsync(User.UserId())));
     }
 
     [HttpPost]
@@ -64,7 +72,18 @@ public sealed class DashboardController(
     ILogger<DashboardController> logger) : Controller
 {
     [HttpGet]
-    public async Task<IActionResult> Index() => View(await orders.ListForOwnerAsync(User.UserId()));
+    public async Task<IActionResult> Index()
+    {
+        var rows = new List<DashboardOrderRow>();
+        foreach (var order in (await orders.ListForOwnerAsync(User.UserId())).OrderByDescending(o => o.CreatedUtc))
+        {
+            // Mode is needed only to label Active as Mock (spec §7); other statuses need no lookup.
+            var mode = order.Status == OrderStatus.Active ? (await requests.GetByOrderIdAsync(order.OrderId))?.Mode : null;
+            rows.Add(new DashboardOrderRow(order, mode));
+        }
+
+        return View(new DashboardViewModel(User.Identity?.Name ?? string.Empty, rows));
+    }
 
     [HttpGet]
     public async Task<IActionResult> Order(string orderId)

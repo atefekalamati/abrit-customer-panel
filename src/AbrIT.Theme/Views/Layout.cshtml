@@ -8,15 +8,22 @@
     const string supportUrl = "https://abrit.ir";
 
     bool Starts(string prefix) => path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase);
+
+    // Pages may pin the active menu item (ViewData["AbrNav"] = dashboard|services|orders) and the corner art
+    // (ViewData["AbrArt"] = file name in ~/AbrIT.Theme/img, ViewData["AbrArtMobile"] = true to keep it on phones).
+    var nav = ViewData["AbrNav"] as string;
+    bool Cur(string key, bool byPath) => nav is null ? byPath : nav == key;
+    var art = ViewData["AbrArt"] as string ?? "cloud-servers";
+    var artMobile = ViewData["AbrArtMobile"] is true;
     var onAuthFlow = Starts("/Login") || Starts("/ForgotPassword") || Starts("/ResetPassword");
 
     // (text, href, icon, current, external) — customer vs guest menu (docs/SCREENS.md "اجزای مشترک").
     var menu = signedIn
         ? new List<(string Text, string Href, string Icon, bool Current, bool External)>
         {
-            ("داشبورد", Url.Content("~/dashboard"), "dashboard", path.Equals("/dashboard", StringComparison.OrdinalIgnoreCase), false),
-            ("سرویس‌ها", Url.Content("~/services"), "grid", Starts("/services") || Starts("/orders/new") || path == "/", false),
-            ("سفارش‌های من", Url.Content("~/dashboard#orders"), "cart", Starts("/dashboard/orders"), false),
+            ("داشبورد", Url.Content("~/dashboard"), "dashboard", Cur("dashboard", path.Equals("/dashboard", StringComparison.OrdinalIgnoreCase)), false),
+            ("سرویس‌ها", Url.Content("~/services"), "grid", Cur("services", Starts("/services") || path == "/"), false),
+            ("سفارش‌های من", Url.Content("~/dashboard#orders"), "cart", Cur("orders", Starts("/dashboard/orders") || Starts("/orders/")), false),
             ("حساب کاربری", accountUrl, "user", Starts("/ChangePassword"), false),
             ("پشتیبانی", supportUrl, "headset", false, true),
         }
@@ -128,7 +135,7 @@
             </header>
 
             <main id="main" class="abr-main" tabindex="-1">
-                <img class="abr-corner-art" src="~/AbrIT.Theme/img/cloud-servers.webp" alt="" width="900" height="619" decoding="async" />
+                <img class="abr-corner-art @(artMobile ? "abr-corner-art--m" : null)" src="@Url.Content($"~/AbrIT.Theme/img/{art}.webp")" alt="" width="900" height="@(art == "cloud-servers" ? 619 : 700)" decoding="async" />
                 @await RenderSectionAsync("Header", required: false)
                 @await RenderSectionAsync("Messages", required: false)
                 @await RenderBodyAsync()

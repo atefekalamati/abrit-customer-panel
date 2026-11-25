@@ -169,12 +169,12 @@
           "ContentItemId": "abrsvc-drive",
           "ContentItemVersionId": "abrsvc-drive-v1",
           "ContentType": "AbrService",
-          "DisplayText": "ابریت درایو",
+          "DisplayText": "AbrIT Drive",
           "Latest": true,
           "Published": true,
-          "TitlePart": { "Title": "ابریت درایو" },
+          "TitlePart": { "Title": "AbrIT Drive" },
           "AutoroutePart": { "Path": "catalog/drive", "SetHomepage": false },
-          "MarkdownBodyPart": { "Source": "فضای ذخیره‌سازی ابری برای فایل‌ها و همکاری تیمی." },
+          "MarkdownBodyPart": { "Source": "فضای ابری امن برای ذخیره، اشتراک‌گذاری و دسترسی آسان به فایل‌های سازمانی." },
           "AbrService": {
             "ServiceKey": { "Text": "drive" },
             "Availability": { "Text": "Orderable" },
@@ -191,7 +191,7 @@
           "Published": true,
           "TitlePart": { "Title": "ERP360" },
           "AutoroutePart": { "Path": "catalog/erp360", "SetHomepage": false },
-          "MarkdownBodyPart": { "Source": "سامانه جامع منابع سازمانی. به‌زودی." },
+          "MarkdownBodyPart": { "Source": "سامانه‌ی یکپارچه‌ی مدیریت منابع سازمان (ERP) برای اتوماسیون فرآیندها." },
           "AbrService": {
             "ServiceKey": { "Text": "erp360" },
             "Availability": { "Text": "ComingSoon" },
@@ -203,12 +203,12 @@
           "ContentItemId": "abrsvc-desk",
           "ContentItemVersionId": "abrsvc-desk-v1",
           "ContentType": "AbrService",
-          "DisplayText": "ابریت دسک",
+          "DisplayText": "AbrIT Desk",
           "Latest": true,
           "Published": true,
-          "TitlePart": { "Title": "ابریت دسک" },
+          "TitlePart": { "Title": "AbrIT Desk" },
           "AutoroutePart": { "Path": "catalog/desk", "SetHomepage": false },
-          "MarkdownBodyPart": { "Source": "میز خدمات و مدیریت درخواست‌ها." },
+          "MarkdownBodyPart": { "Source": "دسترسی و پشتیبانی از راه دور برای سیستم‌های سازمان." },
           "AbrService": {
             "ServiceKey": { "Text": "desk" },
             "Availability": { "Text": "InfoOnly" },
@@ -226,7 +226,7 @@
           "Published": true,
           "TitlePart": { "Title": "پشتیبانی IT" },
           "AutoroutePart": { "Path": "catalog/it-support", "SetHomepage": false },
-          "MarkdownBodyPart": { "Source": "خدمات پشتیبانی و مدیریت زیرساخت فناوری اطلاعات." },
+          "MarkdownBodyPart": { "Source": "پشتیبانی و نگهداری زیرساخت فناوری اطلاعات." },
           "AbrService": {
             "ServiceKey": { "Text": "it-support" },
             "Availability": { "Text": "InfoOnly" },
@@ -239,10 +239,10 @@
           "ContentItemId": "abrplan-drive-starter",
           "ContentItemVersionId": "abrplan-drive-starter-v1",
           "ContentType": "AbrPlan",
-          "DisplayText": "درایو – پایه",
+          "DisplayText": "Starter",
           "Latest": true,
           "Published": true,
-          "TitlePart": { "Title": "درایو – پایه" },
+          "TitlePart": { "Title": "Starter" },
           "AbrPlan": {
             "PlanKey": { "Text": "drive-starter" },
             "Service": { "ContentItemIds": [ "abrsvc-drive" ] },
@@ -251,17 +251,17 @@
             "QuotaPerUserMB": { "Value": 1024 },
             "MaxUsers": { "Value": 1 },
             "IsOrderable": { "Value": true },
-            "Description": { "Text": "یک حساب کاربری با ۱ گیگابایت فضا" }
+            "Description": { "Text": "مناسب استفاده‌ی شخصی و شروع سریع" }
           }
         },
         {
           "ContentItemId": "abrplan-drive-team",
           "ContentItemVersionId": "abrplan-drive-team-v1",
           "ContentType": "AbrPlan",
-          "DisplayText": "درایو – تیمی",
+          "DisplayText": "Team",
           "Latest": true,
           "Published": true,
-          "TitlePart": { "Title": "درایو – تیمی" },
+          "TitlePart": { "Title": "Team" },
           "AbrPlan": {
             "PlanKey": { "Text": "drive-team" },
             "Service": { "ContentItemIds": [ "abrsvc-drive" ] },
@@ -270,7 +270,7 @@
             "QuotaPerUserMB": { "Value": 500 },
             "MaxUsers": { "Value": 3 },
             "IsOrderable": { "Value": true },
-            "Description": { "Text": "سه کاربر، هرکدام ۵۰۰ مگابایت فضا" }
+            "Description": { "Text": "مناسب تیم‌ها و سازمان‌های کوچک" }
           }
         }
       ]
