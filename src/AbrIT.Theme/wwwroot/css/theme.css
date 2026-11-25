@@ -276,7 +276,8 @@ body.abr-noscroll{overflow:hidden}
     radial-gradient(760px 320px at 0% 105%,color-mix(in srgb,var(--abr-primary) 12%,transparent) 0,transparent 70%),
     linear-gradient(165deg,var(--abr-primary-soft) 0%,var(--abr-bg) 65%)}
 .abr-top{height:72px;flex:none;display:flex;align-items:center;justify-content:space-between;gap:24px;padding:0 32px;position:sticky;top:0;z-index:var(--abr-z-nav)}
-.abr-top{background:color-mix(in srgb,var(--abr-nav-bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--abr-border);color:var(--abr-nav-text)}
+/* solid on purpose: a translucent bar with backdrop-filter re-rendered while scrolling and looked like it flickered away */
+.abr-top{background:var(--abr-nav-bg);border-bottom:1px solid var(--abr-border);color:var(--abr-nav-text)}
 .abr-top>.abr-brand{display:none}
 .abr-top__links{display:flex;gap:8px}
 .abr-app .abr-top__links a{display:inline-flex;align-items:center;gap:8px;min-height:var(--abr-tap-min);padding:0 14px;border-radius:var(--abr-radius-md);color:var(--abr-nav-text);font-weight:500}
