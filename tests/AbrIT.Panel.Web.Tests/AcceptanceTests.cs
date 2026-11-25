@@ -219,6 +219,46 @@ public sealed partial class AcceptanceTests(SharedPanelHost shared)
     }
 
     [Fact]
+    public async Task AC05_DuplicateRetry_CreatesNoSecondAccount()
+    {
+        using var customerA = await Host.LoginAsync(PanelHost.CustomerA, PanelHost.CustomerAPassword);
+        using var admin = await Host.LoginAsync(PanelHost.AdminUserName, PanelHost.AdminPassword);
+        var orderId = await PlaceStarterOrderAsync(customerA);
+        var mock = await Host.GetMockConnectorAsync();
+
+        try
+        {
+            mock.FailNextCalls = 1;
+            await ApproveAsync(admin, orderId);
+            Assert.Equal(OrderStatus.Failed, (await Host.GetOrderAsync(orderId))!.Status);
+            var createsBefore = mock.CreateUserCalls;
+
+            // Two retries at the same time (double click / two admins): the per-order lock lets one run; the other
+            // then sees Active, is rejected by the state machine and runs nothing.
+            var retryUrl = $"/Admin/AbrIT/Orders/{orderId}/Retry";
+            var both = await Task.WhenAll(
+                admin.PostWithTokenAsync("/Admin/AbrIT/Orders", retryUrl),
+                admin.PostWithTokenAsync("/Admin/AbrIT/Orders", retryUrl));
+            Assert.All(both, r => Assert.True(PanelClient.IsRedirect(r), $"retry returned {(int)r.StatusCode}"));
+
+            // A late third retry on the Active order is a no-op as well.
+            Assert.True(PanelClient.IsRedirect(await admin.PostWithTokenAsync("/Admin/AbrIT/Orders", retryUrl)));
+
+            Assert.Equal(1, mock.CreateUserCalls - createsBefore);
+            var request = await Host.GetProvisioningRequestAsync(orderId);
+            Assert.Equal(ProvisioningStatus.Succeeded, request!.Status);
+            Assert.Equal(2, request.Attempts);
+            var order = await Host.GetOrderAsync(orderId);
+            Assert.Equal(OrderStatus.Active, order!.Status);
+            Assert.Single(order.History, h => h.To == OrderStatus.Active);
+        }
+        finally
+        {
+            mock.FailNextCalls = 0;
+        }
+    }
+
+    [Fact]
     public async Task AC06_ProvisioningFailure_SetsFailed_RetryActivates()
     {
         using var customerA = await Host.LoginAsync(PanelHost.CustomerA, PanelHost.CustomerAPassword);
@@ -242,6 +282,11 @@ public sealed partial class AcceptanceTests(SharedPanelHost shared)
             Assert.Equal(MockNextcloudProvisioner.InjectedFailureCode, failedRequest.LastErrorCode);
             Assert.True(failedRequest.CanRetry);
             Assert.Contains("خطا در فعال‌سازی", (await customerA.GetAsync($"/dashboard/orders/{orderId}")).Text);
+
+            // The admin orders page shows the safe error code and a retry form for this order.
+            var adminPage = (await admin.GetAsync("/Admin/AbrIT/Orders")).Html;
+            Assert.Contains(MockNextcloudProvisioner.InjectedFailureCode, adminPage);
+            Assert.Contains($"/{orderId}/Retry", adminPage);
 
             var retry = await admin.SubmitFormAsync("/Admin/AbrIT/Orders", $"/{orderId}/Retry");
             Assert.True(PanelClient.IsRedirect(retry), $"retry returned {(int)retry.StatusCode}");
@@ -268,12 +313,30 @@ public sealed partial class AcceptanceTests(SharedPanelHost shared)
         var orderNumber = (await Host.GetOrderAsync(orderId))!.OrderNumber;
 
         Assert.Equal(HttpStatusCode.OK, (await customerA.GetAsync($"/dashboard/orders/{orderId}", followRedirects: false)).Status);
-        Assert.Equal(HttpStatusCode.NotFound, (await customerB.GetAsync($"/dashboard/orders/{orderId}", followRedirects: false)).Status);
+        var notFound = await customerB.GetAsync($"/dashboard/orders/{orderId}", followRedirects: false);
+        Assert.Equal(HttpStatusCode.NotFound, notFound.Status);
+        Assert.DoesNotContain(orderNumber, notFound.Html);
+        Assert.DoesNotContain(orderId, notFound.Html);
 
         var cancel = await customerB.PostWithTokenAsync(await OrderPageUrlAsync(customerB), $"/dashboard/orders/{orderId}/cancel");
         Assert.Equal(HttpStatusCode.NotFound, cancel.StatusCode);
         Assert.DoesNotContain(orderNumber, (await customerB.GetAsync("/dashboard")).Text);
         Assert.Equal(OrderStatus.PendingPayment, (await Host.GetOrderAsync(orderId))!.Status);
+    }
+
+    [Fact]
+    public async Task AC07_CustomerA_CannotAccessCustomerBOrder_ByDirectUrl()
+    {
+        using var customerA = await Host.LoginAsync(PanelHost.CustomerA, PanelHost.CustomerAPassword);
+        using var customerB = await Host.LoginAsync(PanelHost.CustomerB, PanelHost.CustomerBPassword);
+        var orderId = await PlaceStarterOrderAsync(customerB);
+        var orderNumber = (await Host.GetOrderAsync(orderId))!.OrderNumber;
+
+        var page = await customerA.GetAsync($"/dashboard/orders/{orderId}", followRedirects: false);
+
+        Assert.Equal(HttpStatusCode.NotFound, page.Status);
+        Assert.DoesNotContain(orderNumber, page.Html);
+        Assert.DoesNotContain(orderNumber, (await customerA.GetAsync("/dashboard/orders")).Text);
     }
 
     [Fact]
