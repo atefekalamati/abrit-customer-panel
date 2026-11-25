@@ -1,26 +1,143 @@
-@model IReadOnlyList<Order>
-<div dir="rtl" lang="fa">
-    <h1>سفارش‌های من</h1>
-    @if (Model.Count == 0)
+@model DashboardViewModel
+@{
+    RenderTitleSegments(new HtmlString("داشبورد"));
+    ViewData["AbrNav"] = "dashboard";
+    ViewData["AbrArtMobile"] = true;
+    var empty = Model.Orders.Count == 0;
+    var servicesUrl = Url.Action("Index", "Services", new { area = "AbrIT.Panel.Module" });
+    var driveUrl = Url.Action("Drive", "Services", new { area = "AbrIT.Panel.Module" });
+    var active = Model.Active;
+    var emptyFlow = new FlowModel("چطور کار می‌کند؟", [
+        new FlowStep("pointer", "انتخاب پلن"),
+        new FlowStep("clipboard", "ثبت سفارش"),
+        new FlowStep("card", "تأیید پرداخت توسط مدیر"),
+        new FlowStep("cloud-up", "فعال‌سازی و دریافت اطلاعات دسترسی در همین داشبورد"),
+    ]);
+
+    string OrderUrl(Order o) => Url.Action("Order", "Dashboard", new { area = "AbrIT.Panel.Module", orderId = o.OrderId })!;
+    static string ServiceLine(Order o) =>
+        string.IsNullOrEmpty(Labels.ServiceName(o.PlanSnapshot.PlanKey)) ? o.PlanSnapshot.Title : $"{Labels.ServiceName(o.PlanSnapshot.PlanKey)} — {o.PlanSnapshot.Title}";
+}
+<div class="abr-page">
+    @await DisplayAsync(await New.AbrPageHeader(
+        Title: $"سلام {Model.UserName}، خوش آمدید",
+        Subtitle: empty ? "هنوز سرویسی ندارید؛ از اینجا شروع کنید." : "نمای کلی سفارش‌ها و سرویس‌های شما در AbrIT",
+        Crumbs: new[] { new Crumb("داشبورد") }))
+
+    <partial name="_Message" />
+
+    @if (empty)
     {
-        <p>هنوز سفارشی ثبت نکرده‌اید. <a asp-area="AbrIT.Panel.Module" asp-controller="Services" asp-action="Index">مشاهده سرویس‌ها</a></p>
+        <section class="abr-container abr-emptystate" aria-labelledby="abr-empty-title">
+            <img src="~/AbrIT.Theme/img/cloud-folder-plus.webp" alt="" width="900" height="712" decoding="async" />
+            <div class="abr-emptystate__text">
+                <h2 id="abr-empty-title">هنوز سفارشی ثبت نکرده‌اید</h2>
+                <p>با انتخاب یکی از پلن‌های <bdi>AbrIT Drive</bdi>، فضای ابری امن خود را در چند دقیقه فعال کنید.</p>
+                <div class="abr-actions">
+                    <a class="abr-btn abr-btn--primary abr-btn--lg" href="@driveUrl">مشاهده‌ی پلن‌ها @Icons.Svg("chevron-left", 18)</a>
+                    <a class="abr-btn abr-btn--normal abr-btn--lg" href="@servicesUrl">همه‌ی سرویس‌ها</a>
+                </div>
+            </div>
+        </section>
+
+        <partial name="_Flow" model="emptyFlow" />
     }
     else
     {
-        <table>
-            <thead><tr><th>شماره سفارش</th><th>پلن</th><th>مبلغ</th><th>وضعیت</th><th>تاریخ ثبت</th></tr></thead>
-            <tbody>
-                @foreach (var order in Model)
+        <ul class="abr-stats" role="list" aria-label="خلاصه">
+            <li class="abr-statcard">
+                <span class="abr-statcard__icon abr-statcard__icon--violet">@Icons.Svg("cart", 26)</span>
+                <div>
+                    <span class="abr-statcard__label">سفارش‌های من</span>
+                    <b class="abr-statcard__value">@Labels.Digits(Model.Orders.Count) سفارش</b>
+                    <span class="abr-statcard__meta">@string.Join(" · ", Model.StatusBreakdown.Select(s => $"{Labels.Digits(s.Count)} {Labels.Status(s.Status)}"))</span>
+                </div>
+            </li>
+            <li class="abr-statcard">
+                <span class="abr-statcard__icon">@Icons.Svg("layers", 26)</span>
+                <div>
+                    <span class="abr-statcard__label">سرویس‌های فعال</span>
+                    <b class="abr-statcard__value">@Labels.Digits(active.Count) سرویس</b>
+                    <span class="abr-statcard__meta">
+                        @if (active.Count == 0)
+                        {
+                            <text>هنوز سرویسی فعال نشده است</text>
+                        }
+                        else
+                        {
+                            <bdi>@string.Join("، ", active.Select(r => ServiceLine(r.Order)).Distinct())</bdi>
+                        }
+                    </span>
+                </div>
+            </li>
+            <li class="abr-statcard">
+                <span class="abr-statcard__icon abr-statcard__icon--green">@Icons.Svg("database", 26)</span>
+                <div>
+                    <span class="abr-statcard__label">فضای تخصیص‌یافته</span>
+                    <b class="abr-statcard__value">@(Model.AllocatedMB == 0 ? "۰" : Labels.Quota(Model.AllocatedMB))</b>
+                    <span class="abr-statcard__meta">مجموع سهمیه‌ی سرویس‌های فعال</span>
+                </div>
+            </li>
+        </ul>
+
+        <div class="abr-dash">
+            <section class="abr-container abr-dash__services" aria-labelledby="abr-mysvc">
+                <h2 class="abr-container__title abr-titleicon" id="abr-mysvc"><span class="abr-titleicon__box">@Icons.Svg("cloud", 24)</span>سرویس‌های من</h2>
+                @if (active.Count == 0)
                 {
-                    <tr>
-                        <td><a asp-area="AbrIT.Panel.Module" asp-controller="Dashboard" asp-action="Order" asp-route-orderId="@order.OrderId"><bdi>@order.OrderNumber</bdi></a></td>
-                        <td>@order.PlanSnapshot.Title</td>
-                        <td>@Labels.Price(order.AmountToman)</td>
-                        <td>@Labels.Status(order.Status)</td>
-                        <td>@Labels.Date(order.CreatedUtc)</td>
-                    </tr>
+                    <p class="abr-muted">پس از تأیید پرداخت و فعال‌سازی، سرویس‌های شما اینجا نمایش داده می‌شوند.</p>
                 }
-            </tbody>
-        </table>
+                else
+                {
+                    <ul class="abr-svclist" role="list">
+                        @foreach (var row in active)
+                        {
+                            <li>
+                                <a href="@OrderUrl(row.Order)">
+                                    <span class="abr-svclist__icon">@Icons.Svg(row.Order.PlanSnapshot.MaxUsers > 1 ? "users" : "cloud", 24)</span>
+                                    <bdi class="abr-svclist__name">@ServiceLine(row.Order)</bdi>
+                                    @await DisplayAsync(await New.AbrStatusBadge(Status: row.Order.Status, Mode: row.Mode))
+                                    <span class="abr-svclist__more"><span>جزئیات</span>@Icons.Svg("chevron-left", 18)</span>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                }
+            </section>
+
+            <section class="abr-container abr-dash__quick" aria-labelledby="abr-quick">
+                <h2 class="abr-container__title abr-titleicon" id="abr-quick"><span class="abr-titleicon__box">@Icons.Svg("zap", 24)</span>دسترسی سریع</h2>
+                <ul class="abr-quick" role="list">
+                    <li><a href="@driveUrl">@Icons.Svg("plus", 28)<span>خرید سرویس جدید</span></a></li>
+                    <li><a href="#orders">@Icons.Svg("cart", 28)<span>سفارش‌های من</span></a></li>
+                    <li><a href="https://abrit.ir" target="_blank" rel="noopener">@Icons.Svg("headset", 28)<span>تماس با پشتیبانی</span><span class="sr-only">(در زبانه‌ی جدید)</span></a></li>
+                </ul>
+            </section>
+        </div>
+
+        <section class="abr-container" id="orders" aria-labelledby="abr-orders-title">
+            <h2 class="abr-container__title abr-titleicon" id="abr-orders-title"><span class="abr-titleicon__box">@Icons.Svg("file", 24)</span>آخرین سفارش‌ها</h2>
+            <table class="abr-table abr-orders">
+                <thead>
+                    <tr><th scope="col">شماره سفارش</th><th scope="col">سرویس / پلن</th><th scope="col">مبلغ</th><th scope="col">تاریخ ثبت</th><th scope="col">وضعیت</th><th scope="col"><span class="sr-only">عملیات</span></th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in Model.Orders)
+                    {
+                        var order = row.Order;
+                        <tr>
+                            <td data-label="شماره سفارش" class="abr-orders__no"><a href="@OrderUrl(order)"><bdi class="ltr">@order.OrderNumber</bdi></a></td>
+                            <td data-label="سرویس / پلن" class="abr-orders__plan"><bdi>@(string.IsNullOrEmpty(Labels.ServiceName(order.PlanSnapshot.PlanKey)) ? order.PlanSnapshot.Title : $"{Labels.ServiceName(order.PlanSnapshot.PlanKey)} / {order.PlanSnapshot.Title}")</bdi></td>
+                            <td data-label="مبلغ" class="abr-orders__amount">@Icons.Svg("card", 18, "abr-m-only")@Labels.Price(order.AmountToman)</td>
+                            <td data-label="تاریخ ثبت" class="abr-orders__date">@Icons.Svg("calendar", 18, "abr-m-only")@Labels.Day(order.CreatedUtc)</td>
+                            <td data-label="وضعیت" class="abr-orders__status">@await DisplayAsync(await New.AbrStatusBadge(Status: order.Status, Mode: row.Mode))</td>
+                            <td class="actions abr-orders__go"><a class="abr-btn abr-btn--link" href="@OrderUrl(order)">مشاهده<span class="sr-only"> سفارش <bdi>@order.OrderNumber</bdi></span> @Icons.Svg("chevron-left", 16)</a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </section>
+
+        <a class="abr-btn abr-btn--primary abr-btn--lg abr-btn--block abr-m-only" href="@driveUrl">@Icons.Svg("plus", 20) خرید سرویس جدید</a>
     }
 </div>

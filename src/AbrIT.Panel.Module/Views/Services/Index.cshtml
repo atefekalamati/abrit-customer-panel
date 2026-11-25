@@ -1,29 +1,73 @@
 @model IReadOnlyList<ServiceCard>
-<div dir="rtl" lang="fa">
-    <h1>سرویس‌های ابریت</h1>
-    <ul>
+@{
+    RenderTitleSegments(new HtmlString("سرویس‌ها"));
+    ViewData["AbrNav"] = "services";
+    ViewData["AbrArtMobile"] = true;
+
+    static (string File, int Height) Art(string key) => key switch
+    {
+        "drive" => ("cloud-folder", 700),
+        "erp360" => ("service-erp", 651),
+        "desk" => ("service-desk", 874),
+        _ => ("service-support", 761),
+    };
+}
+<div class="abr-page">
+    @await DisplayAsync(await New.AbrPageHeader(
+        Title: "سرویس‌های ابریت",
+        Subtitle: "مجموعه‌ای از سرویس‌های ابری و سازمانی برای مدیریت بهتر فایل‌ها، فرآیندها و پشتیبانی IT کسب‌وکار شما.",
+        Crumbs: new[] { new Crumb("سرویس‌ها") }))
+
+    <ul class="abr-services" role="list">
         @foreach (var service in Model)
         {
-            <li>
-                <h2>@service.Title</h2>
+            var art = Art(service.ServiceKey);
+            var orderable = service.Availability == "Orderable" && service.ServiceKey == CatalogReader.DriveServiceKey;
+            var comingSoon = service.Availability == "ComingSoon";
+            var isExternal = !orderable && !comingSoon && !string.IsNullOrEmpty(service.MoreInfoUrl);
+            var isAbritLink = isExternal && service.ServiceKey != "desk";
+            <li class="abr-svc @(orderable ? "abr-svc--primary" : null)">
+                <img class="abr-svc__art" src="@Url.Content($"~/AbrIT.Theme/img/{art.File}.webp")" alt="" width="900" height="@art.Height" decoding="async" />
+                <div class="abr-svc__titlerow">
+                    <h2 class="abr-svc__title"><bdi>@service.Title</bdi></h2>
+                    @if (comingSoon)
+                    {
+                        <span class="abr-badge abr-badge--soon">به‌زودی</span>
+                    }
+                </div>
                 @if (!string.IsNullOrEmpty(service.Summary))
                 {
-                    <p>@service.Summary</p>
+                    <p class="abr-svc__desc">@service.Summary</p>
                 }
-                @if (service.Availability == "Orderable" && service.ServiceKey == CatalogReader.DriveServiceKey)
-                {
-                    <a asp-area="AbrIT.Panel.Module" asp-controller="Services" asp-action="Drive">مشاهده پلن‌ها و سفارش</a>
-                }
-                else if (service.Availability == "ComingSoon")
-                {
-                    <span>به‌زودی</span>
-                }
-                else if (!string.IsNullOrEmpty(service.MoreInfoUrl))
-                {
-                    <a href="@service.MoreInfoUrl" rel="noopener" target="_blank">@(service.MoreInfoText ?? "اطلاعات بیشتر")</a>
-                }
+                <div class="abr-svc__foot">
+                    @if (orderable)
+                    {
+                        <a class="abr-btn abr-btn--primary abr-btn--block abr-btn--lg" asp-area="AbrIT.Panel.Module" asp-controller="Services" asp-action="Drive">
+                            مشاهده‌ی پلن‌ها @Icons.Svg("chevron-left", 18)
+                        </a>
+                    }
+                    else if (isExternal)
+                    {
+                        <a class="abr-svc__link" href="@service.MoreInfoUrl" target="_blank" rel="noopener">
+                            @if (isAbritLink)
+                            {
+                                @Icons.Svg("external", 20)
+                            }
+                            <span>@(service.MoreInfoText ?? "اطلاعات بیشتر")</span>
+                            @if (!isAbritLink)
+                            {
+                                @Icons.Svg("chevron-left", 18)
+                            }
+                            <span class="sr-only">(در زبانه‌ی جدید)</span>
+                        </a>
+                    }
+                </div>
             </li>
         }
     </ul>
-    <p><a asp-area="AbrIT.Panel.Module" asp-controller="Dashboard" asp-action="Index">داشبورد من</a></p>
+
+    @await DisplayAsync(await New.AbrAlert(
+        Kind: "info",
+        Title: "محیط ارزیابی، قیمت‌ها آزمایشی‌اند.",
+        Body: "این پنل برای ارزیابی و نمایش قابلیت‌ها است و هیچ خرید واقعی انجام نمی‌شود."))
 </div>

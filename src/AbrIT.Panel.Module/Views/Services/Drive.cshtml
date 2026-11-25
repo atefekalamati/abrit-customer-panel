@@ -1,35 +1,73 @@
 @model DriveViewModel
-<div dir="rtl" lang="fa">
-    <h1>@Model.Service.Title</h1>
-    @if (!string.IsNullOrEmpty(Model.Service.Summary))
-    {
-        <p>@Model.Service.Summary</p>
-    }
-    <table>
-        <thead>
-            <tr><th>پلن</th><th>فضا برای هر کاربر</th><th>تعداد کاربر</th><th>قیمت ماهانه</th><th></th></tr>
-        </thead>
-        <tbody>
-            @foreach (var plan in Model.Plans)
-            {
-                <tr>
-                    <td>@plan.Title<br /><small>@plan.Description</small></td>
-                    <td>@Labels.Quota(plan.QuotaPerUserMB)</td>
-                    <td>@plan.MaxUsers</td>
-                    <td>@Labels.Price(plan.PriceToman)</td>
-                    <td>
-                        @if (plan.IsOrderable)
+@{
+    RenderTitleSegments(new HtmlString(Model.Service.Title));
+    ViewData["AbrNav"] = "services";
+    ViewData["AbrArt"] = "cloud-folder";
+    var servicesUrl = Url.Action("Index", "Services", new { area = "AbrIT.Panel.Module" });
+
+    var flow = new FlowModel(
+        "چطور کار می‌کند؟",
+        [
+            new FlowStep("pointer", "انتخاب پلن", "پلن مناسب خود را انتخاب کنید."),
+            new FlowStep("clipboard", "ثبت سفارش", "اطلاعات سفارش را بررسی و ثبت کنید."),
+            new FlowStep("card", "تأیید پرداخت", "پرداخت آزمایشی شما توسط مدیر تأیید می‌شود."),
+            new FlowStep("check-circle", "فعال‌سازی سرویس", "حساب شما ایجاد و اطلاعات دسترسی در داشبورد نمایش داده می‌شود."),
+        ],
+        "در چند مرحله‌ی ساده، سرویس خود را فعال کنید.",
+        Art: "hero-laptop");
+}
+<div class="abr-page">
+    @await DisplayAsync(await New.AbrPageHeader(
+        Title: Model.Service.Title,
+        Subtitle: Model.Service.Summary,
+        Crumbs: new[] { new Crumb("سرویس‌ها", servicesUrl), new Crumb(Model.Service.Title) }))
+
+    <div class="abr-plans">
+        @foreach (var plan in Model.Plans)
+        {
+            var team = plan.MaxUsers > 1;
+            var titleId = $"plan-{plan.PlanKey}";
+            <article class="abr-plancard @(team ? "abr-plancard--recommended" : null)" aria-labelledby="@titleId">
+                @if (team)
+                {
+                    <span class="abr-plancard__flag">@Icons.Svg("star", 16) پیشنهاد برای تیم‌ها</span>
+                }
+                <header class="abr-plancard__head">
+                    <img src="@Url.Content(team ? "~/AbrIT.Theme/img/plan-team.webp" : "~/AbrIT.Theme/img/plan-user.webp")" alt="" width="@(team ? 900 : 854)" height="@(team ? 880 : 812)" loading="lazy" decoding="async" />
+                    <div>
+                        <h2 class="abr-plancard__name" id="@titleId">پلن <bdi>@plan.Title</bdi></h2>
+                        @if (!string.IsNullOrEmpty(plan.Description))
                         {
-                            <a asp-area="AbrIT.Panel.Module" asp-controller="Orders" asp-action="New" asp-route-plan="@plan.ContentItemId">سفارش</a>
+                            <p class="abr-plancard__desc">@plan.Description</p>
                         }
-                        else
-                        {
-                            <span>غیرقابل سفارش</span>
-                        }
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-    <p><a asp-area="AbrIT.Panel.Module" asp-controller="Services" asp-action="Index">بازگشت به سرویس‌ها</a></p>
+                    </div>
+                </header>
+                <p class="abr-plancard__price"><b>@Labels.Amount(plan.PriceToman)</b> <span>تومان / @(plan.BillingPeriod == "Monthly" ? "ماه" : Labels.BillingPeriod(plan.BillingPeriod))</span></p>
+                <ul class="abr-plancard__features">
+                    <li>@Icons.Svg("check", 20) @Labels.Digits(plan.MaxUsers) کاربر</li>
+                    <li>@Icons.Svg("check", 20) @(team ? "هر نفر " : null)@Labels.Quota(plan.QuotaPerUserMB) فضای ذخیره‌سازی</li>
+                    <li>@Icons.Svg("check", 20) فعال‌سازی خودکار پس از تأیید پرداخت</li>
+                    @if (team)
+                    {
+                        <li>@Icons.Svg("check", 20) فضای تیمی و مدیریت اعضا</li>
+                    }
+                </ul>
+                <div class="abr-plancard__foot">
+                    @if (plan.IsOrderable)
+                    {
+                        <a class="abr-btn @(team ? "abr-btn--primary" : "abr-btn--normal") abr-btn--block abr-btn--lg"
+                           asp-area="AbrIT.Panel.Module" asp-controller="Orders" asp-action="New" asp-route-plan="@plan.ContentItemId"
+                           aria-describedby="@titleId">انتخاب این پلن @Icons.Svg("chevron-left", 18)</a>
+                    }
+                    else
+                    {
+                        <span class="abr-badge abr-badge--soon">فعلاً قابل سفارش نیست</span>
+                    }
+                    <p class="abr-note">@Icons.Svg("info", 16) مبالغ آزمایشی‌اند.</p>
+                </div>
+            </article>
+        }
+    </div>
+
+    <partial name="_Flow" model="flow" />
 </div>
