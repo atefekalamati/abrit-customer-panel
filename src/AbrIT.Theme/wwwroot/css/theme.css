@@ -237,7 +237,9 @@ body.abr-noscroll{overflow:hidden}
 .abr-app bdi{unicode-bidi:isolate}
 
 /* ---- Shell: navy sidebar (right in RTL) + content column ---- */
-.abr-shell{display:grid;grid-template-columns:272px minmax(0,1fr);min-height:100vh}
+.abr-shell{display:grid;grid-template-columns:272px minmax(0,1fr);min-height:100vh;--abr-side-w:272px;
+  /* navy column runs the full page height; the sticky 100vh sidebar alone stops at the first screen (E-2 full-page check) */
+  background:linear-gradient(to left,var(--abr-nav-bg) var(--abr-side-w),transparent var(--abr-side-w))}
 .abr-side{position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--abr-nav-bg);color:var(--abr-nav-text);display:flex;flex-direction:column;gap:28px;padding:0 16px 24px;isolation:isolate}
 .abr-wave{position:absolute;inset-inline:0;width:100%;z-index:-1;pointer-events:none;color:var(--abr-primary)}
 .abr-wave--side{bottom:0;height:380px}
@@ -421,7 +423,7 @@ body.abr-noscroll{overflow:hidden}
 
 /* ---- Tablet ---- */
 @media (max-width: 1024px){
-  .abr-shell{grid-template-columns:240px minmax(0,1fr)}
+  .abr-shell{grid-template-columns:240px minmax(0,1fr);--abr-side-w:240px}
   .abr-app .abr-main{padding:24px 32px 32px}
   .abr-evalbar{margin:0 32px 24px}
   .abr-auth-split{grid-template-columns:1fr}
@@ -431,7 +433,7 @@ body.abr-noscroll{overflow:hidden}
 
 /* ---- Phone ---- */
 @media (max-width: 640px){
-  .abr-shell{display:block}
+  .abr-shell{display:block;background:none}
   .abr-side{position:fixed;inset-block:0;inset-inline-start:0;width:min(300px,86vw);height:100dvh;z-index:var(--abr-z-dialog);transform:translateX(100%);visibility:hidden;transition:transform var(--abr-dur-slow) var(--abr-ease),visibility 0s linear var(--abr-dur-slow);box-shadow:var(--abr-shadow-3)}
   .abr-side.is-open{transform:none;visibility:visible;transition:transform var(--abr-dur-slow) var(--abr-ease),visibility 0s}
   .abr-side__close{display:grid}
