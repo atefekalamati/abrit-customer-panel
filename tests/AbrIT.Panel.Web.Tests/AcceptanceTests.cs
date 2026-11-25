@@ -1,3 +1,4 @@
+using AbrIT.Panel.Module.Display;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -144,8 +145,7 @@ public sealed partial class AcceptanceTests(SharedPanelHost shared)
         Assert.Equal(OneGiB, account.QuotaBytes);
 
         var page = await customerA.GetAsync($"/dashboard/orders/{orderId}");
-        Assert.Contains("فعال آزمایشی", page.Text);
-        Assert.Contains("(Mock)", page.Text);
+        Assert.Contains(Labels.ActiveMockHtml, page.Text);
         Assert.Contains(request.ExternalUserId, page.Text);
     }
 
@@ -218,7 +218,7 @@ public sealed partial class AcceptanceTests(SharedPanelHost shared)
             var request = await Host.GetProvisioningRequestAsync(orderId);
             Assert.Equal(ProvisioningStatus.Succeeded, request!.Status);
             Assert.Equal(2, request.Attempts);
-            Assert.Contains("فعال آزمایشی", (await customerA.GetAsync($"/dashboard/orders/{orderId}")).Text);
+            Assert.Contains(Labels.ActiveMockHtml, (await customerA.GetAsync($"/dashboard/orders/{orderId}")).Text);
         }
         finally
         {

@@ -23,10 +23,13 @@ public static class Labels
         _ => status.ToString(),
     };
 
+    /// <summary>Badge text for Active in Mock mode: «فعال (آزمایشی – Mock)» (DESIGN_PROMPTS); "Mock" is bidi-isolated.</summary>
+    public const string ActiveMockHtml = "فعال (آزمایشی – <bdi>Mock</bdi>)";
+
     /// <summary>In Mock mode Active is never shown as a real active service (spec §7).</summary>
     public static IHtmlContent StatusHtml(OrderStatus status, ProvisionerMode? mode) =>
         status == OrderStatus.Active && mode == ProvisionerMode.Mock
-            ? new HtmlString("فعال آزمایشی <bdi>(Mock)</bdi>")
+            ? new HtmlString(ActiveMockHtml)
             : new HtmlString(WebUtility.HtmlEncode(Status(status)));
 
     /// <summary>Badge key for <c>.abr-badge[data-status]</c>: <c>ActiveMock</c> keeps Mock activations visually apart.</summary>
@@ -62,7 +65,7 @@ public static class Labels
 
     private static string QuotaGb(long megabytes) =>
         megabytes > 1024
-            ? ToFa((megabytes / 1024d).ToString("0.#", CultureInfo.InvariantCulture)).Replace(".", "٫", StringComparison.Ordinal) + " گیگابایت"
+            ? Decimal(megabytes / 1024d) + " گیگابایت"
             : $"{Digits(megabytes)} مگابایت";
 
     /// <summary>Service name for an order line; the plan snapshot only carries the plan (all plans are Drive today).</summary>
@@ -95,6 +98,13 @@ public static class Labels
 
     /// <summary>Persian digits (۰–۹) for UI copy; .NET formatting never substitutes native digits.</summary>
     public static string Digits(long value) => ToFa(value.ToString(CultureInfo.InvariantCulture));
+
+    /// <summary>Persian decimal: Persian digits and «٫» (U+066B ARABIC DECIMAL SEPARATOR), e.g. 1.5 → «۱٫۵».</summary>
+    public static string Decimal(double value, int maxFractionDigits = 1) =>
+        ToFa(value.ToString("0." + new string('#', maxFractionDigits), CultureInfo.InvariantCulture))
+            .Replace(".", DecimalSeparator, StringComparison.Ordinal);
+
+    public const string DecimalSeparator = "٫";
 
     public static string ToFa(string latin) =>
         string.Concat(latin.Select(c => c is >= '0' and <= '9' ? (char)('۰' + (c - '0')) : c));

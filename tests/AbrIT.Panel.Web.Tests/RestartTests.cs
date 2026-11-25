@@ -1,3 +1,4 @@
+using AbrIT.Panel.Module.Display;
 using System.Net;
 using AbrIT.Panel.Domain.Orders;
 using AbrIT.Panel.Domain.Provisioning;
@@ -47,7 +48,7 @@ public sealed class RestartTests
             using var customerAAgain = await second.LoginAsync(PanelHost.CustomerA, PanelHost.CustomerAPassword);
             var page = await customerAAgain.GetAsync($"/dashboard/orders/{activeOrderId}", followRedirects: false);
             Assert.Equal(HttpStatusCode.OK, page.Status);
-            Assert.Contains("فعال آزمایشی", page.Text);
+            Assert.Contains(Labels.ActiveMockHtml, page.Text);
             var dashboard = await customerAAgain.GetAsync("/dashboard");
             Assert.Contains(activeOrderNumber, dashboard.Text);
             Assert.Contains((await second.GetOrderAsync(pendingOrderId))!.OrderNumber, dashboard.Text);
