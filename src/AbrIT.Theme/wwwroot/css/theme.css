@@ -353,16 +353,18 @@ body.abr-noscroll{overflow:hidden}
 
 /* ---- Auth pages ---- */
 .abr-authpage{display:flex;flex-direction:column;gap:28px}
-.abr-auth-split{display:grid;grid-template-columns:minmax(0,1fr) minmax(360px,420px);gap:28px;align-items:stretch}
+.abr-auth-split{display:grid;grid-template-columns:minmax(0,1fr) minmax(360px,420px);gap:28px;align-items:start}
 .abr-hero{background:var(--abr-hero-gradient);border:1px solid var(--abr-surface);border-radius:24px;box-shadow:var(--abr-shadow-1);padding:28px 32px;display:flex;flex-direction:column;gap:20px}
-.abr-hero__top{flex:1;display:grid;grid-template-columns:minmax(0,1fr) 48%;gap:12px;align-items:center}
+.abr-hero__top{display:grid;grid-template-columns:minmax(0,1fr) 50%;gap:16px;align-items:center}
 .abr-hero__title{font-size:30px;line-height:46px;font-weight:var(--abr-fw-heavy);text-wrap:balance}
 .abr-hero__brand{color:var(--abr-primary)}
 .abr-hero__sub{margin-top:10px;color:var(--abr-text-2);font-size:17px;line-height:30px}
 .abr-hero__art img{width:100%;height:auto;display:block;margin-inline-end:-8px}
 /* tall card (register, ref 02): illustration on top, centred text under it */
+.abr-auth-split--tall{align-items:stretch}
+.abr-auth-split--tall .abr-hero{justify-content:flex-start;gap:24px}
 .abr-auth-split--tall .abr-hero__top{grid-template-columns:1fr;justify-items:center;text-align:center;align-content:center;gap:8px}
-.abr-auth-split--tall .abr-hero__art{order:-1;width:78%}
+.abr-auth-split--tall .abr-hero__art{order:-1;width:64%}
 .abr-auth-split--tall .abr-hero__title{font-size:34px;line-height:50px}
 .abr-features{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;list-style:none;margin:0;padding:0}
 .abr-features li{background:var(--abr-surface);border:1px solid var(--abr-border);border-radius:var(--abr-radius-lg);padding:16px 8px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;box-shadow:var(--abr-shadow-1)}
