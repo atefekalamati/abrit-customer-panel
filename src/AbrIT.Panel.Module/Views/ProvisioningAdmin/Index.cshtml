@@ -1,30 +1,89 @@
 @model ProvisioningSettingsViewModel
-<div dir="rtl" lang="fa">
-    <h1>تنظیمات اتصال</h1>
+<style asp-name="abrit-tokens" asp-src="~/AbrIT.Theme/css/tokens.css" at="Head"></style>
+<style asp-name="abrit-admin" asp-src="~/AbrIT.Panel.Module/css/admin.css" depends-on="abrit-tokens" at="Head"></style>
+<script asp-name="abrit-ui" asp-src="~/AbrIT.Panel.Module/js/abr-ui.js" at="Foot"></script>
+@{
+    var mock = Model.Mode == ProvisionerMode.Mock;
+}
+<div class="abr-admin" dir="rtl" lang="fa">
+    <header class="abr-admin__head">
+        <div>
+            <h1 class="abr-admin__h1">تنظیمات اتصال <bdi>Drive</bdi></h1>
+            <p class="abr-admin__sub">پیکربندی و مدیریت اتصال سامانه به سرویس <bdi>Drive (Nextcloud)</bdi></p>
+        </div>
+        <img class="abr-admin__art" src="~/AbrIT.Theme/img/cloud-servers.webp" alt="" width="900" height="619" decoding="async" />
+    </header>
+
     <partial name="_Message" />
-    <dl>
-        <dt>حالت اتصال (فقط‌خواندنی، از پیکربندی)</dt><dd><bdi>@Model.Mode</bdi></dd>
-        @if (Model.BaseUrl is not null)
-        {
-            <dt>آدرس Nextcloud</dt><dd><bdi>@Model.BaseUrl</bdi></dd>
-        }
-        <dt>رمز برنامه (App Password)</dt><dd>@(Model.AppPasswordSet ? "تنظیم شده" : "تنظیم نشده")</dd>
-        <dt>حداکثر تلاش برای هر سفارش</dt><dd>@Model.MaxAttempts</dd>
-    </dl>
-    @if (Model.MockFailNextCalls is { } failNext)
-    {
-        <h2>شبیه‌سازی خطا (Mock)</h2>
-        <p>حساب‌های آزمایشی ساخته‌شده از آخرین راه‌اندازی: @Model.MockAccounts</p>
-        <p>گروه‌های آزمایشی ساخته‌شده از آخرین راه‌اندازی: @Model.MockGroups</p>
-        <p>فراخوانی‌های بعدی که با خطا مواجه می‌شوند: <strong>@failNext</strong></p>
-        <form method="post" asp-area="AbrIT.Panel.Module" asp-controller="ProvisioningAdmin" asp-action="SetMockFailures">
-            <input type="hidden" name="failNext" value="1" />
-            <button type="submit" class="btn btn-warning">شبیه‌سازی خطا در فراخوانی بعدی</button>
-        </form>
-        <form method="post" asp-area="AbrIT.Panel.Module" asp-controller="ProvisioningAdmin" asp-action="SetMockFailures">
-            <label for="failNext">تعداد فراخوانی‌های ناموفق</label>
-            <input id="failNext" name="failNext" type="number" min="0" max="100" value="@failNext" />
-            <button type="submit" class="btn btn-secondary">ذخیره</button>
-        </form>
-    }
+
+    <div class="abr-admin__card abr-modebar" data-mode="@Model.Mode">
+        <span class="abr-modebar__state">@Icons.Svg("cloud", 24) وضعیت فعلی اتصال: <b><bdi>@Model.Mode</bdi></b></span>
+        <span class="abr-modebar__note">@Icons.Svg("info", 20)
+            @if (mock)
+            {
+                <span>در حال حاضر اتصال سیستم به‌صورت <bdi>Mock</bdi> (شبیه‌سازی) فعال است و هیچ حساب واقعی ساخته نمی‌شود.</span>
+            }
+            else
+            {
+                <span>اتصال واقعی به <bdi>Nextcloud</bdi> فعال است (<bdi>OCS Provisioning API</bdi>).</span>
+            }
+        </span>
+    </div>
+
+    <div class="abr-settings">
+        <section class="abr-admin__card" aria-labelledby="abr-conn-title">
+            <div class="abr-cardhead">
+                <span class="abr-cardhead__icon">@Icons.Svg("layers", 24)</span>
+                <div>
+                    <h2 id="abr-conn-title">وضعیت اتصال</h2>
+                    <p class="abr-muted">اطلاعات وضعیت و پارامترهای اتصال به سرویس <bdi>Drive (Nextcloud)</bdi> — فقط‌خواندنی، از پیکربندی محیط.</p>
+                </div>
+            </div>
+            <dl class="abr-settings__rows">
+                <div><dt>حالت (<bdi>Mode</bdi>)</dt><dd><span class="abr-abadge" data-mode="@Model.Mode"><bdi>@Model.Mode</bdi></span></dd></div>
+                <div><dt>آدرس سرور (<bdi>Server URL</bdi>)</dt><dd>@if (Model.BaseUrl is { } url) { <bdi class="ltr abr-mono">@url</bdi> } else { <span aria-label="ندارد">—</span> }</dd></div>
+                <div><dt>نام کاربری مدیر <bdi>Nextcloud</bdi></dt><dd>@if (Model.AdminUser is { } user) { <bdi class="ltr abr-mono">@user</bdi> } else { <span aria-label="ندارد">—</span> }</dd></div>
+                <div>
+                    <dt>وضعیت رمز عبور برنامه (<bdi>App Password</bdi>)</dt>
+                    <dd><span class="abr-abadge" data-set="@Model.AppPasswordSet">@Icons.Svg(Model.AppPasswordSet ? "check-circle" : "circle", 16) @(Model.AppPasswordSet ? "تنظیم شده" : "تنظیم نشده")</span></dd>
+                </div>
+                <div><dt>حداکثر تلاش مجدد</dt><dd>@Labels.Digits(Model.MaxAttempts)</dd></div>
+                <div><dt>آخرین درخواست <bdi>Provisioning</bdi></dt><dd>@(Model.LastAttemptUtc is null ? "هنوز درخواستی ثبت نشده" : Labels.Date(Model.LastAttemptUtc))</dd></div>
+            </dl>
+            <p class="abr-admin__info">@Icons.Svg("info", 20)<span>برای تغییر به حالت <b><bdi>Real</bdi></b> (اتصال واقعی به <bdi>Nextcloud</bdi>)، متغیرهای محیطی <bdi class="ltr abr-mono">Nextcloud__*</bdi> را در محیط اجرا تنظیم کنید. رمز برنامه هرگز در این صفحه نمایش داده نمی‌شود.</span></p>
+        </section>
+
+        <section class="abr-admin__card" aria-labelledby="abr-fail-title">
+            <div class="abr-cardhead">
+                <span class="abr-cardhead__icon">@Icons.Svg("flask", 24)</span>
+                <div>
+                    <h2 id="abr-fail-title">شبیه‌سازی خطا (فقط <bdi>Mock</bdi>)</h2>
+                    <p class="abr-muted">برای آزمودن رفتار سیستم در شرایط ناموفق (خطا ← تلاش مجدد).</p>
+                </div>
+            </div>
+            @if (Model.MockFailNextCalls is { } failNext)
+            {
+                <form class="abr-failform" method="post" asp-area="AbrIT.Panel.Module" asp-controller="ProvisioningAdmin" asp-action="SetMockFailures">
+                    <div class="abr-failform__switch">
+                        <label for="abr-fail-switch">
+                            <strong>فعال‌سازی شبیه‌سازی خطا</strong>
+                            <span class="abr-muted" id="abr-fail-switch-desc">با فعال بودن این گزینه، فراخوانی‌های بعدی اتصال به <bdi>Drive</bdi> به تعداد تعیین‌شده با خطا پاسخ داده می‌شوند.</span>
+                        </label>
+                        <input type="checkbox" role="switch" id="abr-fail-switch" class="abr-toggle" data-abr-failswitch aria-controls="abr-fail-count" aria-describedby="abr-fail-switch-desc" checked="@(failNext > 0)" />
+                    </div>
+                    <div class="abr-failform__count">
+                        <label for="abr-fail-count">تعداد فراخوانی ناموفق متوالی</label>
+                        <input id="abr-fail-count" name="failNext" type="number" min="0" max="100" value="@failNext" inputmode="numeric" aria-describedby="abr-fail-count-hint" />
+                        <span class="abr-muted" id="abr-fail-count-hint">۰ یعنی خاموش. هر فراخوانی اتصال (ایجاد گروه، حساب، سهمیه) یکی از این تعداد را مصرف می‌کند.</span>
+                    </div>
+                    <button type="submit" class="abr-abtn abr-abtn--primary abr-abtn--block">@Icons.Svg("save", 20) ذخیره‌ی تنظیمات</button>
+                    <p class="abr-muted abr-failform__stats">حساب‌های آزمایشی ساخته‌شده از آخرین راه‌اندازی: @Labels.Digits(Model.MockAccounts ?? 0) · گروه‌ها: @Labels.Digits(Model.MockGroups ?? 0)</p>
+                </form>
+            }
+            else
+            {
+                <p class="abr-muted">در حالت <bdi>Real</bdi> شبیه‌سازی خطا در دسترس نیست.</p>
+            }
+        </section>
+    </div>
 </div>

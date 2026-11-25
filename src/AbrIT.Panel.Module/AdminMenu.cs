@@ -16,7 +16,7 @@ public sealed class AdminMenu(IStringLocalizer<AdminMenu> localizer) : AdminNavi
                 .Action("Index", "OrdersAdmin", new { area = ModuleArea.Name })
                 .Permission(AbrPermissions.ViewAllOrders)
                 .LocalNav())
-            .Add(S["تنظیمات اتصال"], "2", provisioning => provisioning
+            .Add(S["تنظیمات اتصال Drive"], "2", provisioning => provisioning
                 .Action("Index", "ProvisioningAdmin", new { area = ModuleArea.Name })
                 .Permission(AbrPermissions.ManageProvisioning)
                 .LocalNav()));
