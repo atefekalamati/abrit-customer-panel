@@ -60,6 +60,23 @@ public class NextcloudOptionsTests
     [Fact]
     public void Default_is_Mock_and_valid() => Assert.Empty(new NextcloudOptions().Validate());
 
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(60_001)]
+    public void Mock_delay_out_of_range_is_invalid(int delayMs) =>
+        Assert.NotEmpty(new NextcloudOptions { Mock = new MockOptions { DelayMs = delayMs } }.Validate());
+
+    [Fact]
+    public async Task Mock_delay_is_off_by_default_and_honours_cancellation()
+    {
+        Assert.Equal(0, new MockNextcloudProvisioner().DelayMs);
+        using var cts = new CancellationTokenSource(50);
+        var slow = new MockNextcloudProvisioner(delayMs: 10_000);
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            slow.EnsureUserAsync(new EnsureUserCommand("abrit-x", "x", null, []), cts.Token));
+        Assert.Equal(0, slow.CreateUserCalls);
+    }
+
     [Fact]
     public void Real_with_incomplete_config_fails_fast_without_echoing_secrets()
     {

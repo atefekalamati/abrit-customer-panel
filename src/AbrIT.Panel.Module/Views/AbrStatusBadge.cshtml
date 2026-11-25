@@ -3,4 +3,4 @@
     OrderStatus status = Model.Status;
     var mode = Model.Mode as ProvisionerMode?;
 }
-<span class="abr-badge" data-status="@Labels.StatusKey(status, mode)">@Labels.StatusHtml(status, mode)</span>
+<span class="abr-badge" data-status="@Labels.StatusKey(status, mode)"><span>@Labels.StatusHtml(status, mode)</span></span>

@@ -10,9 +10,19 @@
     var lastFocus = null;
     var isOpen = function () { return side.classList.contains('is-open'); };
     var focusables = function () { return side.querySelectorAll('a[href], button:not([disabled])'); };
+    var phone = window.matchMedia('(max-width: 640px)');
+    // Closed drawer on phones: off-canvas, hidden and inert (no focus, no clicks, not announced).
+    var syncInert = function () { side.inert = phone.matches && !isOpen(); };
+    var animate = function () {
+      side.classList.add('abr-side--anim');
+      window.setTimeout(function () { side.classList.remove('abr-side--anim'); }, 600);
+    };
+    syncInert();
     var open = function () {
       lastFocus = document.activeElement;
+      animate();
       side.classList.add('is-open');
+      syncInert();
       backdrop.hidden = false;
       burger.setAttribute('aria-expanded', 'true');
       document.body.classList.add('abr-noscroll');
@@ -21,7 +31,9 @@
     };
     var close = function () {
       if (!isOpen()) { return; }
+      animate();
       side.classList.remove('is-open');
+      syncInert();
       backdrop.hidden = true;
       burger.setAttribute('aria-expanded', 'false');
       document.body.classList.remove('abr-noscroll');
@@ -39,7 +51,7 @@
       else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     });
     var desktop = window.matchMedia('(min-width: 641px)');
-    if (desktop.addEventListener) { desktop.addEventListener('change', function (m) { if (m.matches) { close(); } }); }
+    if (desktop.addEventListener) { desktop.addEventListener('change', function (m) { if (m.matches) { close(); } syncInert(); }); }
   }
 
   // ---- Password show/hide ----

@@ -172,6 +172,10 @@ public sealed class ProvisioningService(
     /// <summary>Order is already <c>Provisioning</c>. Persists the in-progress state before calling out.</summary>
     private async Task<ProvisioningOutcome> RunAttemptAsync(Order order, ProvisioningRequest request, CancellationToken ct)
     {
+        // Read everything the connector needs before committing: no database work (and so no open transaction)
+        // happens while the external call runs, so other requests can read the order meanwhile.
+        var email = await customers.GetEmailAsync(order.OwnerUserId, ct);
+
         request.Status = ProvisioningStatus.InProgress;
         request.Attempts++;
         request.LastAttemptUtc = clock.UtcNow;
@@ -181,7 +185,7 @@ public sealed class ProvisioningService(
         ProvisionResult result;
         try
         {
-            result = await CallConnectorAsync(order, request, ct);
+            result = await CallConnectorAsync(order, request, email, ct);
         }
         catch (Exception ex) when (ex is not OperationCanceledException || !ct.IsCancellationRequested)
         {
@@ -211,7 +215,7 @@ public sealed class ProvisioningService(
         return new(order, request);
     }
 
-    private async Task<ProvisionResult> CallConnectorAsync(Order order, ProvisioningRequest request, CancellationToken ct)
+    private async Task<ProvisionResult> CallConnectorAsync(Order order, ProvisioningRequest request, string? email, CancellationToken ct)
     {
         if (request.ExternalGroupId is { } groupId)
         {
@@ -223,7 +227,6 @@ public sealed class ProvisioningService(
         }
 
         // Layer 3: deterministic id + create-if-missing at the connector.
-        var email = await customers.GetEmailAsync(order.OwnerUserId, ct);
         var user = await provisioner.EnsureUserAsync(
             new EnsureUserCommand(
                 request.ExternalUserId,

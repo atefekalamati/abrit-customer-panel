@@ -18,7 +18,11 @@ public static class NextcloudServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddNextcloudConnector(this IServiceCollection services)
     {
-        services.AddSingleton(sp => new MockNextcloudProvisioner(sp.GetRequiredService<NextcloudOptions>().Mock.FailNextCalls));
+        services.AddSingleton(sp =>
+        {
+            var mock = sp.GetRequiredService<NextcloudOptions>().Mock;
+            return new MockNextcloudProvisioner(mock.FailNextCalls, mock.DelayMs);
+        });
 
         services.AddHttpClient<OcsNextcloudProvisioner>(OcsNextcloudProvisioner.HttpClientName, (sp, http) =>
             {

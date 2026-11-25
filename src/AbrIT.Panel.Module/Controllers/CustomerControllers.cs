@@ -4,7 +4,9 @@ using AbrIT.Panel.Domain.Provisioning;
 using AbrIT.Panel.Domain.Workspaces;
 using AbrIT.Panel.Module.Catalog;
 using AbrIT.Panel.Module.ViewModels;
+using AbrIT.Panel.Nextcloud;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -69,10 +71,18 @@ public sealed class DashboardController(
     IOrderService orders,
     IProvisioningRequestRepository requests,
     ITeamWorkspaceService workspaces,
+    NextcloudOptions nextcloud,
     ILogger<DashboardController> logger) : Controller
 {
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index() =>
+        View(new DashboardViewModel(User.Identity?.Name ?? string.Empty, await ListRowsAsync()));
+
+    /// <summary>«سفارش‌های من»: all of the customer's orders (table on desktop, cards on phones).</summary>
+    [HttpGet]
+    public async Task<IActionResult> Orders() => View(new MyOrdersViewModel(await ListRowsAsync()));
+
+    private async Task<List<DashboardOrderRow>> ListRowsAsync()
     {
         var rows = new List<DashboardOrderRow>();
         foreach (var order in (await orders.ListForOwnerAsync(User.UserId())).OrderByDescending(o => o.CreatedUtc))
@@ -82,23 +92,27 @@ public sealed class DashboardController(
             rows.Add(new DashboardOrderRow(order, mode));
         }
 
-        return View(new DashboardViewModel(User.Identity?.Name ?? string.Empty, rows));
+        return rows;
     }
 
     [HttpGet]
     public async Task<IActionResult> Order(string orderId)
     {
-        // 404 (not 403) for someone else's order: existence is not revealed (DECISIONS A-10).
+        // 404 (not 403) for someone else's order: existence is not revealed (DECISIONS A-10). The page says
+        // «پیدا نشد» for both cases.
         var order = await orders.GetForOwnerAsync(User.UserId(), orderId);
         if (order is null)
         {
-            return NotFound();
+            Response.StatusCode = StatusCodes.Status404NotFound;
+            return View("OrderNotFound");
         }
 
+        var request = await requests.GetByOrderIdAsync(order.OrderId);
         return View(new CustomerOrderViewModel(
             order,
-            await requests.GetByOrderIdAsync(order.OrderId),
-            await workspaces.GetForOwnerAsync(User.UserId(), order.OrderId)));
+            request,
+            await workspaces.GetForOwnerAsync(User.UserId(), order.OrderId),
+            request?.Mode == ProvisionerMode.Real ? nextcloud.BaseUrl : null));
     }
 
     /// <summary>Team workspace (bonus §12): owner-only, Active Team orders only; anything else is 404.</summary>
@@ -148,6 +162,7 @@ public sealed class DashboardController(
                 logger.LogWarning("Workspace action on order {OrderId} failed: {ErrorCode}", orderId, ex.ConnectorErrorCode);
             }
 
+            TempData["AbrMessageKind"] = "error";
             TempData["AbrMessage"] = ex.Error switch
             {
                 WorkspaceError.NotAvailable => "مدیریت اعضا فقط برای سفارش تیمی فعال امکان‌پذیر است.",
@@ -176,6 +191,7 @@ public sealed class DashboardController(
         catch (InvalidOrderTransitionException)
         {
             TempData["AbrMessage"] = "این سفارش دیگر قابل لغو نیست.";
+            TempData["AbrMessageKind"] = "error";
         }
 
         return RedirectToAction(nameof(Order), new { orderId });

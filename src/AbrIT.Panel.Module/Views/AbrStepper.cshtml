@@ -13,9 +13,10 @@
             StepState.Done => "انجام شد",
             StepState.Current => "مرحله‌ی فعلی",
             StepState.Failed => "خطا",
+            StepState.Skipped => "انجام نمی‌شود",
             _ => "در انتظار",
         };
-        <li class="abr-stepper__item" data-state="@state" aria-current="@(step.State == StepState.Current ? "step" : null)">
+        <li class="abr-stepper__item" data-state="@state" data-icon="@step.Icon" aria-current="@(step.State == StepState.Current ? "step" : null)">
             <span class="abr-stepper__dot">
                 @if (step.State == StepState.Done)
                 {
@@ -24,6 +25,10 @@
                 else if (step.State == StepState.Failed)
                 {
                     @Icons.Svg("close", 16)
+                }
+                else if (step.State == StepState.Current && step.Icon is { } icon)
+                {
+                    @Icons.Svg(icon, 18)
                 }
                 else
                 {

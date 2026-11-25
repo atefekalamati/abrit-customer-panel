@@ -82,6 +82,7 @@ public sealed class Startup : StartupBase
         Map(routes, "AbrIT.Services.Drive", "services/drive", "Services", "Drive");
         Map(routes, "AbrIT.Orders.New", "orders/new", "Orders", "New");
         Map(routes, "AbrIT.Dashboard", "dashboard", "Dashboard", "Index");
+        Map(routes, "AbrIT.Dashboard.Orders", "dashboard/orders", "Dashboard", "Orders");
         Map(routes, "AbrIT.Dashboard.Order", "dashboard/orders/{orderId}", "Dashboard", "Order");
         Map(routes, "AbrIT.Dashboard.Cancel", "dashboard/orders/{orderId}/cancel", "Dashboard", "Cancel");
         Map(routes, "AbrIT.Dashboard.AddMember", "dashboard/orders/{orderId}/members", "Dashboard", "AddMember");

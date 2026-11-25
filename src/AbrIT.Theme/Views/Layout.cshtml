@@ -23,7 +23,7 @@
         {
             ("داشبورد", Url.Content("~/dashboard"), "dashboard", Cur("dashboard", path.Equals("/dashboard", StringComparison.OrdinalIgnoreCase)), false),
             ("سرویس‌ها", Url.Content("~/services"), "grid", Cur("services", Starts("/services") || path == "/"), false),
-            ("سفارش‌های من", Url.Content("~/dashboard#orders"), "cart", Cur("orders", Starts("/dashboard/orders") || Starts("/orders/")), false),
+            ("سفارش‌های من", Url.Content("~/dashboard/orders"), "cart", Cur("orders", Starts("/dashboard/orders") || Starts("/orders/")), false),
             ("حساب کاربری", accountUrl, "user", Starts("/ChangePassword"), false),
             ("پشتیبانی", supportUrl, "headset", false, true),
         }

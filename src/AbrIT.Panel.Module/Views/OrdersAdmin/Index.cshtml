@@ -1,137 +1,257 @@
 @model AdminOrdersViewModel
-<div dir="rtl" lang="fa">
-    <h1>سفارش‌ها</h1>
+@*
+    Content area only: Orchard's TheAdmin keeps its own shell. Everything here lives under .abr-admin and is styled by
+    the module-scoped admin.css (tokens.css only defines variables and the font face).
+*@
+<style asp-name="abrit-tokens" asp-src="~/AbrIT.Theme/css/tokens.css" at="Head"></style>
+<style asp-name="abrit-admin" asp-src="~/AbrIT.Panel.Module/css/admin.css" depends-on="abrit-tokens" at="Head"></style>
+<script asp-name="abrit-ui" asp-src="~/AbrIT.Panel.Module/js/abr-ui.js" at="Foot"></script>
+@{
+    var cards = new (OrderStatus Status, string Label, string Icon, int Count)[]
+    {
+        (OrderStatus.PendingPayment, "در انتظار تأیید پرداخت", "clock", Model.Counts.GetValueOrDefault(OrderStatus.PendingPayment)),
+        (OrderStatus.Provisioning, "در حال فعال‌سازی", "refresh", Model.Counts.GetValueOrDefault(OrderStatus.Provisioning) + Model.Counts.GetValueOrDefault(OrderStatus.Paid)),
+        (OrderStatus.Active, "فعال", "check-circle", Model.Counts.GetValueOrDefault(OrderStatus.Active)),
+        (OrderStatus.Failed, "خطا در فعال‌سازی", "warning", Model.Counts.GetValueOrDefault(OrderStatus.Failed)),
+        (OrderStatus.Cancelled, "لغوشده", "ban", Model.Counts.GetValueOrDefault(OrderStatus.Cancelled)),
+    };
+    var from = Model.Total == 0 ? 0 : ((Model.Page - 1) * Model.PageSize) + 1;
+    var to = Math.Min(Model.Total, Model.Page * Model.PageSize);
+    string PageUrl(int page) => Url.Action("Index", "OrdersAdmin", new { area = "AbrIT.Panel.Module", status = Model.Filter?.ToString(), q = Model.Search, page })!;
+    static string PlanLine(Order o) =>
+        (Labels.ServiceName(o.PlanSnapshot.PlanKey) is { Length: > 0 } s ? s.Replace("AbrIT ", string.Empty, StringComparison.Ordinal) : "—") + " / " + o.PlanSnapshot.Title;
+}
+<div class="abr-admin" dir="rtl" lang="fa">
+    <header class="abr-admin__head">
+        <div>
+            <h1 class="abr-admin__h1">مدیریت سفارش‌ها</h1>
+            <p class="abr-admin__sub">تأیید پرداخت آزمایشی، لغو و پیگیری فعال‌سازی سفارش‌ها</p>
+        </div>
+        <img class="abr-admin__art" src="~/AbrIT.Theme/img/cloud-servers.webp" alt="" width="900" height="619" decoding="async" />
+    </header>
+
     <partial name="_Message" />
-    <form method="get" asp-area="AbrIT.Panel.Module" asp-controller="OrdersAdmin" asp-action="Index">
-        <label for="status">وضعیت</label>
-        <select id="status" name="status">
-            <option value="">همه</option>
-            @foreach (var status in Enum.GetValues<OrderStatus>())
-            {
-                <option value="@status" selected="@(Model.Filter == status)">@Labels.Status(status)</option>
-            }
-        </select>
-        <button type="submit" class="btn btn-sm btn-primary">فیلتر</button>
+
+    <ul class="abr-admin__stats" role="list" aria-label="تعداد سفارش‌ها بر اساس وضعیت">
+        @foreach (var card in cards)
+        {
+            var current = Model.Filter == card.Status || (card.Status == OrderStatus.Provisioning && Model.Filter == OrderStatus.Paid);
+            <li>
+                <a class="abr-astat" data-status="@card.Status" aria-current="@(current ? "true" : null)"
+                   href="@Url.Action("Index", "OrdersAdmin", new { area = "AbrIT.Panel.Module", status = card.Status.ToString() })">
+                    <span class="abr-astat__text"><span class="abr-astat__label">@card.Label</span><b>@Labels.Digits(card.Count)</b></span>
+                    <span class="abr-astat__icon">@Icons.Svg(card.Icon, 26)</span>
+                    <span class="sr-only">— نمایش فقط این وضعیت</span>
+                </a>
+            </li>
+        }
+    </ul>
+
+    <form class="abr-admin__toolbar" method="get" role="search" asp-area="AbrIT.Panel.Module" asp-controller="OrdersAdmin" asp-action="Index">
+        <div class="abr-admin__search">
+            <label for="abr-q" class="sr-only">جستجوی شماره سفارش یا ایمیل مشتری</label>
+            @Icons.Svg("search", 20)
+            <input id="abr-q" name="q" type="search" value="@Model.Search" maxlength="100" placeholder="جستجوی شماره سفارش یا ایمیل مشتری…" autocomplete="off" />
+        </div>
+        <div class="abr-admin__filter">
+            <label for="abr-status">فیلتر وضعیت:</label>
+            <select id="abr-status" name="status">
+                <option value="">همه‌ی وضعیت‌ها</option>
+                @foreach (var status in Enum.GetValues<OrderStatus>())
+                {
+                    <option value="@status" selected="@(Model.Filter == status)">@Labels.Status(status)</option>
+                }
+            </select>
+        </div>
+        <button type="submit" class="abr-abtn abr-abtn--primary">@Icons.Svg("search", 18) اعمال</button>
+        @if (Model.Filter is not null || Model.Search is not null)
+        {
+            <a class="abr-abtn abr-abtn--link" href="@Url.Action("Index", "OrdersAdmin", new { area = "AbrIT.Panel.Module" })">پاک کردن فیلتر</a>
+        }
     </form>
-    <p>@Model.Total سفارش</p>
-    <table class="table">
-        <thead><tr><th>شماره</th><th>مشتری</th><th>پلن</th><th>مبلغ</th><th>وضعیت</th><th>ثبت</th><th>عملیات</th></tr></thead>
-        <tbody>
-            @foreach (var row in Model.Rows)
-            {
-                var order = row.Order;
-                var request = row.Request;
-                <tr>
-                    <td><bdi>@order.OrderNumber</bdi></td>
-                    <td><bdi>@order.OwnerUserName</bdi></td>
-                    <td>@order.PlanSnapshot.Title</td>
-                    <td>@Labels.Price(order.AmountToman)</td>
-                    <td>@Labels.StatusHtml(order.Status, request?.Mode)</td>
-                    <td>@Labels.Date(order.CreatedUtc)</td>
-                    <td>
-                        @if (Model.CanManage && order.Status == OrderStatus.PendingPayment)
+
+    <section class="abr-admin__card" aria-labelledby="abr-orders-caption">
+        @if (Model.Rows.Count == 0)
+        {
+            <p class="abr-admin__empty" id="abr-orders-caption">سفارشی با این مشخصات پیدا نشد.</p>
+        }
+        else
+        {
+            <div class="abr-admin__scroll">
+                <table class="abr-atable">
+                    <caption class="sr-only" id="abr-orders-caption">فهرست سفارش‌ها</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">شماره سفارش</th>
+                            <th scope="col">مشتری (ایمیل)</th>
+                            <th scope="col">سرویس / پلن</th>
+                            <th scope="col">مبلغ</th>
+                            <th scope="col">تاریخ ثبت</th>
+                            <th scope="col">وضعیت پرداخت</th>
+                            <th scope="col">وضعیت سفارش</th>
+                            <th scope="col">حالت</th>
+                            <th scope="col">عملیات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var row in Model.Rows)
                         {
-                            <form method="post" asp-area="AbrIT.Panel.Module" asp-controller="OrdersAdmin" asp-action="ApprovePayment" asp-route-orderId="@order.OrderId">
-                                <button type="submit" class="btn btn-sm btn-success">تأیید پرداخت آزمایشی</button>
-                            </form>
-                            <form method="post" asp-area="AbrIT.Panel.Module" asp-controller="OrdersAdmin" asp-action="Cancel" asp-route-orderId="@order.OrderId">
-                                <button type="submit" class="btn btn-sm btn-secondary">لغو</button>
-                            </form>
-                        }
-                        @if (Model.CanManage && order.Status == OrderStatus.Failed && request?.CanRetry == true)
-                        {
-                            <form method="post" asp-area="AbrIT.Panel.Module" asp-controller="OrdersAdmin" asp-action="Retry" asp-route-orderId="@order.OrderId">
-                                <button type="submit" class="btn btn-sm btn-warning">تلاش مجدد</button>
-                            </form>
-                        }
-                    </td>
-                </tr>
-                <tr>
-                    <td colspan="7">
-                        <details>
-                            <summary>جزئیات فعال‌سازی و تاریخچه</summary>
-                            @if (request is null)
-                            {
-                                <p>هنوز درخواست فعال‌سازی ثبت نشده است.</p>
-                            }
-                            else
-                            {
-                                <dl>
-                                    <dt>حالت اتصال</dt><dd><bdi>@request.Mode</bdi></dd>
-                                    <dt>شناسه کاربر خارجی</dt><dd><bdi>@request.ExternalUserId</bdi></dd>
-                                    @if (request.ExternalGroupId is not null)
+                            var order = row.Order;
+                            var request = row.Request;
+                            var detailId = "abr-x-" + order.OrderId;
+                            var failed = order.Status == OrderStatus.Failed;
+                            var attempts = request?.Attempts ?? 0;
+                            var maxAttempts = request?.MaxAttempts ?? ProvisioningRequest.DefaultMaxAttempts;
+                            var planText = $"⁨AbrIT Drive — {order.PlanSnapshot.Title}⁩، {Labels.Price(order.AmountToman)}";
+                            <tr class="abr-atable__row" data-status="@order.Status">
+                                <td class="abr-atable__no"><bdi class="ltr">@order.OrderNumber</bdi></td>
+                                <td><bdi class="ltr">@(row.OwnerEmail ?? order.OwnerUserName)</bdi></td>
+                                <td><bdi class="abr-atable__plan">@PlanLine(order)</bdi></td>
+                                <td class="abr-nowrap">@Labels.Price(order.AmountToman)</td>
+                                <td class="abr-nowrap">@Labels.Date(order.CreatedUtc)</td>
+                                <td><span class="abr-abadge" data-pay="@order.PaymentStatus">@Labels.Payment(order.PaymentStatus)</span></td>
+                                <td><span class="abr-abadge" data-status="@Labels.StatusKey(order.Status, request?.Mode)"><span>@Labels.StatusHtml(order.Status, request?.Mode)</span></span></td>
+                                <td>
+                                    @if (request is null)
                                     {
-                                        <dt>گروه</dt><dd><bdi>@request.ExternalGroupId</bdi></dd>
+                                        <span aria-label="بدون درخواست فعال‌سازی">—</span>
                                     }
-                                    <dt>سهمیه (بایت)</dt><dd><bdi>@request.QuotaBytes</bdi></dd>
-                                    <dt>وضعیت درخواست</dt><dd><bdi>@request.Status</bdi></dd>
-                                    <dt>تلاش‌ها</dt><dd><bdi>@request.Attempts/@request.MaxAttempts</bdi></dd>
-                                    <dt>آخرین تلاش</dt><dd>@Labels.Date(request.LastAttemptUtc)</dd>
-                                    @if (request.LastErrorCode is not null)
+                                    else
                                     {
-                                        <dt>آخرین خطا</dt><dd><bdi>@request.LastErrorCode: @request.LastErrorMessage</bdi></dd>
+                                        <span class="abr-abadge" data-mode="@request.Mode"><bdi>@request.Mode</bdi></span>
                                     }
-                                    <dt>آخرین بررسی وضعیت</dt><dd>@(request.LastCheckedUtc is null ? "هنوز بررسی نشده" : Labels.Date(request.LastCheckedUtc))</dd>
-                                    @if (request.LastStatusSnapshot is { } snap)
-                                    {
-                                        <dt>وضعیت در Nextcloud <bdi>(@snap.Mode)</bdi></dt>
-                                        <dd>
-                                            @if (snap.ErrorCode is not null)
+                                </td>
+                                <td>
+                                    <div class="abr-atable__actions">
+                                        @if (Model.CanManage && order.Status == OrderStatus.PendingPayment)
+                                        {
+                                            <form method="post" asp-area="AbrIT.Panel.Module" asp-controller="OrdersAdmin" asp-action="ApprovePayment" asp-route-orderId="@order.OrderId"
+                                                  data-abr-confirm data-confirm-icon="card" data-confirm-title="تأیید پرداخت آزمایشی"
+                                                  data-confirm-body="@($"پرداخت سفارش ⁨{order.OrderNumber}⁩ ({planText}) به‌عنوان تأییدشده ثبت می‌شود و فعال‌سازی سرویس بلافاصله شروع می‌شود.")"
+                                                  data-confirm-note="این پرداخت شبیه‌سازی است و وجهی دریافت نمی‌شود. تأیید دوباره‌ی یک سفارش، سرویس تکراری ایجاد نمی‌کند."
+                                                  data-confirm-ok="تأیید پرداخت">
+                                                <button type="submit" class="abr-abtn abr-abtn--primary abr-abtn--sm">تأیید پرداخت (آزمایشی)<span class="sr-only"> سفارش <bdi>@order.OrderNumber</bdi></span></button>
+                                            </form>
+                                            <form method="post" asp-area="AbrIT.Panel.Module" asp-controller="OrdersAdmin" asp-action="Cancel" asp-route-orderId="@order.OrderId"
+                                                  data-abr-confirm data-confirm-tone="danger" data-confirm-icon="close" data-confirm-title="لغو سفارش"
+                                                  data-confirm-body="@($"سفارش ⁨{order.OrderNumber}⁩ لغو می‌شود و دیگر قابل پرداخت یا فعال‌سازی نیست.")"
+                                                  data-confirm-ok="لغو سفارش">
+                                                <button type="submit" class="abr-abtn abr-abtn--danger abr-abtn--sm">لغو<span class="sr-only"> سفارش <bdi>@order.OrderNumber</bdi></span></button>
+                                            </form>
+                                        }
+                                        @if (Model.CanManage && failed)
+                                        {
+                                            var exhausted = attempts >= maxAttempts;
+                                            <form method="post" asp-area="AbrIT.Panel.Module" asp-controller="OrdersAdmin" asp-action="Retry" asp-route-orderId="@order.OrderId" data-abr-once>
+                                                <button type="submit" class="abr-abtn abr-abtn--outline abr-abtn--sm" disabled="@exhausted"
+                                                        aria-describedby="@(exhausted ? detailId + "-max" : null)">@Icons.Svg("refresh", 16) تلاش مجدد (@Labels.OutOf(attempts, maxAttempts))<span class="sr-only"> سفارش <bdi>@order.OrderNumber</bdi></span></button>
+                                            </form>
+                                            @if (exhausted)
                                             {
-                                                <span>خواندن ناموفق: <bdi>@snap.ErrorCode</bdi></span>
+                                                <span class="sr-only" id="@(detailId)-max">سقف تلاش‌ها پر شده است.</span>
                                             }
-                                            else if (!snap.Found)
+                                        }
+                                        <button type="button" class="abr-abtn abr-abtn--outline abr-abtn--sm" data-abr-expand aria-controls="@detailId" aria-expanded="@(failed ? "true" : "false")">مشاهده<span class="sr-only"> جزئیات <bdi>@order.OrderNumber</bdi></span></button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="abr-atable__detail" id="@detailId" data-open="@(failed ? "true" : "false")">
+                                <td colspan="9">
+                                    <div class="abr-adetail">
+                                        <section class="abr-adetail__box" aria-label="درخواست فعال‌سازی @order.OrderNumber">
+                                            <h2 class="abr-adetail__title">@Icons.Svg("gear", 20) درخواست فعال‌سازی</h2>
+                                            @if (request is null)
                                             {
-                                                <span>حساب پیدا نشد</span>
+                                                <p class="abr-muted">هنوز درخواست فعال‌سازی ثبت نشده است (پرداخت تأیید نشده).</p>
                                             }
                                             else
                                             {
-                                                <span>@(snap.Enabled == true ? "فعال" : "غیرفعال") – سهمیه: <bdi>@(snap.QuotaBytes?.ToString() ?? "نامحدود")</bdi> بایت – مصرف: <bdi>@(snap.UsedBytes?.ToString() ?? "-")</bdi> بایت – گروه‌ها: <bdi>@(snap.Groups.Count == 0 ? "-" : string.Join(", ", snap.Groups))</bdi></span>
+                                                <dl class="abr-adetail__kv">
+                                                    <div><dt>حالت</dt><dd><span class="abr-abadge" data-mode="@request.Mode"><bdi>@request.Mode</bdi></span></dd></div>
+                                                    <div><dt>شناسه‌ی خارجی</dt><dd><bdi class="ltr abr-mono">@request.ExternalUserId</bdi></dd></div>
+                                                    @if (request.ExternalGroupId is not null)
+                                                    {
+                                                        <div><dt>گروه</dt><dd><bdi class="ltr abr-mono">@request.ExternalGroupId</bdi></dd></div>
+                                                    }
+                                                    <div><dt>سهمیه</dt><dd>@Labels.Quota(request.QuotaBytes / ExternalIds.BytesPerMegabyte)</dd></div>
+                                                    <div><dt>تلاش‌ها</dt><dd>@Labels.OutOf(request.Attempts, request.MaxAttempts)</dd></div>
+                                                    <div><dt>آخرین تلاش</dt><dd>@Labels.Date(request.LastAttemptUtc)</dd></div>
+                                                    @if (request.LastErrorCode is not null)
+                                                    {
+                                                        <div class="abr-adetail__err"><dt>آخرین خطا</dt><dd>@(request.LastErrorCode == "mock_injected_failure" ? "خطای شبیه‌سازی‌شده" : "سرویس Drive پاسخ ناموفق داد") (کد <bdi class="ltr abr-mono">@request.LastErrorCode</bdi>)</dd></div>
+                                                    }
+                                                    <div><dt>آخرین بررسی وضعیت</dt><dd>@(request.LastCheckedUtc is null ? "هنوز بررسی نشده" : Labels.Date(request.LastCheckedUtc))</dd></div>
+                                                    @if (request.LastStatusSnapshot is { } snap)
+                                                    {
+                                                        <div>
+                                                            <dt>وضعیت در <bdi>Nextcloud</bdi></dt>
+                                                            <dd>
+                                                                @if (snap.ErrorCode is not null)
+                                                                {
+                                                                    <span>خواندن ناموفق (<bdi class="ltr abr-mono">@snap.ErrorCode</bdi>)</span>
+                                                                }
+                                                                else if (!snap.Found)
+                                                                {
+                                                                    <span>حساب پیدا نشد</span>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <span>@(snap.Enabled == true ? "فعال" : "غیرفعال") · سهمیه: @(snap.QuotaBytes is { } qb ? Labels.Quota(qb / ExternalIds.BytesPerMegabyte) : "نامحدود") · گروه‌ها: <bdi class="ltr">@(snap.Groups.Count == 0 ? "—" : string.Join(", ", snap.Groups))</bdi></span>
+                                                                }
+                                                            </dd>
+                                                        </div>
+                                                    }
+                                                </dl>
+                                                @if (Model.CanManage)
+                                                {
+                                                    <form method="post" asp-area="AbrIT.Panel.Module" asp-controller="OrdersAdmin" asp-action="RefreshStatus" asp-route-orderId="@order.OrderId" data-abr-once>
+                                                        <button type="submit" class="abr-abtn abr-abtn--outline abr-abtn--sm">@Icons.Svg("refresh", 16) به‌روزرسانی وضعیت از <bdi>Nextcloud</bdi></button>
+                                                    </form>
+                                                }
                                             }
-                                        </dd>
-                                    }
-                                </dl>
-                                @if (Model.CanManage)
-                                {
-                                    <form method="post" asp-area="AbrIT.Panel.Module" asp-controller="OrdersAdmin" asp-action="RefreshStatus" asp-route-orderId="@order.OrderId">
-                                        <button type="submit" class="btn btn-sm btn-outline-secondary">به‌روزرسانی وضعیت از Nextcloud</button>
-                                    </form>
-                                }
-                            }
-                            @if (row.Workspace is { } team)
-                            {
-                                <p>اعضای فضای تیمی (<bdi>@team.SeatsUsed/@team.SeatLimit</bdi>):</p>
-                                <ul>
-                                    @foreach (var member in team.Members)
-                                    {
-                                        <li><bdi>@member.MemberNumber · @member.Email · @member.ExternalUserId</bdi> – @Labels.MemberStatus(member.Status)@if (member.LastErrorCode is not null) { <bdi> (@member.LastErrorCode)</bdi> }</li>
-                                    }
-                                </ul>
-                            }
-                            <ol>
-                                @foreach (var change in order.History)
-                                {
-                                    <li>@Labels.Date(change.AtUtc): @Labels.Status(change.From) ← @Labels.Status(change.To) (<bdi>@Labels.Actor(change.ActorUserId)</bdi>) @change.Note</li>
-                                }
-                            </ol>
-                        </details>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-    @if (Model.PageCount > 1)
-    {
-        <nav>
-            @if (Model.Page > 1)
+                                            @if (row.Workspace is { } team)
+                                            {
+                                                <h3 class="abr-adetail__sub">@Icons.Svg("users", 18) اعضای فضای تیمی (@Labels.OutOf(team.SeatsUsed, team.SeatLimit))</h3>
+                                                <ul class="abr-adetail__members" role="list">
+                                                    <li><bdi class="ltr abr-mono">@request?.ExternalUserId</bdi><span>مالک</span></li>
+                                                    @foreach (var member in team.Members)
+                                                    {
+                                                        <li data-member-status="@member.Status">
+                                                            <bdi class="ltr">@member.Email</bdi>
+                                                            <bdi class="ltr abr-mono">@member.ExternalUserId</bdi>
+                                                            <span>@Labels.MemberStatus(member.Status)@if (member.LastErrorCode is not null) { <bdi class="ltr"> (@member.LastErrorCode)</bdi> }</span>
+                                                        </li>
+                                                    }
+                                                </ul>
+                                            }
+                                        </section>
+                                        <section class="abr-adetail__box" aria-label="تاریخچه‌ی وضعیت @order.OrderNumber">
+                                            <h2 class="abr-adetail__title">@Icons.Svg("clock", 20) تاریخچه‌ی وضعیت</h2>
+                                            @await DisplayAsync(await New.AbrTimeline(Label: "تاریخچه‌ی وضعیت", ShowActor: true, Entries: OrderPresenter.History(order, request?.Mode, forAdmin: true)))
+                                        </section>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        <div class="abr-admin__foot">
+            <span>نمایش @Labels.Digits(from) تا @Labels.Digits(to) از @Labels.Digits(Model.Total) سفارش</span>
+            @if (Model.PageCount > 1)
             {
-                <a asp-area="AbrIT.Panel.Module" asp-controller="OrdersAdmin" asp-action="Index" asp-route-status="@Model.Filter" asp-route-page="@(Model.Page - 1)">قبلی</a>
+                <nav aria-label="صفحه‌بندی سفارش‌ها">
+                    <ul class="abr-pager" role="list">
+                        <li><a class="abr-pager__btn" href="@PageUrl(Math.Max(1, Model.Page - 1))" aria-disabled="@(Model.Page == 1 ? "true" : null)" aria-label="صفحه‌ی قبل">‹</a></li>
+                        @for (var p = 1; p <= Model.PageCount; p++)
+                        {
+                            <li><a class="abr-pager__btn" href="@PageUrl(p)" aria-current="@(p == Model.Page ? "page" : null)">@Labels.Digits(p)</a></li>
+                        }
+                        <li><a class="abr-pager__btn" href="@PageUrl(Math.Min(Model.PageCount, Model.Page + 1))" aria-disabled="@(Model.Page == Model.PageCount ? "true" : null)" aria-label="صفحه‌ی بعد">›</a></li>
+                    </ul>
+                </nav>
             }
-            <span>صفحه @Model.Page از @Model.PageCount</span>
-            @if (Model.Page < Model.PageCount)
-            {
-                <a asp-area="AbrIT.Panel.Module" asp-controller="OrdersAdmin" asp-action="Index" asp-route-status="@Model.Filter" asp-route-page="@(Model.Page + 1)">بعدی</a>
-            }
-        </nav>
-    }
+        </div>
+    </section>
 </div>

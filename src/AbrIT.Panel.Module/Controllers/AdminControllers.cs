@@ -9,6 +9,8 @@ using AbrIT.Panel.Module.Workspaces;
 using AbrIT.Panel.Module.ViewModels;
 using AbrIT.Panel.Nextcloud;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using OrchardCore.Users;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using OrchardCore.Admin;
@@ -25,12 +27,15 @@ public sealed class OrdersAdminController(
     IPaymentApprovalService approvals,
     IProvisioningService provisioning,
     IAdminOrderService adminOrders,
+    ICustomerDirectory customers,
+    UserManager<IUser> userManager,
     ILogger<OrdersAdminController> logger) : Controller
 {
     private const int PageSize = 20;
+    private const int MaxSearchLength = 100;
 
     [HttpGet]
-    public async Task<IActionResult> Index(string? status, int page = 1)
+    public async Task<IActionResult> Index(string? status, string? q, int page = 1)
     {
         if (!await authorizationService.AuthorizeAsync(User, AbrPermissions.ViewAllOrders))
         {
@@ -39,12 +44,30 @@ public sealed class OrdersAdminController(
 
         OrderStatus? filter = Enum.TryParse<OrderStatus>(status, ignoreCase: false, out var parsed) && Enum.IsDefined(parsed) ? parsed : null;
         page = Math.Max(1, page);
+        var search = string.IsNullOrWhiteSpace(q) ? null : q.Trim();
+        if (search?.Length > MaxSearchLength)
+        {
+            search = search[..MaxSearchLength];
+        }
 
-        // Evaluate outside the predicate: YesSql does not translate method calls on captured values.
+        // Search: order number (contains) or the customer's e-mail / user name (exact, resolved to the owner id).
+        // Values are captured as locals: YesSql does not translate method calls on captured values.
         var statusText = filter?.ToString();
-        var query = statusText is not null
-            ? session.Query<Order, OrderIndex>(x => x.Status == statusText)
-            : session.Query<Order, OrderIndex>();
+        var ownerId = search is null ? null : await FindOwnerIdAsync(search);
+        var numberPart = search?.ToUpperInvariant();
+        var query = session.Query<Order, OrderIndex>();
+        if (statusText is not null)
+        {
+            query = query.Where(x => x.Status == statusText);
+        }
+
+        if (numberPart is not null)
+        {
+            query = ownerId is not null
+                ? query.Where(x => x.OrderNumber.Contains(numberPart) || x.OwnerUserId == ownerId)
+                : query.Where(x => x.OrderNumber.Contains(numberPart));
+        }
+
         var total = await query.CountAsync();
         var orders = (await query.OrderByDescending(x => x.CreatedUtc).Skip((page - 1) * PageSize).Take(PageSize).ListAsync()).ToList();
 
@@ -59,14 +82,38 @@ public sealed class OrdersAdminController(
             : (await session.Query<TeamWorkspace, TeamWorkspaceIndex>(x => x.OrderId.IsIn(ids)).ListAsync())
                 .GroupBy(w => w.OrderId)
                 .ToDictionary(g => g.Key, g => g.First());
+        var emails = new Dictionary<string, string?>(StringComparer.Ordinal);
+        foreach (var owner in orders.Select(o => o.OwnerUserId).Distinct(StringComparer.Ordinal))
+        {
+            emails[owner] = await customers.GetEmailAsync(owner);
+        }
+
+        var counts = new Dictionary<OrderStatus, int>();
+        foreach (var s in Enum.GetValues<OrderStatus>())
+        {
+            var text = s.ToString();
+            counts[s] = await session.QueryIndex<OrderIndex>(x => x.Status == text).CountAsync();
+        }
 
         return View(new AdminOrdersViewModel(
-            [.. orders.Select(o => new AdminOrderRow(o, requests.GetValueOrDefault(o.OrderId), teams.GetValueOrDefault(o.OrderId)))],
+            [.. orders.Select(o => new AdminOrderRow(
+                o, requests.GetValueOrDefault(o.OrderId), teams.GetValueOrDefault(o.OrderId), emails.GetValueOrDefault(o.OwnerUserId)))],
             filter,
+            search,
             page,
             Math.Max(1, (int)Math.Ceiling(total / (double)PageSize)),
             total,
-            await authorizationService.AuthorizeAsync(User, AbrPermissions.ApproveTestPayments)));
+            await authorizationService.AuthorizeAsync(User, AbrPermissions.ApproveTestPayments),
+            counts,
+            PageSize));
+    }
+
+    private async Task<string?> FindOwnerIdAsync(string search)
+    {
+        var user = search.Contains('@', StringComparison.Ordinal)
+            ? await userManager.FindByEmailAsync(search)
+            : await userManager.FindByNameAsync(search);
+        return user is null ? null : await userManager.GetUserIdAsync(user);
     }
 
     [HttpPost]
@@ -111,6 +158,7 @@ public sealed class OrdersAdminController(
         {
             var status = await action(adminId);
             TempData["AbrMessage"] = $"{actionLabel}: وضعیت فعلی «{Display.Labels.Status(status)}».";
+            TempData["AbrMessageKind"] = status == OrderStatus.Failed ? "error" : "success";
             logger.LogInformation("Admin {AdminId} ran {Action} on order {OrderId}: {Status}", adminId, actionLabel, orderId, status);
         }
         catch (OrderNotFoundException)
@@ -123,10 +171,12 @@ public sealed class OrdersAdminController(
         }
         catch (InvalidOrderTransitionException ex)
         {
+            TempData["AbrMessageKind"] = "error";
             TempData["AbrMessage"] = $"{actionLabel} در وضعیت «{Display.Labels.Status(ex.From)}» مجاز نیست.";
         }
         catch (ProvisioningAttemptsExhaustedException ex)
         {
+            TempData["AbrMessageKind"] = "error";
             TempData["AbrMessage"] = $"سقف {ex.MaxAttempts} تلاش برای فعال‌سازی پر شده است.";
         }
 
@@ -139,6 +189,7 @@ public sealed class ProvisioningAdminController(
     IAuthorizationService authorizationService,
     NextcloudOptions options,
     MockNextcloudProvisioner mock,
+    ISession session,
     ILogger<ProvisioningAdminController> logger) : Controller
 {
     [HttpGet]
@@ -149,11 +200,17 @@ public sealed class ProvisioningAdminController(
             return Forbid();
         }
 
+        var last = await session.QueryIndex<ProvisioningRequestIndex>(x => x.LastAttemptUtc != null)
+            .OrderByDescending(x => x.LastAttemptUtc)
+            .FirstOrDefaultAsync();
+
         return View(new ProvisioningSettingsViewModel(
             options.Mode,
             options.Mode == ProvisionerMode.Real ? options.BaseUrl : null,
+            options.Mode == ProvisionerMode.Real ? options.AdminUser : null,
             options.IsAppPasswordSet,
             ProvisioningRequest.DefaultMaxAttempts,
+            last?.LastAttemptUtc,
             options.Mode == ProvisionerMode.Mock ? mock.FailNextCalls : null,
             options.Mode == ProvisionerMode.Mock ? mock.UserCount : null,
             options.Mode == ProvisionerMode.Mock ? mock.GroupCount : null));
@@ -176,7 +233,9 @@ public sealed class ProvisioningAdminController(
 
         mock.FailNextCalls = Math.Clamp(failNext, 0, 100);
         logger.LogInformation("Mock connector failure injection set to {FailNextCalls}", mock.FailNextCalls);
-        TempData["AbrMessage"] = $"{mock.FailNextCalls} فراخوانی بعدی با خطا شبیه‌سازی می‌شود.";
+        TempData["AbrMessage"] = mock.FailNextCalls == 0
+            ? "شبیه‌سازی خطا خاموش شد."
+            : $"{Display.Labels.Digits(mock.FailNextCalls)} فراخوانی بعدی با خطا شبیه‌سازی می‌شود.";
         return RedirectToAction(nameof(Index));
     }
 }

@@ -7,15 +7,47 @@ namespace AbrIT.Panel.Module.ViewModels;
 
 public sealed record DriveViewModel(ServiceCard Service, IReadOnlyList<PlanCard> Plans);
 
-public sealed record CustomerOrderViewModel(Order Order, ProvisioningRequest? Request, WorkspaceView? Workspace);
+/// <param name="DriveUrl">Real mode only: the Nextcloud address (Mock has no real address).</param>
+public sealed record CustomerOrderViewModel(Order Order, ProvisioningRequest? Request, WorkspaceView? Workspace, string? DriveUrl = null)
+{
+    public ProvisionerMode? Mode => Request?.Mode;
 
-public sealed record AdminOrderRow(Order Order, ProvisioningRequest? Request, TeamWorkspace? Workspace);
+    public bool IsMock => Request?.Mode == ProvisionerMode.Mock;
 
+    public bool IsTeam => Order.PlanSnapshot.MaxUsers > 1;
+
+    public int Attempts => Request?.Attempts ?? 0;
+
+    public int MaxAttempts => Request?.MaxAttempts ?? ProvisioningRequest.DefaultMaxAttempts;
+}
+
+/// <summary>/dashboard/orders: every order of the signed-in customer, newest first.</summary>
+public sealed record MyOrdersViewModel(IReadOnlyList<DashboardOrderRow> Orders);
+
+public sealed record AdminOrderRow(Order Order, ProvisioningRequest? Request, TeamWorkspace? Workspace, string? OwnerEmail);
+
+/// <param name="Counts">Orders per status card (Paid is counted with Provisioning).</param>
 public sealed record AdminOrdersViewModel(
-    IReadOnlyList<AdminOrderRow> Rows, OrderStatus? Filter, int Page, int PageCount, int Total, bool CanManage);
+    IReadOnlyList<AdminOrderRow> Rows,
+    OrderStatus? Filter,
+    string? Search,
+    int Page,
+    int PageCount,
+    int Total,
+    bool CanManage,
+    IReadOnlyDictionary<OrderStatus, int> Counts,
+    int PageSize);
 
 public sealed record ProvisioningSettingsViewModel(
-    ProvisionerMode Mode, string? BaseUrl, bool AppPasswordSet, int MaxAttempts, int? MockFailNextCalls, int? MockAccounts, int? MockGroups);
+    ProvisionerMode Mode,
+    string? BaseUrl,
+    string? AdminUser,
+    bool AppPasswordSet,
+    int MaxAttempts,
+    DateTime? LastAttemptUtc,
+    int? MockFailNextCalls,
+    int? MockAccounts,
+    int? MockGroups);
 
 /// <summary>Order review (/orders/new): plan + owner shown back to the customer before POST.</summary>
 public sealed record OrderReviewViewModel(PlanCard Plan, string? ServiceTitle, string OwnerName, string? OwnerEmail);

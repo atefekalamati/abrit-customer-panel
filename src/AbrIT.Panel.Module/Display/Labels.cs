@@ -41,24 +41,28 @@ public static class Labels
 
     public static string Amount(long toman) => ToFa(toman.ToString("N0", CultureInfo.InvariantCulture));
 
-    public static string Date(DateTime? utc)
-    {
-        if (utc is not { } value)
-        {
-            return "—";
-        }
+    /// <summary>
+    /// Iran Standard Time (UTC+03:30). Iran has had no daylight saving since 2022, so a fixed offset is exact and needs
+    /// no tzdata in the container (DECISIONS D-23). Storage stays UTC.
+    /// </summary>
+    public static readonly TimeSpan TehranOffset = new(3, 30, 0);
 
-        var d = value.ToUniversalTime();
-        return Day(d) + ToFa(string.Create(CultureInfo.InvariantCulture, $" {d:HH:mm}")) + " UTC";
-    }
+    public static DateTime ToTehran(DateTime utc) =>
+        DateTime.SpecifyKind((utc.Kind == DateTimeKind.Local ? utc.ToUniversalTime() : utc) + TehranOffset, DateTimeKind.Unspecified);
 
-    /// <summary>Jalali date only («۱۴۰۵/۰۹/۰۲») for tables and cards.</summary>
+    /// <summary>«۱۴۰۵/۰۹/۰۲ ۱۰:۲۴» (Jalali, Tehran time); «—» when empty.</summary>
+    public static string Date(DateTime? utc) => utc is { } value ? Day(value) + " " + Time(value) : "—";
+
+    /// <summary>Jalali date only («۱۴۰۵/۰۹/۰۲», Tehran time) for tables and cards.</summary>
     public static string Day(DateTime utc)
     {
-        var d = utc.ToUniversalTime();
+        var d = ToTehran(utc);
         return ToFa(string.Create(
             CultureInfo.InvariantCulture, $"{Jalali.GetYear(d):D4}/{Jalali.GetMonth(d):D2}/{Jalali.GetDayOfMonth(d):D2}"));
     }
+
+    /// <summary>«۱۰:۲۴» (Tehran time).</summary>
+    public static string Time(DateTime utc) => ToFa(ToTehran(utc).ToString("HH:mm", CultureInfo.InvariantCulture));
 
     public static string Quota(long megabytes) =>
         megabytes % 1024 == 0 ? $"{Digits(megabytes / 1024)} گیگابایت" : QuotaGb(megabytes);
@@ -95,6 +99,13 @@ public static class Labels
     };
 
     public static string Number(int value) => Digits(value);
+
+    /// <summary>«۱ از ۵».</summary>
+    public static string OutOf(int value, int total) => $"{Digits(value)} از {Digits(total)}";
+
+    public static string Payment(PaymentStatus status) => status == PaymentStatus.ConfirmedSimulated
+        ? "تأییدشده (شبیه‌سازی)"
+        : "در انتظار تأیید";
 
     /// <summary>Persian digits (۰–۹) for UI copy; .NET formatting never substitutes native digits.</summary>
     public static string Digits(long value) => ToFa(value.ToString(CultureInfo.InvariantCulture));
