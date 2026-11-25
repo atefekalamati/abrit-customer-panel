@@ -8,7 +8,8 @@ namespace AbrIT.Panel.Nextcloud;
 /// created exactly once. <see cref="FailNextCalls"/> injects failures for AC-06. Data is lost on restart (the
 /// order/provisioning documents in the database remain the source of truth).
 /// </summary>
-public sealed class MockNextcloudProvisioner(int failNextCalls = 0) : INextcloudProvisioner
+/// <param name="delayMs">Dev-only latency before <see cref="EnsureUserAsync"/> (<c>Nextcloud:Mock:DelayMs</c>).</param>
+public sealed class MockNextcloudProvisioner(int failNextCalls = 0, int delayMs = 0) : INextcloudProvisioner
 {
     public const string InjectedFailureCode = "mock_injected_failure";
 
@@ -46,17 +47,24 @@ public sealed class MockNextcloudProvisioner(int failNextCalls = 0) : INextcloud
     public IReadOnlyList<string> GroupMembers(string groupId) =>
         [.. _memberships.Keys.Where(k => k.Group == groupId).Select(k => k.User).Order(StringComparer.Ordinal)];
 
-    public Task<ProvisionResult> EnsureUserAsync(EnsureUserCommand cmd, CancellationToken ct)
+    public int DelayMs { get; } = Math.Max(0, delayMs);
+
+    public async Task<ProvisionResult> EnsureUserAsync(EnsureUserCommand cmd, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(cmd);
+        if (DelayMs > 0)
+        {
+            await Task.Delay(DelayMs, ct);
+        }
+
         if (TryConsumeFailure(out var failure))
         {
-            return Task.FromResult(failure);
+            return failure;
         }
 
         if (cmd.Groups.Any(g => !_groups.ContainsKey(g)))
         {
-            return Task.FromResult(ProvisionResult.Error("group_not_found", "Mock: group does not exist."));
+            return ProvisionResult.Error("group_not_found", "Mock: group does not exist.");
         }
 
         var created = false;
@@ -77,7 +85,7 @@ public sealed class MockNextcloudProvisioner(int failNextCalls = 0) : INextcloud
             }
         }
 
-        return Task.FromResult(ProvisionResult.Ok(alreadyExisted: !created));
+        return ProvisionResult.Ok(alreadyExisted: !created);
     }
 
     public Task<ProvisionResult> SetQuotaAsync(string externalUserId, long quotaBytes, CancellationToken ct)

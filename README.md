@@ -22,6 +22,13 @@ uses SMTP **pickup-directory** delivery instead: every e-mail is written as an `
 (or `$ORCHARD_APP_DATA/mail/`). To verify a password reset by hand: open `/ForgotPassword`, enter the user name, open
 the newest `.eml` in `App_Data/mail/`, and follow the `/ResetPassword?...` link (valid 15 minutes).
 
+### Mock connector options (dev / demo)
+
+| Variable | Default | Effect |
+|---|---|---|
+| `Nextcloud__Mock__FailNextCalls` | `0` | The next N connector calls fail (AC-06 demo); also adjustable on the admin «تنظیمات اتصال Drive» page |
+| `Nextcloud__Mock__DelayMs` | `0` | **Dev-only.** The Mock waits this many ms (max 60000) before creating the account, so the «در حال فعال‌سازی» state can be seen / captured. Never set in tests or CI |
+
 ## Real Nextcloud mode (optional)
 
 Mock stays the default everywhere (demo, CI, video). Real mode is only ever pointed at a Nextcloud **provided by

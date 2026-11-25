@@ -36,6 +36,11 @@ public sealed class NextcloudOptions
             errors.Add("Nextcloud:Mock:FailNextCalls must not be negative.");
         }
 
+        if (Mock.DelayMs is < 0 or > MockOptions.MaxDelayMs)
+        {
+            errors.Add($"Nextcloud:Mock:DelayMs must be between 0 and {MockOptions.MaxDelayMs}.");
+        }
+
         if (Mode == ProvisionerMode.Real)
         {
             if (!Uri.TryCreate(BaseUrl, UriKind.Absolute, out var uri) || uri.Scheme is not ("http" or "https"))
@@ -72,4 +77,12 @@ public sealed class MockOptions
 {
     /// <summary>Initial number of connector calls that fail (AC-06); adjustable at runtime from the admin page.</summary>
     public int FailNextCalls { get; set; }
+
+    public const int MaxDelayMs = 60_000;
+
+    /// <summary>
+    /// Dev/demo only: artificial latency (ms) before the Mock creates an account, so the «در حال فعال‌سازی» state can
+    /// be seen and captured. Default 0; tests never set it.
+    /// </summary>
+    public int DelayMs { get; set; }
 }
