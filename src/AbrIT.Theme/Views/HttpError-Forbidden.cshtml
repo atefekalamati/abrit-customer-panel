@@ -3,6 +3,8 @@
    default English text. The page says nothing about what the protected resource contains. *@
 @{
     RenderTitleSegments(new HtmlString("عدم دسترسی"));
+    // The cookie handler redirects to /Error/403, which Orchard serves as a normal page (200); answer 403 here instead.
+    Context.Response.StatusCode = Microsoft.AspNetCore.Http.StatusCodes.Status403Forbidden;
     ViewData["AbrArt"] = "none"; // the lock illustration is the page's art
     var signedIn = User.Identity?.IsAuthenticated == true;
     var backUrl = Url.Content(signedIn ? "~/dashboard" : "~/");

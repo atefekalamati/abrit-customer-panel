@@ -244,6 +244,22 @@ public sealed partial class AcceptanceTests(SharedPanelHost shared)
     }
 
     [Fact]
+    public async Task AC08_Customer_OnAdminPage_Gets403_WithDeniedPage()
+    {
+        using var customer = await Host.LoginAsync(PanelHost.CustomerA, PanelHost.CustomerAPassword);
+
+        // Orchard redirects to its access-denied page; that page must answer 403, not 200.
+        var redirect = await customer.Http.GetAsync("/Admin/AbrIT/Orders");
+        Assert.Equal(HttpStatusCode.Redirect, redirect.StatusCode);
+        Assert.Contains("/Error/403", redirect.Headers.Location!.OriginalString, StringComparison.OrdinalIgnoreCase);
+
+        var denied = await customer.Http.GetAsync(redirect.Headers.Location);
+
+        Assert.Equal(HttpStatusCode.Forbidden, denied.StatusCode);
+        Assert.Contains("عدم دسترسی", await denied.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
     public async Task AC08_NonAdmin_ApprovePost_IsDenied_AndOrderUnchanged()
     {
         using var customerA = await Host.LoginAsync(PanelHost.CustomerA, PanelHost.CustomerAPassword);
