@@ -849,3 +849,23 @@ body.abr-noscroll{overflow:hidden}
   .abr-notfound .abr-btn--primary{min-width:0;width:100%}
   .abr-dialog__box{padding:28px 18px 18px}
 }
+
+/* =========================================================================
+   Anonymous landing (/services, not signed in): no sidebar, brand in the top bar, «سرویس‌ها» + ورود/ثبت‌نام,
+   support card as a strip at the end of the page. Signed-in pages never get .abr-landing.
+   ========================================================================= */
+.abr-landing .abr-shell{display:block;background:none}
+.abr-landing .abr-top>.abr-brand{display:inline-flex}
+.abr-landing__help{margin-top:32px}
+.abr-landing__help .abr-helpcard{margin-top:0;display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"icon title btn" "icon text btn";align-items:center;gap:2px 16px;padding:20px 24px;backdrop-filter:none}
+.abr-landing__help .abr-helpcard>.abr-ico{grid-area:icon;margin:0}
+.abr-landing__help .abr-helpcard strong{grid-area:title}
+.abr-landing__help .abr-helpcard p{grid-area:text;margin:0}
+.abr-app .abr-landing__help .abr-btn--inverse{grid-area:btn;width:auto;margin-top:0}
+@media (max-width: 640px){
+  .abr-landing .abr-top--guest .abr-top__actions{display:flex}
+  .abr-landing .abr-top__sep{display:none}
+  .abr-app.abr-landing .abr-top__actions .abr-btn{min-height:40px;padding:0 12px;font-size:14px}
+  .abr-landing__help .abr-helpcard{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"icon title" "text text" "btn btn"}
+  .abr-app .abr-landing__help .abr-btn--inverse{width:100%;margin-top:10px}
+}

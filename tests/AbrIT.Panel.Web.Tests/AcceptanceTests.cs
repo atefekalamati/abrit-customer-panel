@@ -109,6 +109,40 @@ public sealed partial class AcceptanceTests(SharedPanelHost shared)
     }
 
     [Fact]
+    public async Task Landing_Anonymous_IsServicesWithoutSidebar_SignedInSidebarHasNoSupportItem()
+    {
+        using var guest = new PanelClient(Host.CreatePanelClient());
+        var root = await guest.Http.GetAsync("/");
+        Assert.True(PanelClient.IsRedirect(root), $"anonymous / returned {(int)root.StatusCode}");
+        Assert.Equal("/services", root.Headers.Location!.OriginalString);
+
+        var landing = (await guest.GetAsync("/services")).Html;
+        Assert.DoesNotContain("id=\"abr-drawer\"", landing);
+        Assert.DoesNotContain("data-abr-drawer-open", landing);
+        var topLinks = landing[landing.IndexOf("abr-top__links", StringComparison.Ordinal)..];
+        topLinks = topLinks[..topLinks.IndexOf("</nav>", StringComparison.Ordinal)];
+        Assert.Contains("سرویس‌ها", topLinks);
+        Assert.DoesNotContain("پشتیبانی", topLinks);
+        Assert.Contains("abr-landing__help", landing);
+        Assert.Contains("href=\"/Login\"", landing);
+        Assert.Contains("href=\"/Register\"", landing);
+
+        // Other anonymous pages and every signed-in page keep the sidebar.
+        Assert.Contains("id=\"abr-drawer\"", (await guest.GetAsync("/services/drive")).Html);
+        using var customer = await Host.LoginAsync(PanelHost.CustomerA, PanelHost.CustomerAPassword);
+        var signedInRoot = await customer.GetAsync("/", followRedirects: false);
+        Assert.Equal(HttpStatusCode.OK, signedInRoot.Status);
+        Assert.Contains("id=\"abr-drawer\"", signedInRoot.Html);
+        var signedInServices = (await customer.GetAsync("/services")).Html;
+        Assert.Contains("id=\"abr-drawer\"", signedInServices);
+        var sideNav = signedInServices[signedInServices.IndexOf("abr-sidenav", StringComparison.Ordinal)..];
+        sideNav = sideNav[..sideNav.IndexOf("</nav>", StringComparison.Ordinal)];
+        Assert.Contains("حساب کاربری", sideNav);
+        Assert.DoesNotContain("پشتیبانی", sideNav);
+        Assert.Contains("نیاز به راهنمایی دارید؟", signedInServices);
+    }
+
+    [Fact]
     public async Task AC01_Register_RejectsPasswordShorterThan8_AndShowsRule()
     {
         var userName = $"it-short-{Guid.NewGuid().ToString("N")[..8]}";
