@@ -241,7 +241,7 @@ body.abr-noscroll{overflow:hidden}
 /* ---- Shell: light sidebar (right in RTL) + content column ---- */
 .abr-shell{display:grid;grid-template-columns:272px minmax(0,1fr);min-height:100vh;--abr-side-w:272px;
   /* sidebar column (fill + divider) runs the full page height; the sticky 100vh sidebar alone stops at the first screen */
-  background:linear-gradient(to left,var(--abr-nav-bg) var(--abr-side-w),var(--abr-border) var(--abr-side-w),var(--abr-border) calc(var(--abr-side-w) + 1px),transparent calc(var(--abr-side-w) + 1px))}
+  background:linear-gradient(to left,var(--abr-side-bg) var(--abr-side-w),var(--abr-border) var(--abr-side-w),var(--abr-border) calc(var(--abr-side-w) + 1px),transparent calc(var(--abr-side-w) + 1px))}
 .abr-side{position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--abr-nav-bg);color:var(--abr-nav-text);display:flex;flex-direction:column;gap:28px;padding:0 16px 24px;isolation:isolate}
 /* desktop collapse (top-bar toggle, persisted): the sidebar leaves the layout and the content column takes the full width.
    display:none also keeps its links out of the tab order; theme.js sets inert as well. */
@@ -383,7 +383,6 @@ body.abr-noscroll{overflow:hidden}
 .abr-features span{font-size:var(--abr-fs-sm);line-height:var(--abr-lh-sm);color:var(--abr-text-2)}
 
 .abr-app .abr-auth{margin:0;max-width:none;width:100%;border-radius:24px;box-shadow:var(--abr-shadow-2);padding:36px 40px;position:relative;gap:20px;border-color:var(--abr-surface)}
-.abr-auth__badge{position:absolute;top:20px;inset-inline-end:20px;padding:4px 12px;border-radius:var(--abr-radius-pill)}
 .abr-auth__head{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px}
 .abr-auth__logo{display:flex;flex-direction:column;align-items:center;color:var(--abr-primary);margin-bottom:4px}
 .abr-auth__logo span{color:var(--abr-text);font-weight:800;font-size:26px;line-height:30px;direction:ltr}
@@ -464,7 +463,6 @@ body.abr-noscroll{overflow:hidden}
   .abr-wave--top{top:64px;height:200px}
   .abr-crumb ol{font-size:13px}
   .abr-app .abr-auth{padding:28px 20px;border-radius:20px}
-  .abr-auth__badge{position:static;align-self:center}
 
   .abr-authstack__art img{width:220px}
   .abr-authstack .abr-auth{padding-top:64px}
@@ -879,3 +877,15 @@ body.abr-noscroll{overflow:hidden}
 .abr-app{caret-color:var(--abr-primary)}
 .abr-app ::selection{background:var(--abr-selection-bg);color:var(--abr-text)}
 @media (prefers-reduced-motion: reduce){.abr-app .abr-btn,.abr-app .abr-btn--primary{transition:none}}
+
+/* =========================================================================
+   Signed-in sidebar: navy column (D-29). The --abr-nav-* tokens are re-pointed inside .abr-side only, so the
+   light top bar, focus outlines, selection and backdrops are unaffected. Anonymous pages have no sidebar.
+   ========================================================================= */
+.abr-side{--abr-nav-bg:var(--abr-side-bg);--abr-nav-text:var(--abr-side-text);--abr-nav-muted:var(--abr-side-muted);--abr-text:var(--abr-side-text)}
+.abr-side .abr-brand svg{color:color-mix(in srgb,var(--abr-primary) 55%,white)}
+.abr-app .abr-sidenav a:hover{background:rgba(255,255,255,.07)}
+.abr-app .abr-sidenav a[aria-current=page]{background:var(--abr-cta-gradient);color:var(--abr-on-primary);box-shadow:var(--abr-cta-glow)}
+.abr-side .abr-helpcard{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.14)}
+.abr-side .abr-helpcard>.abr-ico{color:color-mix(in srgb,var(--abr-primary) 50%,white)}
+.abr-app .abr-side :focus-visible{box-shadow:0 0 0 2px var(--abr-side-bg),0 0 0 4px var(--abr-side-text)}
