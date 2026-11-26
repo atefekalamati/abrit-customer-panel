@@ -22,8 +22,8 @@ public static class Icons
         ["users"] = "<circle cx=\"9\" cy=\"8\" r=\"3.5\"/><path d=\"M2.5 20a6.5 6.5 0 0 1 13 0\"/><path d=\"M16 4.6a3.5 3.5 0 0 1 0 6.8\"/><path d=\"M18 14.2a6.5 6.5 0 0 1 3.5 5.8\"/>",
         ["headset"] = "<path d=\"M4 14v-2a8 8 0 0 1 16 0v2\"/><rect x=\"2.5\" y=\"14\" width=\"4.5\" height=\"6.5\" rx=\"1.5\"/><rect x=\"17\" y=\"14\" width=\"4.5\" height=\"6.5\" rx=\"1.5\"/>",
         ["external"] = "<path d=\"M14 4h6v6\"/><path d=\"M20 4l-9 9\"/><path d=\"M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5\"/>",
-        ["login"] = "<path d=\"M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4\"/><path d=\"M10 16l4-4-4-4\"/><path d=\"M14 12H3\"/>",
-        ["logout"] = "<path d=\"M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4\"/><path d=\"M15 16l-4-4 4-4\"/><path d=\"M11 12h10\"/>",
+        ["login"] = "<g transform=\"matrix(-1 0 0 1 24 0)\"><path d=\"M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4\"/><path d=\"M10 16l4-4-4-4\"/><path d=\"M14 12H3\"/></g>", // RTL enter: mirrored, arrow goes into the door leftwards
+        ["logout"] = "<path d=\"M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4\"/><path d=\"M8 16l-4-4 4-4\"/><path d=\"M4 12h11\"/>", // RTL exit: arrow leaves the door leftwards
         ["lock"] = "<rect x=\"4.5\" y=\"10.5\" width=\"15\" height=\"10\" rx=\"2\"/><path d=\"M8 10.5V7a4 4 0 0 1 8 0v3.5\"/><path d=\"M12 14.5v2.5\"/>",
         ["eye"] = "<path d=\"M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/>",
         ["eye-off"] = "<path d=\"M3 3l18 18\"/><path d=\"M10.6 5.1A10 10 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.1\"/><path d=\"M6.6 6.6C3.9 8.4 2 12 2 12s3.6 7 10 7a9.7 9.7 0 0 0 5.4-1.6\"/><path d=\"M9.9 9.9a3 3 0 0 0 4.2 4.2\"/>",

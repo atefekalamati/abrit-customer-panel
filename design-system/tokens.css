@@ -63,6 +63,8 @@
   --abr-text-2:         var(--abr-gray-700);     /* 5.43 white · 4.93 bg */
   --abr-link:           var(--abr-blue-600);     /* 6.08 white · 5.53 bg */
   --abr-focus:          var(--abr-blue-600);
+  --abr-overlay:        rgba(0, 7, 22, .45);     /* drawer + dialog backdrops (gray-950 @ 45%) */
+  --abr-selection-bg:   var(--abr-blue-100);     /* text selection; text stays --abr-text (16.9:1) */
 
   /* status: fg on its own bg ≥ 4.5:1, never colour alone (always icon/dot + text) */
   --abr-success: var(--abr-green-700); --abr-success-bg: var(--abr-green-50);  /* 5.00 */

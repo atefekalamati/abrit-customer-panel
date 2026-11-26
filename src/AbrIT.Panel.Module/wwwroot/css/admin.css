@@ -12,7 +12,7 @@
 .abr-admin .abr-muted{color:var(--abr-text-2)}
 .abr-admin .abr-nowrap{white-space:nowrap}
 .abr-admin svg{flex:none}
-.abr-admin :focus-visible{outline:3px solid var(--abr-focus,#0972D3);outline-offset:2px}
+.abr-admin :focus-visible{outline:3px solid var(--abr-focus);outline-offset:2px}
 
 /* page head */
 .abr-admin__head{display:flex;justify-content:space-between;align-items:center;gap:16px;min-height:96px}
@@ -43,7 +43,7 @@
 .abr-admin__toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--abr-surface);border:1px solid var(--abr-border);border-radius:var(--abr-radius-lg);padding:12px 16px;box-shadow:var(--abr-shadow-1)}
 .abr-admin__search{flex:1 1 320px;display:flex;align-items:center;gap:8px;border:1px solid var(--abr-border-strong);border-radius:var(--abr-radius-pill);padding:0 16px;min-height:44px;color:var(--abr-primary);background:var(--abr-surface)}
 .abr-admin__search input{flex:1;border:0;outline:0;background:none;font:inherit;color:var(--abr-text);min-height:42px}
-.abr-admin__search:focus-within{outline:3px solid var(--abr-focus,#0972D3);outline-offset:2px}
+.abr-admin__search:focus-within{outline:3px solid var(--abr-focus);outline-offset:2px}
 .abr-admin__filter{display:flex;align-items:center;gap:8px;font-weight:700}
 .abr-admin__filter select{font:inherit;min-height:44px;border:1px solid var(--abr-border-strong);border-radius:var(--abr-radius-sm);padding:0 12px;background:var(--abr-surface);color:var(--abr-text);min-width:200px}
 
@@ -165,7 +165,8 @@
 
 /* confirm dialog (abr-ui.js appends it inside .abr-admin) */
 .abr-admin .abr-dialog{border:0;padding:0;border-radius:var(--abr-radius-lg);box-shadow:var(--abr-shadow-3);width:min(460px,calc(100vw - 32px));font-family:var(--abr-font);color:var(--abr-text);background:var(--abr-surface)}
-.abr-admin .abr-dialog::backdrop{background:rgba(15,27,42,.45)}
+.abr-admin .abr-dialog::backdrop{background:var(--abr-overlay)}
+.abr-admin ::selection{background:var(--abr-selection-bg);color:var(--abr-text)}
 .abr-admin .abr-dialog__box{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;padding:32px 28px 24px;margin:0;background:linear-gradient(180deg,var(--abr-primary-soft),var(--abr-surface) 120px);border-radius:inherit}
 .abr-admin .abr-dialog[data-tone=danger] .abr-dialog__box{background:linear-gradient(180deg,var(--abr-error-bg),var(--abr-surface) 120px)}
 .abr-admin .abr-dialog__x{position:absolute;inset-inline-end:12px;top:12px;width:40px;height:40px;border:0;background:none;border-radius:50%;cursor:pointer;color:var(--abr-text-2);display:grid;place-items:center}
