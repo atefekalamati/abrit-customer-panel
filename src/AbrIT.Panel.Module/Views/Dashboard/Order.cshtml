@@ -84,7 +84,7 @@
     {
         ("سرویس", Isolated(serviceName)),
         ("پلن", new HtmlString($"{Isolated(plan.Title)} — {Labels.Digits(plan.MaxUsers)} کاربر")),
-        ("مبلغ", Enc($"{Labels.Price(order.AmountToman)} (آزمایشی)")),
+        ("مبلغ", Enc(Labels.Price(order.AmountToman))),
         ("وضعیت پرداخت", new HtmlString(
             $"<span class=\"abr-paychip\" data-pay=\"{order.PaymentStatus}\">{Icons.Svg(paid ? "check-circle" : "clock", 16)}{System.Net.WebUtility.HtmlEncode(Labels.Payment(order.PaymentStatus))}</span>")),
         ("تاریخ ثبت", Enc(Labels.Day(order.CreatedUtc))),
@@ -112,7 +112,7 @@
 
     <partial name="_Message" />
 
-    <div class="abr-od__banner abr-alert abr-alert--@banner.Tone" role="@(status == OrderStatus.Failed ? "alert" : "status")" data-abr-refresh="@(provisioning ? "5" : null)">
+    <div class="abr-od__banner abr-alert abr-alert--@banner.Tone" role="@(status == OrderStatus.Failed ? "alert" : "status")" data-abr-refresh="@(provisioning ? "5" : "0")">
         <span class="abr-od__bannericon" aria-hidden="true">@Icons.Svg(banner.Icon, 26)</span>
         <div>
             <strong>@banner.Title</strong>
@@ -193,7 +193,7 @@
                         <dd class="abr-muted">
                             @if (Model.IsMock)
                             {
-                                <span>در حالت آزمایشی (<bdi>Mock</bdi>) رمزی ساخته و ایمیلی ارسال نمی‌شود.</span>
+                                <span>در حالت آزمایشی رمزی ساخته و ایمیلی ارسال نمی‌شود.</span>
                             }
                             else
                             {
@@ -257,7 +257,7 @@
                     <li class="abr-member">
                         <span class="abr-member__avatar" aria-hidden="true">@Icons.Svg("user", 20)</span>
                         <span class="abr-member__who"><strong>شما (مالک)</strong><bdi class="ltr abr-muted">@workspace.OwnerExternalUserId</bdi></span>
-                        <span class="abr-badge" data-status="@Labels.StatusKey(OrderStatus.Active, Model.Mode)"><span>@Labels.StatusHtml(OrderStatus.Active, Model.Mode)</span></span>
+                        <span class="abr-badge" data-status="@Labels.StatusKey(OrderStatus.Active, Model.Mode)"><span>@Labels.Status(OrderStatus.Active)</span></span>
                         <span class="abr-member__action"></span>
                     </li>
                     @foreach (var member in workspace.Members)
@@ -272,7 +272,7 @@
                         <li class="abr-member" data-member-status="@member.Status">
                             <span class="abr-member__avatar" aria-hidden="true">@(member.Email.Length > 0 ? char.ToUpperInvariant(member.Email[0]) : '?')</span>
                             <span class="abr-member__who"><bdi class="ltr">@member.Email</bdi><bdi class="ltr abr-muted">@member.ExternalUserId</bdi></span>
-                            <span class="abr-badge" data-status="@memberKey"><span>@(member.Status == WorkspaceMemberStatus.Active ? Labels.StatusHtml(OrderStatus.Active, Model.Mode) : new HtmlString(Labels.MemberStatus(member.Status)))</span></span>
+                            <span class="abr-badge" data-status="@memberKey"><span>@(member.Status == WorkspaceMemberStatus.Active ? Labels.Status(OrderStatus.Active) : Labels.MemberStatus(member.Status))</span></span>
                             <span class="abr-member__action">
                                 @if (member.Status == WorkspaceMemberStatus.Active)
                                 {
