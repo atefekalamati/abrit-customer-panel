@@ -99,7 +99,7 @@ public static class OrderPresenter
                     forAdmin ? "لغو سفارش" : change.ActorUserId == order.OwnerUserId ? "لغو سفارش توسط شما" : "لغو سفارش توسط مدیر",
                     time,
                     null,
-                    "neutral",
+                    "cancelled",
                     day,
                     actor),
                 _ => new(Labels.Status(change.To), time, null, "neutral", day, actor),

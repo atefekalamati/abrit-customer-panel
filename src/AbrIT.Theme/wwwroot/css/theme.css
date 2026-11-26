@@ -57,7 +57,7 @@ bdi.ltr,.ltr{direction:ltr;unicode-bidi:isolate}
 .abr-badge[data-status=Active]{color:var(--abr-success);background:var(--abr-success-bg)}
 .abr-badge[data-status=ActiveMock]{color:var(--abr-mock);background:var(--abr-mock-bg)}
 .abr-badge[data-status=Failed]{color:var(--abr-error);background:var(--abr-error-bg)}
-.abr-badge[data-status=Cancelled]{color:var(--abr-neutral);background:var(--abr-neutral-bg)}
+.abr-badge[data-status=Cancelled]{color:var(--abr-error);background:var(--abr-error-bg)}
 .abr-badge--soon{color:var(--abr-neutral);background:var(--abr-neutral-bg)}
 .abr-badge--soon::before,.abr-badge--plain::before{display:none}
 .abr-badge--plain{color:var(--abr-primary);background:var(--abr-primary-soft)}
@@ -682,7 +682,7 @@ body.abr-noscroll{overflow:hidden}
 .abr-stepper__item[data-state=done] .abr-stepper__label{color:var(--abr-success)}
 .abr-stepper__item[data-state=failed] .abr-stepper__label{color:var(--abr-error)}
 .abr-stepper__item[data-state=skipped]{opacity:.55}
-.abr-stepper__item[data-state=skipped] .abr-stepper__label{text-decoration:line-through;color:var(--abr-text-2)}
+.abr-stepper__item[data-state=skipped] .abr-stepper__label{color:var(--abr-text-2)}
 .abr-stepper__item[data-state=skipped] .abr-stepper__dot{border-style:dashed}
 .abr-od__steps{padding:20px 24px 16px}
 .abr-od__steps .abr-stepper__note{display:none}
@@ -747,6 +747,7 @@ body.abr-noscroll{overflow:hidden}
 .abr-history__row[data-tone=mock]{--tone:var(--abr-mock);--tone-bg:var(--abr-mock-bg)}
 .abr-history__row[data-tone=error]{--tone:var(--abr-error);--tone-bg:var(--abr-error-bg);background:var(--abr-error-bg)}
 .abr-history__row[data-tone=error] .abr-history__text strong{background:var(--abr-surface)}
+.abr-history__row[data-tone=cancelled]{--tone:var(--abr-error);--tone-bg:var(--abr-error-bg)}
 .abr-history__row[data-tone=pending]{--tone:var(--abr-text-2);--tone-bg:var(--abr-neutral-bg);color:var(--abr-text-2)}
 .abr-history__row[data-tone=info] .abr-history__icon .abr-ico{animation:abr-spin 2s linear infinite}
 @keyframes abr-spin{to{transform:rotate(360deg)}}
