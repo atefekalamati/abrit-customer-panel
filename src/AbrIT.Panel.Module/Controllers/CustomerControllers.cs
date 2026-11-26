@@ -15,7 +15,17 @@ namespace AbrIT.Panel.Module.Controllers;
 public sealed class ServicesController(CatalogReader catalog) : Controller
 {
     [HttpGet]
-    public async Task<IActionResult> Index() => View(await catalog.ListServicesAsync());
+    public async Task<IActionResult> Index()
+    {
+        // "/" is Orchard's HomeRoute to this action. Anonymous visitors get one canonical landing URL (/services);
+        // signed-in users keep "/" as it is.
+        if (User.Identity?.IsAuthenticated != true && (Request.Path.Value ?? "/") == "/")
+        {
+            return LocalRedirect(Url.Content("~/services"));
+        }
+
+        return View(await catalog.ListServicesAsync());
+    }
 
     [HttpGet]
     public async Task<IActionResult> Drive()

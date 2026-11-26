@@ -5,14 +5,21 @@
     string? subtitle = Model.Subtitle;
     var crumbs = (Model.Crumbs as IEnumerable<Crumb>)?.ToList() ?? [];
     var illustration = Model.Illustration as IHtmlContent;
+    // Anonymous visitors have one entry point (/services, which "/" redirects to): no «خانه» root, and no trail
+    // when only the current page would be left.
+    var signedIn = User.Identity?.IsAuthenticated == true;
+    var showCrumbs = signedIn ? crumbs.Count > 0 : crumbs.Count > 1;
 }
 <header class="abr-pagehead">
     <div class="abr-pagehead__text">
-        @if (crumbs.Count > 0)
+        @if (showCrumbs)
         {
             <nav class="abr-crumb" aria-label="مسیر صفحه">
                 <ol>
-                    <li><a href="~/">@Icons.Svg("home", 18)<span>خانه</span></a></li>
+                    @if (signedIn)
+                    {
+                        <li><a href="~/">@Icons.Svg("home", 18)<span>خانه</span></a></li>
+                    }
                     @foreach (var crumb in crumbs)
                     {
                         <li>

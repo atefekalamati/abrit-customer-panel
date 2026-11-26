@@ -5,7 +5,6 @@
     var loginUrl = Url.Action("Login", "Account", new { area = "OrchardCore.Users" }) ?? "/Login";
     var registerUrl = Url.Action("Register", "Registration", new { area = "OrchardCore.Users" }) ?? "/Register";
     var accountUrl = Url.Action("ChangePassword", "Account", new { area = "OrchardCore.Users" }) ?? "/ChangePassword";
-    const string supportUrl = "https://abrit.ir";
 
     bool Starts(string prefix) => path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase);
 
@@ -15,26 +14,21 @@
     bool Cur(string key, bool byPath) => nav is null ? byPath : nav == key;
     var art = ViewData["AbrArt"] as string ?? "cloud-servers";
     var artMobile = ViewData["AbrArtMobile"] is true;
-    var onAuthFlow = Starts("/Login") || Starts("/ForgotPassword") || Starts("/ResetPassword");
 
-    // (text, href, icon, current, external) — customer vs guest menu (docs/SCREENS.md "اجزای مشترک").
-    var menu = signedIn
-        ? new List<(string Text, string Href, string Icon, bool Current, bool External)>
-        {
-            ("داشبورد", Url.Content("~/dashboard"), "dashboard", Cur("dashboard", path.Equals("/dashboard", StringComparison.OrdinalIgnoreCase)), false),
-            ("سرویس‌ها", Url.Content("~/services"), "grid", Cur("services", Starts("/services") || path == "/"), false),
-            ("سفارش‌های من", Url.Content("~/dashboard/orders"), "cart", Cur("orders", Starts("/dashboard/orders") || Starts("/orders/")), false),
-            ("حساب کاربری", accountUrl, "user", Starts("/ChangePassword"), false),
-            ("پشتیبانی", supportUrl, "headset", false, true),
-        }
-        : new List<(string Text, string Href, string Icon, bool Current, bool External)>
-        {
-            ("خانه", Url.Content("~/"), "home", path == "/", false),
-            ("سرویس‌ها", Url.Content("~/services"), "grid", Starts("/services"), false),
-            ("پشتیبانی", supportUrl, "headset", false, true),
-            ("ورود", loginUrl, "login", onAuthFlow, false),
-            ("ثبت‌نام", registerUrl, "user-plus", Starts("/Register"), false),
-        };
+    // Every anonymous page (anonymous "/" redirects to /services): no sidebar/drawer markup at all, top bar = logo +
+    // «سرویس‌ها» + ورود/ثبت‌نام, and the support card as the single support entry point at the end of the page.
+    // Signed-in pages are unchanged.
+    var landing = !signedIn;
+
+    // (text, href, icon, current, external) — signed-in sidebar menu only; anonymous pages have no sidebar.
+    var menu = new List<(string Text, string Href, string Icon, bool Current, bool External)>
+    {
+        ("داشبورد", Url.Content("~/dashboard"), "dashboard", Cur("dashboard", path.Equals("/dashboard", StringComparison.OrdinalIgnoreCase)), false),
+        ("سرویس‌ها", Url.Content("~/services"), "grid", Cur("services", Starts("/services") || path == "/"), false),
+        ("سفارش‌های من", Url.Content("~/dashboard/orders"), "cart", Cur("orders", Starts("/dashboard/orders") || Starts("/orders/")), false),
+        ("حساب کاربری", accountUrl, "user", Starts("/ChangePassword"), false),
+        // no «پشتیبانی» item: the «نیاز به راهنمایی دارید؟» card at the bottom of the sidebar covers it
+    };
 }
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
@@ -52,43 +46,39 @@
     <resources type="Header" />
     @await RenderSectionAsync("HeadMeta", required: false)
 </head>
-<body class="abr-app">
+<body class="abr-app@(landing ? " abr-landing" : null)">
     <a class="abr-skip" href="#main">پرش به محتوای اصلی</a>
     <div class="abr-shell">
-        <aside class="abr-side" id="abr-drawer" aria-label="منوی کناری">
-            <div class="abr-side__head">
-                <partial name="_Brand" />
-                <button type="button" class="abr-side__close" data-abr-drawer-close aria-label="بستن منو">@Icons.Svg("close", 22)</button>
-            </div>
-            <nav class="abr-sidenav" aria-label="منوی اصلی">
-                <ul>
-                    @foreach (var item in menu)
-                    {
-                        <li>
-                            <a href="@item.Href" aria-current="@(item.Current ? "page" : null)"
-                               target="@(item.External ? "_blank" : null)" rel="@(item.External ? "noopener" : null)">
-                                @Icons.Svg(item.Icon, 22)
-                                <span>@item.Text</span>
-                                @if (item.External)
-                                {
-                                    @Icons.Svg("external", 16, "abr-sidenav__ext")
-                                    <span class="sr-only">(در زبانه‌ی جدید)</span>
-                                }
-                            </a>
-                        </li>
-                    }
-                </ul>
-            </nav>
-            <div class="abr-helpcard">
-                @Icons.Svg("headset", 30)
-                <strong>نیاز به راهنمایی دارید؟</strong>
-                <p>تیم پشتیبانی <bdi>AbrIT</bdi> آماده‌ی پاسخ‌گویی به شماست.</p>
-                <a class="abr-btn abr-btn--inverse" href="@supportUrl" target="_blank" rel="noopener">
-                    @Icons.Svg("external", 18) تماس با پشتیبانی<span class="sr-only">(در زبانه‌ی جدید)</span>
-                </a>
-            </div>
-        </aside>
-        <div class="abr-backdrop" data-abr-drawer-close hidden></div>
+        @if (!landing)
+        {
+            <aside class="abr-side" id="abr-drawer" aria-label="منوی کناری">
+                <div class="abr-side__head">
+                    <partial name="_Brand" />
+                    <button type="button" class="abr-side__close" data-abr-drawer-close aria-label="بستن منو">@Icons.Svg("close", 22)</button>
+                </div>
+                <nav class="abr-sidenav" aria-label="منوی اصلی">
+                    <ul>
+                        @foreach (var item in menu)
+                        {
+                            <li>
+                                <a href="@item.Href" aria-current="@(item.Current ? "page" : null)"
+                                   target="@(item.External ? "_blank" : null)" rel="@(item.External ? "noopener" : null)">
+                                    @Icons.Svg(item.Icon, 22)
+                                    <span>@item.Text</span>
+                                    @if (item.External)
+                                    {
+                                        @Icons.Svg("external", 16, "abr-sidenav__ext")
+                                        <span class="sr-only">(در زبانه‌ی جدید)</span>
+                                    }
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </nav>
+                <partial name="_HelpCard" />
+            </aside>
+            <div class="abr-backdrop" data-abr-drawer-close hidden></div>
+        }
 
         <div class="abr-body">
             <svg class="abr-wave abr-wave--top" viewBox="0 0 1200 300" preserveAspectRatio="none" aria-hidden="true" focusable="false">
@@ -97,7 +87,10 @@
                 <path d="M1200 150c-120 60-260 40-380 70" fill="none" stroke="currentColor" stroke-opacity=".08" stroke-width="2" />
             </svg>
             <header class="abr-top @(signedIn ? "abr-top--user" : "abr-top--guest")">
-                <button type="button" class="abr-burger" data-abr-drawer-open aria-controls="abr-drawer" aria-expanded="false" aria-label="باز کردن منو">@Icons.Svg("menu", 24)</button>
+                @if (!landing)
+                {
+                    <button type="button" class="abr-burger" data-abr-drawer-open aria-controls="abr-drawer" aria-expanded="false" aria-label="باز کردن منو">@Icons.Svg("menu", 24)</button>
+                }
                 <partial name="_Brand" />
                 @if (signedIn)
                 {
@@ -121,8 +114,7 @@
                 else
                 {
                     <nav class="abr-top__links" aria-label="پیوندهای سریع">
-                        <a href="~/services">@Icons.Svg("grid") سرویس‌ها</a>
-                        <a href="@supportUrl" target="_blank" rel="noopener">@Icons.Svg("headset") پشتیبانی<span class="sr-only">(در زبانه‌ی جدید)</span></a>
+                        <a href="~/services" aria-current="@(Starts("/services") ? "page" : null)">@Icons.Svg("grid") سرویس‌ها</a>
                     </nav>
                     <div class="abr-top__actions">
                         <span class="abr-top__sep" aria-hidden="true"></span>
@@ -140,6 +132,10 @@
                 @await RenderSectionAsync("Header", required: false)
                 @await RenderSectionAsync("Messages", required: false)
                 @await RenderBodyAsync()
+                @if (landing)
+                {
+                    <aside class="abr-landing__help" aria-label="پشتیبانی"><partial name="_HelpCard" /></aside>
+                }
             </main>
 
             <footer class="abr-evalbar">
