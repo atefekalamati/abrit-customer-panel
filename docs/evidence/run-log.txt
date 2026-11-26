@@ -1,10 +1,10 @@
 AC-02 order placed by customer-a: status=PendingPayment
 AC-03 after admin approval: status=Active
 AC-04 mock connector counters: حساب‌های آزمایشی ساخته‌شده از آخرین راه‌اندازی: ۱ · گروه‌ها: ۰
-AC-05 replayed admin approve #1: HTTP 302
-AC-05 replayed admin approve #2: HTTP 302
-AC-05 signed payment callback #1: HTTP 200 {"orderId":"4fa4957caw6jx7rnn7ptsj01cb","status":"Active"}
-AC-05 signed payment callback #2: HTTP 200 {"orderId":"4fa4957caw6jx7rnn7ptsj01cb","status":"Active"}
+AC-05 replayed admin approve #1: HTTP 302 -> /Admin/AbrIT/Orders
+AC-05 replayed admin approve #2: HTTP 302 -> /Admin/AbrIT/Orders
+AC-05 signed payment callback #1: HTTP 200 {"orderId":"4sdqdymjvygv94p6czyqv7acnf","status":"Active"}
+AC-05 signed payment callback #2: HTTP 200 {"orderId":"4sdqdymjvygv94p6czyqv7acnf","status":"Active"}
 AC-05 mock connector counters after 4 repeats: حساب‌های آزمایشی ساخته‌شده از آخرین راه‌اندازی: ۱ · گروه‌ها: ۰
 AC-05 order status after repeats: Active
 AC-06 approval with injected failure: status=Failed
