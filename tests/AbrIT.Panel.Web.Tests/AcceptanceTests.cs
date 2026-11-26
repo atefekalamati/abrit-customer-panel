@@ -76,6 +76,39 @@ public sealed partial class AcceptanceTests(SharedPanelHost shared)
     }
 
     [Fact]
+    public async Task AC01_ChangePassword_StyledForm_ChangesPassword()
+    {
+        var userName = $"it-change-{Guid.NewGuid().ToString("N")[..8]}";
+        const string oldPassword = "It-Change-Old1!";
+        const string newPassword = "It-Change-New1!";
+        using var client = new PanelClient(Host.CreatePanelClient());
+        var register = await client.SubmitFormAsync("/Register", "/Register", new Dictionary<string, string>
+        {
+            ["UserName"] = userName,
+            ["Email"] = $"{userName}@example.test",
+            ["Password"] = oldPassword,
+            ["ConfirmPassword"] = oldPassword,
+        });
+        Assert.True(PanelClient.IsRedirect(register), $"register returned {(int)register.StatusCode}");
+
+        Assert.Contains("class=\"abr-auth\"", (await client.GetAsync("/ChangePassword")).Html);
+
+        var change = await client.SubmitFormAsync("/ChangePassword", "/ChangePassword", new Dictionary<string, string>
+        {
+            ["CurrentPassword"] = oldPassword,
+            ["Password"] = newPassword,
+            ["PasswordConfirmation"] = newPassword,
+        });
+        Assert.True(PanelClient.IsRedirect(change), $"change password returned {(int)change.StatusCode}");
+        var confirmation = await client.GetAsync(change.Headers.Location!.OriginalString);
+        Assert.Contains("رمز عبور شما با موفقیت تغییر کرد", confirmation.Text);
+
+        await client.SubmitFormAsync("/dashboard", "LogOff");
+        await Assert.ThrowsAsync<InvalidOperationException>(() => client.LoginAsync(userName, oldPassword));
+        await client.LoginAsync(userName, newPassword);
+    }
+
+    [Fact]
     public async Task AC01_Register_RejectsPasswordShorterThan8_AndShowsRule()
     {
         var userName = $"it-short-{Guid.NewGuid().ToString("N")[..8]}";
