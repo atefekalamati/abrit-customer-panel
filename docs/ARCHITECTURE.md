@@ -19,8 +19,8 @@ flowchart TD
 | `Domain` | Order state machine, order, payment approval, provisioning and team services, interfaces. No Orchard or ASP.NET references, so the rule tests are fast and need no I/O ([D-05](DECISIONS.md)). |
 | `Nextcloud` | `MockNextcloudProvisioner` and `OcsNextcloudProvisioner` behind `INextcloudProvisioner`. `Nextcloud:Mode` picks one at startup. |
 | `Module` | MVC controllers, views, admin menu, permissions, YesSql repositories, indexes and migrations, adapters for Orchard's lock, ids and users, the setup recipe. |
-| `Theme` | `dir="rtl"` layout, CSS, self-hosted Vazirmatn. Colours come from `design-system/tokens.css`. |
-| `Web` | Host, configuration validation, e-mail pickup fallback, `/health/live`. |
+| `Theme` | `dir="rtl"` layout, CSS, self-hosted Vazirmatn, design tokens from `design-system/tokens.css`. Signed-in pages get a navy sidebar (`--abr-side-*` tokens); anonymous pages render no sidebar. |
+| `Web` | Host, configuration validation, e-mail pickup fallback, `/health/live`. `dotnet run` uses the `Local` environment for zero-touch setup ([D-28](DECISIONS.md)). |
 
 Orchard Core's source is not modified. Users, roles, registration, password reset, content editing, recipes, e-mail
 and distributed locks are Orchard's own.
@@ -58,7 +58,7 @@ stateDiagram-v2
 5. **Retry.** Admin only, only from `Failed`, at most 5 attempts.
 
 It runs synchronously inside the approval request ([A-01](DECISIONS.md)). While an order is `Paid` or `Provisioning`,
-the customer's order page reloads itself every few seconds; it does not reload while a form field is in use.
+the customer's order page reloads itself every few seconds; it does not reload while a form field is in use. In every other state it does not reload.
 
 ## No duplicate service: three layers
 

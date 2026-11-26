@@ -14,6 +14,7 @@ payment, and in the default **Mock** mode creates no real Drive account.
 | [docs/FUTURE.md](docs/FUTURE.md) | What would come next with more time |
 | [docs/DECISIONS.md](docs/DECISIONS.md) | Assumptions and technical decisions |
 | [docs/evidence/](docs/evidence/) | Screenshots and run log for AC-02 to AC-06 |
+| [docs/screenshots/review/](docs/screenshots/review/) | Screenshots of the final UI, desktop and mobile |
 | [docs/DESIGN.md](docs/DESIGN.md), [docs/SCREENS.md](docs/SCREENS.md) | UI contract |
 
 ## Prerequisites
@@ -46,6 +47,13 @@ plans, roles) and the demo accounts, in a SQLite database under `src/AbrIT.Panel
 These are throwaway credentials from `appsettings.Local.json`, read only by the local launch profile
 ([D-28](docs/DECISIONS.md)). Docker and production take credentials from `.env` / environment variables. To start
 over, delete `src/AbrIT.Panel.Web/App_Data`.
+
+### Environments
+
+`dotnet run` gets `ASPNETCORE_ENVIRONMENT=Local` from `Properties/launchSettings.json` and does **not** read `.env`.
+Docker Compose reads `.env`; `.env.example` also says `Local`, and Compose uses `Production` if the value is unset.
+`appsettings.Local.json` is not part of the published build, so a container never loads it. Do not use `Development`:
+order pages then fail with HTTP 500 ([D-28](docs/DECISIONS.md)).
 
 ### Try the main scenario
 

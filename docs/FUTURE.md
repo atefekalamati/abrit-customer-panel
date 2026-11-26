@@ -26,6 +26,7 @@ None of this is implemented. Ordered by what matters most before real use.
   [How to add a new service](../README.md#how-to-add-a-new-service)).
 - **Customer notifications** for payment, activation and failure.
 - **Translation** of the remaining English strings in Orchard's admin.
+- **Contrast:** darken the light end of the sidebar's active-item gradient so its label reaches 4.5:1 everywhere.
 - **Design consistency:** move raw font sizes and corner radii onto the tokens and align heading sizes between the
   customer and admin pages.
 

@@ -39,8 +39,11 @@ There is no evidence of such a run; the pull request that added the connector sa
 
 ## Evidence for AC-02 to AC-06
 
-Captured in a browser on a freshly set-up Mock host. HTTP answers and fake-account counters are in
-[evidence/run-log.txt](evidence/run-log.txt). Times in the screenshots come from the machine's clock.
+The evidence is provided as a **set of screenshots**. The task allows either a short video or a set of screenshots; we
+chose screenshots.
+
+They were captured in a browser on a freshly set-up Mock host running the final UI. HTTP answers and fake-account
+counters are in [evidence/run-log.txt](evidence/run-log.txt). Times in the screenshots come from the machine's clock.
 
 | AC | Scenario | Evidence | Automated test |
 |---|---|---|---|
@@ -58,7 +61,31 @@ Captured in a browser on a freshly set-up Mock host. HTTP answers and fake-accou
 | AC-07 customer B cannot see A's order | `AC07_*` tests |
 | AC-08 non-admin cannot approve | `AC08_*` tests |
 | AC-09 data survives a restart | `AC09_RestartHost_SameAppData_OrderAndStatusPersist` |
-| AC-10 mobile and desktop, right-to-left | Manual, [screenshots/](screenshots/). Many were taken before the last visual changes (navy sidebar, fewer test labels); later ones are in [screenshots/review/](screenshots/review/) and [evidence/](evidence/). The final sidebar theme ([D-32](DECISIONS.md)) is shown in [desktop](screenshots/review/after-sidebar-theme-desktop.png) and [mobile](screenshots/review/after-sidebar-theme-mobile.png); earlier captures show the previous sidebar colour. White text on the active menu item has a contrast of about 3.2:1 at the light end of its gradient and 4.9:1 at the dark end, so it is partly below 4.5:1. |
+| AC-10 mobile and desktop, right-to-left | Manual. Final UI, desktop and 375 px: anonymous catalog ([desktop](screenshots/review/final-services-anonymous-desktop.png), [mobile](screenshots/review/final-services-anonymous-mobile.png)), dashboard ([empty](screenshots/review/final-dashboard-empty-desktop.png), [desktop](screenshots/review/final-dashboard-desktop.png), [mobile](screenshots/review/final-dashboard-mobile.png)), [mobile menu](screenshots/review/final-sidebar-drawer-mobile.png), Team order ([desktop](screenshots/review/final-order-detail-desktop.png), [mobile](screenshots/review/final-order-detail-mobile.png)). Older captures directly in [screenshots/](screenshots/README.md) are development history. |
+
+## Interface notes
+
+- Signed-in pages have a navy sidebar with four items and a support card; its colours follow the design reference
+  ([D-32](DECISIONS.md)). Anonymous pages have no sidebar.
+- White text on the active menu item has a contrast of about 3.2:1 at the light end of its gradient and 4.9:1 at the
+  dark end, so it is partly below 4.5:1.
+- Repeated Mock/test wording was removed. The order status, the Mock banner, the connection mode and the simulated
+  payment status still say it ([D-30](DECISIONS.md)).
+
+## Security scan of the git history
+
+On 2026-11-26 the whole history was scanned from a fresh mirror clone of the GitHub repository (all branches, tags and
+pull-request refs) with **gitleaks 8.30.1** and **trufflehog 3.100.1** (verification turned off, so nothing found was
+sent to an outside service). As a check that the tools work, both detected a generated test key in a throwaway
+repository.
+
+- **No real secret was found.**
+- gitleaks reported nothing.
+- trufflehog reported 3 matches, all false positives: made-up `user:password@cloud.example` addresses in two test
+  files (`RequiredScenarioTests.cs`, `SecurityHelpersTests.cs`) used to test that passwords do not leak into error
+  messages.
+- Neither tool flagged the throwaway demo passwords in `appsettings.Local.json`. They **are** in git, on purpose (see
+  Known limitations, [D-28](DECISIONS.md)).
 
 ## Key decisions
 
@@ -77,7 +104,9 @@ was typing. The view rendered an empty `data-abr-refresh` attribute when nothing
 empty as "use 5 seconds". Fast automated form filling finished before the reload, so tests did not see it. Now only a
 positive value starts the reload, and it waits while a form is in use. Checked in a browser: 30 characters typed
 200 ms apart with a 6-second pause, no reload, member added; during provisioning the page still refreshed and reached
-Active. A regression test checks that an Active page does not enable the reload.
+Active. A regression test checks that an Active page does not enable the reload. Screenshots:
+[half-typed after the pause](screenshots/review/final-member-email-half-typed.png),
+[member added](screenshots/review/final-member-added.png).
 
 ## Known limitations
 
@@ -96,10 +125,12 @@ Active. A regression test checks that an Active page does not enable the reload.
   ([D-28](DECISIONS.md)). They are read only in the `Local` environment and must never be used elsewhere. This is a
   deliberate exception to "no secrets in git".
 - SQLite and single-instance operation; no rate limiting or monitoring was added.
+- `.env.example` sets `ASPNETCORE_ENVIRONMENT=Local` for Docker Compose. That value was checked on the published
+  build with environment variables, **not inside a container**; the CI Docker smoke check runs with the default,
+  `Production`.
 
 ## Not delivered
 
-- Video (screenshots are provided instead).
 - Login from abrit.ir (proposal only, in the README).
 - Separate GitHub Issues per assumption (they are recorded in [DECISIONS.md](DECISIONS.md)).
 
