@@ -116,19 +116,24 @@ public sealed partial class AcceptanceTests(SharedPanelHost shared)
         Assert.True(PanelClient.IsRedirect(root), $"anonymous / returned {(int)root.StatusCode}");
         Assert.Equal("/services", root.Headers.Location!.OriginalString);
 
-        var landing = (await guest.GetAsync("/services")).Html;
-        Assert.DoesNotContain("id=\"abr-drawer\"", landing);
-        Assert.DoesNotContain("data-abr-drawer-open", landing);
-        var topLinks = landing[landing.IndexOf("abr-top__links", StringComparison.Ordinal)..];
-        topLinks = topLinks[..topLinks.IndexOf("</nav>", StringComparison.Ordinal)];
-        Assert.Contains("سرویس‌ها", topLinks);
-        Assert.DoesNotContain("پشتیبانی", topLinks);
-        Assert.Contains("abr-landing__help", landing);
-        Assert.Contains("href=\"/Login\"", landing);
-        Assert.Contains("href=\"/Register\"", landing);
+        // Every anonymous page: no sidebar/drawer markup, no «خانه», top bar = logo + «سرویس‌ها» + ورود/ثبت‌نام,
+        // and the support card is the only support entry point.
+        foreach (var url in new[] { "/services", "/services/drive", "/Login", "/Register", "/ForgotPassword" })
+        {
+            var html = (await guest.GetAsync(url)).Html;
+            Assert.DoesNotContain("id=\"abr-drawer\"", html);
+            Assert.DoesNotContain("data-abr-drawer-open", html);
+            Assert.DoesNotContain("abr-sidenav", html);
+            Assert.DoesNotContain(">خانه<", html);
+            var header = html[html.IndexOf("<header class=\"abr-top", StringComparison.Ordinal)..];
+            header = header[..header.IndexOf("</header>", StringComparison.Ordinal)];
+            Assert.DoesNotContain("پشتیبانی", header);
+            var links = System.Text.RegularExpressions.Regex.Matches(header, "<a [^>]*href=\"([^\"]+)\"")
+                .Select(m => m.Groups[1].Value).ToArray();
+            Assert.Equal(new[] { "/services", "/services", "/Login", "/Register" }, links); // logo, سرویس‌ها, ورود, ثبت‌نام
+            Assert.Single(System.Text.RegularExpressions.Regex.Matches(html, "class=\"abr-helpcard\""));
+        }
 
-        // Other anonymous pages and every signed-in page keep the sidebar.
-        Assert.Contains("id=\"abr-drawer\"", (await guest.GetAsync("/services/drive")).Html);
         using var customer = await Host.LoginAsync(PanelHost.CustomerA, PanelHost.CustomerAPassword);
         var signedInRoot = await customer.GetAsync("/", followRedirects: false);
         Assert.Equal(HttpStatusCode.OK, signedInRoot.Status);
