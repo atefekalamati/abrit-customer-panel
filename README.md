@@ -7,16 +7,37 @@ The full README (screenshots, architecture, limitations) arrives with the delive
 
 ## Run
 
+From a fresh clone, at the repo root, one command (.NET 10 SDK):
+
+```bash
+dotnet run --project src/AbrIT.Panel.Web        # Mock mode, http://localhost:5080
+```
+
+The first run sets itself up with no Setup screen: Orchard AutoSetup creates the site from the `AbrITPanel` recipe
+(services, plans, roles) and the demo accounts below, in a SQLite database under `src/AbrIT.Panel.Web/App_Data`
+(or `$ORCHARD_APP_DATA`). Later runs reuse it. The port is fixed to 5080 by `Properties/launchSettings.json`; if
+5080 is taken the app stops with "address already in use" instead of picking another port.
+
+| Account | Password | Role |
+|---|---|---|
+| `admin` | `Local-Adm1n!pw` | Administrator (approve test payments, retry, Drive connection page) |
+| `customer-a` | `Local-CustA1!` | customer |
+| `customer-b` | `Local-CustB1!` | customer |
+
+These are throwaway local demo credentials from `appsettings.Local.json` (the `Local` environment that the launch
+profile sets; see
+[D-28](docs/DECISIONS.md)). Docker and production never read them: they take credentials from `.env` / environment
+variables. To start over, delete `src/AbrIT.Panel.Web/App_Data` (or point `ORCHARD_APP_DATA` at an empty folder).
+
 ```bash
 dotnet build && dotnet test
-dotnet run --project src/AbrIT.Panel.Web        # Mock mode, http://localhost:5000
-docker compose up --build                        # app :8080, smtp4dev UI :5080 (copy .env.example to .env first)
+docker compose up --build                        # app :8080, smtp4dev UI :5081 (copy .env.example to .env first)
 dotnet test --filter Category=Integration        # AC-01..AC-09 against the real host (temp App_Data, ~20 s)
 ```
 
 ### E-mail (password reset) without Docker
 
-With Docker, Orchard's SMTP provider sends to **smtp4dev** (open http://localhost:5080 to read the reset e-mail).
+With Docker, Orchard's SMTP provider sends to **smtp4dev** (open http://localhost:5081 to read the reset e-mail).
 When no SMTP host is configured (`OrchardCore__OrchardCore_Email_Smtp__Host` empty, e.g. plain `dotnet run`), the app
 uses SMTP **pickup-directory** delivery instead: every e-mail is written as an `.eml` file to `App_Data/mail/`
 (or `$ORCHARD_APP_DATA/mail/`). To verify a password reset by hand: open `/ForgotPassword`, enter the user name, open

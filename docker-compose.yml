@@ -27,7 +27,7 @@ services:
       Nextcloud__Mock__FailNextCalls: ${NEXTCLOUD_MOCK_FAIL_NEXT_CALLS:-0}
       Nextcloud__Mock__DelayMs: ${NEXTCLOUD_MOCK_DELAY_MS:-0}
       MockPayment__WebhookSecret: ${MOCK_PAYMENT_WEBHOOK_SECRET:-}
-      # E-mail (password reset): Orchard's config-based "DefaultSMTP" provider -> smtp4dev (UI on :5080).
+      # E-mail (password reset): Orchard's config-based "DefaultSMTP" provider -> smtp4dev (UI on :5081; :5080 is the `dotnet run` app).
       OrchardCore__OrchardCore_Email_Smtp__DefaultSender: no-reply@abrit-panel.test
       OrchardCore__OrchardCore_Email_Smtp__DeliveryMethod: Network
       OrchardCore__OrchardCore_Email_Smtp__Host: smtp4dev
@@ -49,7 +49,7 @@ services:
   smtp4dev:
     image: rnwood/smtp4dev:latest
     ports:
-      - "5080:80"
+      - "5081:80"
       - "2525:25"
 
   # Optional local Nextcloud for Real-mode verification only (not an AbrIT environment):
