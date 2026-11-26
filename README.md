@@ -1,94 +1,187 @@
 # AbrIT Customer Panel (Orchard Core sample)
 
-Sample customer panel for AbrIT on **Orchard Core 3.0.1** / .NET 10 with an isolated Nextcloud connector
-(**Mock** by default, **Real** = OCS Provisioning API). It never touches abrit.ir, WHMCS or any production system.
-The full README (screenshots, architecture, limitations) arrives with the delivery phase; assumptions are in
-[docs/DECISIONS.md](docs/DECISIONS.md).
+A runnable sample customer panel for AbrIT: a customer registers, orders an **AbrIT Drive** plan, an admin confirms a
+**simulated** payment, and the system provisions a Drive account through an isolated Nextcloud connector. The UI is
+Persian, right-to-left. Built on **Orchard Core 3.0.1** / .NET 10 with SQLite.
 
-## Run
+It is an evaluation sandbox. It never touches abrit.ir, my.abrit.ir, WHMCS or any production system, takes no real
+payment, and in the default **Mock** mode creates no real Drive account.
 
-From a fresh clone, at the repo root, one command (.NET 10 SDK):
+| Document | Content |
+|---|---|
+| [docs/REPORT.md](docs/REPORT.md) | What is done, what is mocked, what is missing, evidence for the acceptance criteria |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Projects, order flow, idempotency, security boundaries |
+| [docs/FUTURE.md](docs/FUTURE.md) | What would come next with more time |
+| [docs/DECISIONS.md](docs/DECISIONS.md) | Assumptions and technical decisions |
+| [docs/evidence/](docs/evidence/) | Screenshots and run log for AC-02 to AC-06 |
+| [docs/DESIGN.md](docs/DESIGN.md), [docs/SCREENS.md](docs/SCREENS.md) | UI contract |
+
+## Prerequisites
+
+- [.NET 10 SDK](https://dotnet.microsoft.com/download) (version pinned in `global.json`)
+- Git
+- Optional: Docker with Compose, for the container setup, smtp4dev and a local Nextcloud
+
+## Run from scratch
 
 ```bash
+git clone https://github.com/atefekalamati/abrit-customer-panel.git
+cd abrit-customer-panel
 dotnet run --project src/AbrIT.Panel.Web        # Mock mode, http://localhost:5080
 ```
 
-The first run sets itself up with no Setup screen: Orchard AutoSetup creates the site from the `AbrITPanel` recipe
-(services, plans, roles) and the demo accounts below, in a SQLite database under `src/AbrIT.Panel.Web/App_Data`
-(or `$ORCHARD_APP_DATA`). Later runs reuse it. The port is fixed to 5080 by `Properties/launchSettings.json`; if
-5080 is taken the app stops with "address already in use" instead of picking another port.
+There is no setup screen. On the first run Orchard AutoSetup creates the site from the `AbrITPanel` recipe (services,
+plans, roles) and the demo accounts, in a SQLite database under `src/AbrIT.Panel.Web/App_Data` (or
+`$ORCHARD_APP_DATA`). Later runs reuse it. The port is fixed to 5080; if it is taken, the app stops with
+"address already in use".
+
+### Demo accounts
 
 | Account | Password | Role |
 |---|---|---|
-| `admin` | `Local-Adm1n!pw` | Administrator (approve test payments, retry, Drive connection page) |
+| `admin` | `Local-Adm1n!pw` | Administrator: confirm test payments, retry, Drive connection page (`/Admin`) |
 | `customer-a` | `Local-CustA1!` | customer |
 | `customer-b` | `Local-CustB1!` | customer |
 
-These are throwaway local demo credentials from `appsettings.Local.json` (the `Local` environment that the launch
-profile sets; see
-[D-28](docs/DECISIONS.md)). Docker and production never read them: they take credentials from `.env` / environment
-variables. To start over, delete `src/AbrIT.Panel.Web/App_Data` (or point `ORCHARD_APP_DATA` at an empty folder).
+These are throwaway credentials from `appsettings.Local.json`, read only by the local launch profile
+([D-28](docs/DECISIONS.md)). Docker and production take credentials from `.env` / environment variables. To start
+over, delete `src/AbrIT.Panel.Web/App_Data`.
+
+### Try the main scenario
+
+1. Sign in as `customer-a`, open «سرویس‌ها» → AbrIT Drive → choose a plan → confirm the order.
+2. Sign in as `admin` (another browser or a private window), open `/Admin/AbrIT/Orders`, confirm the test payment.
+3. Back as `customer-a`, the order shows «فعال (آزمایشی – Mock)» with the safe access information.
+4. To see failure and retry: on «تنظیمات اتصال Drive» make the next connector call fail, approve another order, then
+   use «تلاش مجدد».
+
+### Docker
 
 ```bash
-dotnet build && dotnet test
-docker compose up --build                        # app :8080, smtp4dev UI :5081 (copy .env.example to .env first)
-dotnet test --filter Category=Integration        # AC-01..AC-09 against the real host (temp App_Data, ~20 s)
+cp .env.example .env       # then fill in ORCHARD_ADMIN_PASSWORD and, optionally, the demo customer passwords
+docker compose up --build  # app http://localhost:8080, smtp4dev UI http://localhost:5081
 ```
 
-### E-mail (password reset) without Docker
+Passwords need at least 8 characters with an upper-case letter, a lower-case letter, a digit and a symbol.
 
-With Docker, Orchard's SMTP provider sends to **smtp4dev** (open http://localhost:5081 to read the reset e-mail).
-When no SMTP host is configured (`OrchardCore__OrchardCore_Email_Smtp__Host` empty, e.g. plain `dotnet run`), the app
-uses SMTP **pickup-directory** delivery instead: every e-mail is written as an `.eml` file to `App_Data/mail/`
-(or `$ORCHARD_APP_DATA/mail/`). To verify a password reset by hand: open `/ForgotPassword`, enter the user name, open
-the newest `.eml` in `App_Data/mail/`, and follow the `/ResetPassword?...` link (valid 15 minutes).
+### Password-reset e-mail
 
-### Mock connector options (dev / demo)
+With Docker, e-mail goes to **smtp4dev** (http://localhost:5081). With plain `dotnet run`, every e-mail is written as
+an `.eml` file to `App_Data/mail/`. To check a reset: open `/ForgotPassword`, enter the user name, open the newest
+`.eml`, and follow the `/ResetPassword?...` link (valid for 15 minutes).
 
-| Variable | Default | Effect |
+## Tests
+
+```bash
+dotnet test                                      # 173 tests: Domain 115, Nextcloud 39, Web 19
+dotnet test --filter Category=Integration        # acceptance flows against the real host on a temporary App_Data
+dotnet format --verify-no-changes
+```
+
+CI (`.github/workflows/ci.yml`) runs format, build, tests and a Docker smoke check. `cd.yml` publishes a container
+image to GitHub Container Registry after CI succeeds on `main` and on `v*` tags. Nothing is deployed anywhere.
+
+## Mock and Real mode
+
+| | Mock (default) | Real |
 |---|---|---|
-| `Nextcloud__Mock__FailNextCalls` | `0` | The next N connector calls fail (AC-06 demo); also adjustable on the admin «تنظیمات اتصال Drive» page |
-| `Nextcloud__Mock__DelayMs` | `0` | **Dev-only.** The Mock waits this many ms (max 60000) before creating the account, so the «در حال فعال‌سازی» state can be seen / captured. Never set in tests or CI |
+| What it does | In-memory fake accounts; no network, no keys | Calls the Nextcloud **OCS Provisioning API** |
+| What the UI says | «فعال (آزمایشی – Mock)», «حالت اتصال: Mock», login button disabled | «فعال», «حالت اتصال: Real», Drive login link |
+| How it was tested | Unit tests, integration tests, browser runs | **Only unit tests against a fake HTTP handler** |
 
-## Real Nextcloud mode (optional)
+> **Real mode has not been run against a live Nextcloud server**, neither one provided by AbrIT nor a local one
+> ([D-31](docs/DECISIONS.md)). Treat it as implemented to the API contract and unproven end to end.
 
-Mock stays the default everywhere (demo, CI, video). Real mode is only ever pointed at a Nextcloud **provided by
-AbrIT** or at the **local container below**. Our own verification used the local container — that is
-*not an AbrIT environment* (DECISIONS A-18).
+Mock fake accounts live in memory, so they are gone after a restart. Orders and their statuses are persisted.
 
-1. Start a local Nextcloud (needs Docker Hub access): set `LOCAL_NEXTCLOUD_ADMIN_PASSWORD` in `.env`, then
-   `docker compose --profile nextcloud up -d nextcloud` and wait for http://localhost:8081 to show the login page
-   (first start installs with SQLite and takes about a minute).
-2. Create an **app password**: log in as `LOCAL_NEXTCLOUD_ADMIN_USER` → avatar → *Personal settings* → *Security* →
-   *Devices & sessions* → name it `abrit-panel` → *Create new app password*. Copy it once; never commit it.
-3. Configure the panel (env vars or `dotnet user-secrets`, never `appsettings*.json`):
+| Mock option | Default | Effect |
+|---|---|---|
+| `Nextcloud__Mock__FailNextCalls` | `0` | The next N connector calls fail (AC-06); also adjustable on the admin «تنظیمات اتصال Drive» page |
+| `Nextcloud__Mock__DelayMs` | `0` | Development only: wait before creating the account, to show «در حال فعال‌سازی» |
+
+### Configuring Real mode (optional, unverified)
+
+Point Real mode only at a Nextcloud **provided by AbrIT** or at a local one you run yourself.
+
+1. For a local server: set `LOCAL_NEXTCLOUD_ADMIN_PASSWORD` in `.env`, run
+   `docker compose --profile nextcloud up -d nextcloud`, and wait for http://localhost:8081.
+2. In Nextcloud create an **app password** (*Personal settings → Security → Devices & sessions*).
+3. Set these as environment variables or `dotnet user-secrets`, never in `appsettings*.json`:
 
    | Key | Value |
    |---|---|
    | `Nextcloud__Mode` | `Real` |
-   | `Nextcloud__BaseUrl` | `http://localhost:8081` (`dotnet run`) or `http://nextcloud` (app inside compose) |
-   | `Nextcloud__AdminUser` | the admin user name |
-   | `Nextcloud__AppPassword` | the app password from step 2 |
+   | `Nextcloud__BaseUrl` | `http://localhost:8081` (`dotnet run`) or `http://nextcloud` (inside Compose) |
+   | `Nextcloud__AdminUser` | the Nextcloud admin user |
+   | `Nextcloud__AppPassword` | the app password |
    | `Nextcloud__TimeoutSeconds` | optional, default `15` |
 
-   With `docker compose` set the `NEXTCLOUD_*` variables in `.env` instead. If Mode is `Real` and any key is missing,
-   the app refuses to start and lists the missing keys (never their values).
-4. Order a plan and approve the payment in the admin. The account `abrit-ord{year}-{seq}` is created with the
-   customer's e-mail; Nextcloud sends the set-password e-mail (visible in smtp4dev). The panel never sees, stores or
-   shows a Nextcloud password. Team orders also create the group `abrit-team-{year}-{seq}`; members added from the
-   order page get their own accounts in that group.
+   With Docker Compose, set the `NEXTCLOUD_*` variables in `.env`. If Mode is `Real` and a key is missing, the app
+   refuses to start and names the missing keys, never their values.
 
-Connector errors are stored as safe codes only (`NC_AUTH`, `NC_TIMEOUT`, `NC_HTTP_{status}`, `NC_OCS_{code}`,
-`NC_NETWORK`, `NC_BAD_RESPONSE`) and the admin can use the controlled Retry.
+The panel never sees, stores or shows a customer's Nextcloud password. Connector errors are stored as safe codes only
+(`NC_AUTH`, `NC_TIMEOUT`, `NC_HTTP_{status}`, `NC_OCS_{code}`, `NC_NETWORK`, `NC_BAD_RESPONSE`).
+
+### Simulated payment callback
+
+`POST /api/payments/mock-callback` with body `{"orderId":"..."}` and header `X-Signature` (hex HMAC-SHA256 of the raw
+body with `MockPayment__WebhookSecret`). It is disabled when the secret is empty and goes through the same idempotent
+approval as the admin button.
+
+## Project structure
+
+```
+src/
+  AbrIT.Panel.Web/         Orchard Core host: Program.cs, configuration, /health/live
+  AbrIT.Panel.Module/      Orchard module: controllers, views, permissions, YesSql persistence, recipe
+  AbrIT.Panel.Domain/      Pure C#: order state machine, services, abstractions (no Orchard references)
+  AbrIT.Panel.Nextcloud/   Mock and OCS connectors
+  AbrIT.Theme/             RTL theme: layout, CSS, Vazirmatn font
+design-system/             Design tokens (linked into the theme)
+tests/                     Domain, Nextcloud and Web (integration) tests
+docs/                      Documentation, screenshots, evidence
+```
 
 ## Managing services and plans
 
-The catalog (services and their plans) lives in Orchard Core content types `AbrService` and `AbrPlan`
-([D-02](docs/DECISIONS.md)), so it is edited in Orchard's own admin: **Admin → Content → Content Items**, filtered by
-type. There is no custom catalog screen. The design image `16-admin-manage-content.png` (in the design references)
-only illustrates what this built-in screen covers: listing, editing, publishing and ordering services and plans.
+Services and plans are Orchard content types (`AbrService`, `AbrPlan`, [D-02](docs/DECISIONS.md)), edited in
+**Admin → Content → Content Items**. There is no custom catalog screen.
 
-## Known limitations (so far)
+### How to add a new service
 
-- Plan snapshots on an order do not store the billing period; the order page shows «ماهانه», which is true for every
-  seeded plan. A non-monthly plan would need the period added to the snapshot.
+**Information-only or "coming soon" service (no code):** create an `AbrService` item with a `ServiceKey`, set
+`Availability` to `InfoOnly` or `ComingSoon`, add `MoreInfoUrl` for a link, set `SortOrder`, and publish. It appears
+on `/services`. An unknown key uses the generic support illustration. To seed it on new sites, add it to
+`src/AbrIT.Panel.Module/Recipes/abrit-panel.recipe.json`.
+
+**Orderable service (needs code).** Today only Drive can be ordered. Setting `Availability=Orderable` on another
+service is not enough, because these parts are specific to Drive:
+
+1. `Views/Services/Index.cshtml` shows the order button only when `ServiceKey == "drive"`.
+2. `/services/drive` and `ServicesController.Drive` are the only plan page.
+3. `Labels.ServiceName` derives the service name from a `drive-` plan key.
+4. Provisioning calls one connector, `INextcloudProvisioner`, with quota and group concepts.
+
+The steps would be: generalise the plan page to `/services/{serviceKey}`; define a provisioner interface for the new
+service (or a common one); register implementations by `ServiceKey` and let `ProvisioningService` choose one; add the
+`AbrService` and `AbrPlan` content; cover it with domain tests. The order state machine, payment approval, ownership
+checks and retry rules do not depend on the service.
+
+## Login link from abrit.ir: technical proposal
+
+**Not implemented. The main site was not touched.**
+
+- **Step 1, a plain link.** abrit.ir gets a «ورود به پنل» link to `https://panel.abrit.ir/Login`. No data is passed
+  and no trust is needed between the sites.
+- **Step 2, single sign-on.** If abrit.ir (or an AbrIT identity service) can act as an OpenID Connect provider, the
+  panel signs users in with Orchard's OpenID Connect client: authorization code flow with PKCE, exact redirect URIs,
+  client secret held in server configuration.
+- **Account linking.** Match on the provider's stable subject id. Never link on an unverified e-mail address, because
+  that allows account takeover.
+- **Never** pass credentials or long-lived tokens in a URL, and do not share cookies or a user database between sites.
+- Roll out behind a switch, keep local sign-in for administrators, and test sign-out and disabled accounts first.
+
+## Assumptions
+
+All assumptions made where the task was ambiguous are recorded in [docs/DECISIONS.md](docs/DECISIONS.md).
+Known limitations are listed in [docs/REPORT.md](docs/REPORT.md#known-limitations).

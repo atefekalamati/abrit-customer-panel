@@ -219,6 +219,8 @@ public sealed partial class AcceptanceTests(SharedPanelHost shared)
         var page = await customerA.GetAsync($"/dashboard/orders/{orderId}");
         Assert.Contains(Labels.ActiveMockHtml, page.Text);
         Assert.Contains(request.ExternalUserId, page.Text);
+        // Regression: an Active order page must not auto-reload (it used to every 5s, wiping half-typed member e-mails).
+        Assert.Contains("data-abr-refresh=\"0\"", page.Html);
     }
 
     [Fact]

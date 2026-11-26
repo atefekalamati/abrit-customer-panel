@@ -98,11 +98,21 @@
   });
 
   // ---- Auto refresh while provisioning (stops when the tab is hidden) ----
+  // Only a positive number turns it on: the view can render the attribute empty (data-abr-refresh="") when the
+  // order is not provisioning, and that used to fall back to 5s and reload every order page, wiping half-typed input.
   var refresh = document.querySelector('[data-abr-refresh]');
-  if (refresh) {
-    var seconds = Math.max(3, Number(refresh.getAttribute('data-abr-refresh')) || 5);
+  var seconds = refresh ? Number(refresh.getAttribute('data-abr-refresh')) : 0;
+  if (seconds > 0) {
+    seconds = Math.max(3, seconds);
+    // Never reload under the user: skip the tick while a form field is focused or holds typed text.
+    var editing = function () {
+      var el = document.activeElement;
+      if (el && el.matches && el.matches('input, textarea, select')) { return true; }
+      return Array.prototype.some.call(document.querySelectorAll('form input:not([type=hidden]), form textarea'),
+        function (f) { return f.value !== f.defaultValue; });
+    };
     window.setTimeout(function tick() {
-      if (document.hidden) { window.setTimeout(tick, seconds * 1000); return; }
+      if (document.hidden || editing()) { window.setTimeout(tick, seconds * 1000); return; }
       window.location.reload();
     }, seconds * 1000);
   }
