@@ -161,7 +161,8 @@ bdi.ltr,.ltr{direction:ltr;unicode-bidi:isolate}
 
 /* ---- a11y layer (design-system §7) ---- */
 .abr-app{scroll-padding-top:calc(var(--abr-nav-h) + 16px)}
-.abr-app :focus-visible{outline:none;box-shadow:var(--abr-focus-ring);border-radius:var(--abr-radius-xs)}
+.abr-app :focus-visible{outline:none;box-shadow:var(--abr-focus-ring)}
+:where(.abr-app :focus-visible){border-radius:var(--abr-radius-xs)} /* only for elements without their own radius */
 .abr-app .abr-btn:focus-visible{border-radius:var(--abr-radius-pill)}
 .abr-skip{position:absolute;inset-inline-start:16px;top:-60px;z-index:var(--abr-z-toast);background:var(--abr-surface);color:var(--abr-primary);padding:10px 16px;border-radius:var(--abr-radius-sm);font-weight:700}
 .abr-skip:focus{top:8px}
@@ -169,6 +170,7 @@ bdi.ltr,.ltr{direction:ltr;unicode-bidi:isolate}
 .sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .abr-btn{min-height:var(--abr-tap-min);padding:8px 20px}
 .abr-btn--link{padding:8px 4px}
+.abr-btn{transition:background-color var(--abr-dur-fast) var(--abr-ease),border-color var(--abr-dur-fast) var(--abr-ease),color var(--abr-dur-fast) var(--abr-ease),box-shadow var(--abr-dur-fast) var(--abr-ease),transform var(--abr-dur-fast) var(--abr-ease)}
 .abr-btn:active{transform:scale(.98)}
 .abr-btn[disabled],.abr-btn[aria-disabled=true]{opacity:.5;cursor:not-allowed}
 .abr-nav__links a,.abr-nav__linkbtn{min-height:var(--abr-tap-min);display:inline-flex;align-items:center}
@@ -191,7 +193,7 @@ bdi.ltr,.ltr{direction:ltr;unicode-bidi:isolate}
 .abr-empty[hidden],.abr-table[hidden],.abr-table tr[hidden]{display:none!important}
 .abr-empty{text-align:center;padding:32px 16px;color:var(--abr-text-2);display:flex;flex-direction:column;gap:12px;align-items:center}
 dialog.abr-dialog{border:0;border-radius:var(--abr-radius-lg);box-shadow:var(--abr-shadow-3);padding:24px;max-width:420px;font-family:var(--abr-font);direction:rtl;color:var(--abr-text)}
-dialog.abr-dialog::backdrop{background:rgba(0,7,22,.45)}
+dialog.abr-dialog::backdrop{background:var(--abr-overlay)}
 dialog.abr-dialog h2{font-size:var(--abr-fs-h3);margin:0 0 8px}
 dialog.abr-dialog p{margin:0 0 20px;color:var(--abr-text-2)}
 @media (prefers-reduced-motion: reduce){.abr-stat,.abr-btn{transition:none}.abr-stat:hover{transform:none}.abr-btn:active{transform:none}}
@@ -326,7 +328,7 @@ body.abr-noscroll{overflow:hidden}
 .abr-pagehead__art svg{width:100%;height:auto;display:block}
 
 /* ---- Buttons / badges / alerts additions ---- */
-.abr-app .abr-btn--primary{background:var(--abr-cta-gradient);box-shadow:var(--abr-cta-glow);transition:filter var(--abr-dur-fast) var(--abr-ease),box-shadow var(--abr-dur-fast) var(--abr-ease)}
+.abr-app .abr-btn--primary{background:var(--abr-cta-gradient);box-shadow:var(--abr-cta-glow);transition:filter var(--abr-dur-fast) var(--abr-ease),box-shadow var(--abr-dur-fast) var(--abr-ease),transform var(--abr-dur-fast) var(--abr-ease)}
 .abr-app .abr-btn--primary:hover{background:var(--abr-cta-gradient);filter:brightness(.92);box-shadow:0 10px 26px rgba(30,110,245,.42)}
 .abr-app .abr-btn--lg{min-height:52px;font-size:16px}
 .abr-badge .abr-ico{margin-inline-end:-2px}
@@ -437,7 +439,7 @@ body.abr-noscroll{overflow:hidden}
   .abr-side.is-open{transform:none;visibility:visible;box-shadow:var(--abr-shadow-3)}
   .abr-side.abr-side--anim.is-open{transition:transform var(--abr-dur-slow) var(--abr-ease),visibility 0s}
   .abr-side__close{display:grid}
-  .abr-backdrop{display:block;position:fixed;inset:0;background:rgba(0,7,22,.45);z-index:calc(var(--abr-z-dialog) - 1)}
+  .abr-backdrop{display:block;position:fixed;inset:0;background:var(--abr-overlay);z-index:calc(var(--abr-z-dialog) - 1)}
   .abr-backdrop[hidden]{display:none}
   .abr-top>.abr-brand{display:inline-flex;font-size:22px}
   .abr-app .abr-main{padding:24px 32px 32px}
@@ -794,7 +796,7 @@ body.abr-noscroll{overflow:hidden}
 
 /* confirm dialog (abr-ui.js) */
 .abr-dialog{border:0;padding:0;border-radius:var(--abr-radius-lg);box-shadow:var(--abr-shadow-3);width:min(440px,calc(100vw - 32px));font-family:var(--abr-font);color:var(--abr-text);background:var(--abr-surface)}
-.abr-dialog::backdrop{background:rgba(15,27,42,.45)}
+.abr-dialog::backdrop{background:var(--abr-overlay)}
 .abr-dialog__box{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;padding:32px 28px 24px;margin:0;background:linear-gradient(180deg,var(--abr-primary-soft),var(--abr-surface) 120px);border-radius:inherit}
 .abr-dialog[data-tone=danger] .abr-dialog__box{background:linear-gradient(180deg,var(--abr-error-bg),var(--abr-surface) 120px)}
 .abr-dialog__x{position:absolute;inset-inline-end:12px;top:12px;width:40px;height:40px;border:0;background:none;border-radius:50%;cursor:pointer;color:var(--abr-text-2);display:grid;place-items:center}
@@ -869,3 +871,8 @@ body.abr-noscroll{overflow:hidden}
   .abr-landing__help .abr-helpcard{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"icon title" "text text" "btn btn"}
   .abr-app .abr-landing__help .abr-btn--inverse{width:100%;margin-top:10px}
 }
+
+/* design-review pass: browser surfaces + reduced motion for every button variant */
+.abr-app{caret-color:var(--abr-primary)}
+.abr-app ::selection{background:var(--abr-selection-bg);color:var(--abr-text)}
+@media (prefers-reduced-motion: reduce){.abr-app .abr-btn,.abr-app .abr-btn--primary{transition:none}}
