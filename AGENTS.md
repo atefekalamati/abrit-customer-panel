@@ -259,7 +259,7 @@ dotnet restore && dotnet build
 dotnet test
 dotnet format --verify-no-changes
 dotnet run --project src/AbrIT.Panel.Web          # http://localhost:5000
-docker compose up --build                         # app :8080, smtp4dev UI :5080
+docker compose up --build                         # app :8080, smtp4dev UI :5081
 docker compose --profile nextcloud up             # + local Nextcloud :8081 for Real-mode testing
 ```
 
