@@ -1,31 +1,40 @@
-/* AbrIT theme: minimal vanilla JS for the mobile drawer, password show/hide and live password rules. No framework. */
+/* AbrIT theme: minimal vanilla JS for the sidebar toggle/drawer, password show/hide and live password rules. No framework. */
 (function () {
   'use strict';
 
-  // ---- Mobile drawer (<=640px): aria-expanded, Esc, focus trap, focus return ----
+  // ---- Sidebar toggle (top-bar button) ----
+  // Desktop (>1024px): collapses/expands the sidebar column; the choice is persisted in localStorage.
+  // Below that: off-canvas drawer (closed on every load) with aria-expanded, Esc, focus trap and focus return.
+  // A hidden sidebar is always inert (no focus, no clicks, not announced).
   var side = document.getElementById('abr-drawer');
   var burger = document.querySelector('[data-abr-drawer-open]');
   var backdrop = document.querySelector('.abr-backdrop');
   if (side && burger && backdrop) {
+    var root = document.documentElement;
+    var KEY = 'abr-side';
     var lastFocus = null;
+    var compact = window.matchMedia('(max-width: 1024px)');
     var isOpen = function () { return side.classList.contains('is-open'); };
+    var isCollapsed = function () { return root.classList.contains('abr-side-collapsed'); };
     var focusables = function () { return side.querySelectorAll('a[href], button:not([disabled])'); };
-    var phone = window.matchMedia('(max-width: 640px)');
-    // Closed drawer on phones: off-canvas, hidden and inert (no focus, no clicks, not announced).
-    var syncInert = function () { side.inert = phone.matches && !isOpen(); };
+    var save = function (value) { try { window.localStorage.setItem(KEY, value); } catch (e) { /* storage blocked: keep in-page state only */ } };
+    var sync = function () {
+      var shown = compact.matches ? isOpen() : !isCollapsed();
+      side.inert = !shown;
+      burger.setAttribute('aria-expanded', String(shown));
+      burger.setAttribute('aria-label', shown ? 'بستن منو' : 'باز کردن منو');
+    };
     var animate = function () {
       side.classList.add('abr-side--anim');
       window.setTimeout(function () { side.classList.remove('abr-side--anim'); }, 600);
     };
-    syncInert();
     var open = function () {
       lastFocus = document.activeElement;
       animate();
       side.classList.add('is-open');
-      syncInert();
       backdrop.hidden = false;
-      burger.setAttribute('aria-expanded', 'true');
       document.body.classList.add('abr-noscroll');
+      sync();
       var first = focusables()[0];
       if (first) { window.setTimeout(function () { first.focus(); }, 30); }
     };
@@ -33,13 +42,21 @@
       if (!isOpen()) { return; }
       animate();
       side.classList.remove('is-open');
-      syncInert();
       backdrop.hidden = true;
-      burger.setAttribute('aria-expanded', 'false');
       document.body.classList.remove('abr-noscroll');
+      sync();
       (lastFocus || burger).focus();
     };
-    burger.addEventListener('click', function () { if (isOpen()) { close(); } else { open(); } });
+    var toggleDesktop = function () {
+      var collapse = !isCollapsed();
+      root.classList.toggle('abr-side-collapsed', collapse);
+      save(collapse ? 'closed' : 'open');
+      sync();
+    };
+    sync();
+    burger.addEventListener('click', function () {
+      if (!compact.matches) { toggleDesktop(); } else if (isOpen()) { close(); } else { open(); }
+    });
     document.querySelectorAll('[data-abr-drawer-close]').forEach(function (el) { el.addEventListener('click', close); });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { close(); } });
     side.addEventListener('keydown', function (e) {
@@ -50,8 +67,8 @@
       if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
       else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     });
-    var desktop = window.matchMedia('(min-width: 641px)');
-    if (desktop.addEventListener) { desktop.addEventListener('change', function (m) { if (m.matches) { close(); } syncInert(); }); }
+    var onBreakpoint = function () { if (!compact.matches) { close(); } sync(); };
+    if (compact.addEventListener) { compact.addEventListener('change', onBreakpoint); }
   }
 
   // ---- Password show/hide ----

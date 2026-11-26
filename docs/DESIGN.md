@@ -16,7 +16,7 @@ Agents: read the prototype by section (`grep -n 'id="d4"'`), never the whole fil
 | Group | Values |
 |---|---|
 | Brand | `--abr-primary #0761BD` (darkened from #0972D3 for AA contrast) · `--abr-primary-hover #033160` · `--abr-primary-soft #F2F8FD` |
-| Nav | `--abr-nav-bg #0F1B2A` · `--abr-nav-text #FFF` · `--abr-nav-muted #B6BEC9` |
+| Nav | `--abr-nav-bg #FFF` · `--abr-nav-text #000716` · `--abr-nav-muted #5F6B7A` · active `--abr-nav-active-text #0761BD` on `--abr-nav-active-bg #F2F8FD` (5.68:1) |
 | Surfaces | `--abr-bg #F4F4F4` · `--abr-surface #FFF` · `--abr-subtle #F9F9FA` · `--abr-border #E9EBED` · `--abr-border-strong #8C8C94` |
 | Text | `--abr-text #000716` · `--abr-text-2 #5F6B7A` · `--abr-link #0972D3` |
 | Status fg / bg | success `#037F0C/#EFFFF1` · error `#D91515/#FFF7F7` · warning `#8D6605/#FFFCE6` · info `#0972D3/#F2F8FD` · neutral `#5F6B7A/#F4F4F4` · mock `#7D2105/#FEF6F0` |
@@ -44,7 +44,7 @@ Bootstrap 5 RTL mapping: `--bs-primary: var(--abr-primary)`, `--bs-body-bg: var(
 
 | Component (Figma / CSS) | Partial | Notes |
 |---|---|---|
-| TopNav `.abr-nav` | theme `Layout.cshtml` | dark bar; brand on the right; burger below 640px |
+| TopNav `.abr-top` | theme `Layout.cshtml` | light sticky bar; sidebar toggle at its start (desktop: collapse, persisted; ≤1024px: off-canvas drawer) |
 | Footer `.abr-footer` | `Layout.cshtml` | "محیط ارزیابی" note always visible |
 | Button `.abr-btn--primary/normal/link/danger` | tag helper or plain class | one Primary per page |
 | StatusBadge `.abr-badge[data-status]` | `_StatusBadge.cshtml(OrderStatus, ProvisionerMode)` | Active + Mock → `ActiveMock` «فعال (آزمایشی – <bdi>Mock</bdi>)»; `Active` only when Mode=Real succeeded |
