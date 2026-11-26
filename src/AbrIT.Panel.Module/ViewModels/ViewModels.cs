@@ -8,9 +8,14 @@ namespace AbrIT.Panel.Module.ViewModels;
 public sealed record DriveViewModel(ServiceCard Service, IReadOnlyList<PlanCard> Plans);
 
 /// <param name="DriveUrl">Real mode only: the Nextcloud address (Mock has no real address).</param>
-public sealed record CustomerOrderViewModel(Order Order, ProvisioningRequest? Request, WorkspaceView? Workspace, string? DriveUrl = null)
+/// <param name="SiteMode">Configured connector mode; shown as «حالت اتصال» before a provisioning request exists.</param>
+public sealed record CustomerOrderViewModel(
+    Order Order, ProvisioningRequest? Request, WorkspaceView? Workspace, string? DriveUrl = null, ProvisionerMode SiteMode = ProvisionerMode.Mock)
 {
     public ProvisionerMode? Mode => Request?.Mode;
+
+    /// <summary>The request's own mode once it exists (it never changes afterwards), else the configured one.</summary>
+    public ProvisionerMode ConnectionMode => Request?.Mode ?? SiteMode;
 
     public bool IsMock => Request?.Mode == ProvisionerMode.Mock;
 

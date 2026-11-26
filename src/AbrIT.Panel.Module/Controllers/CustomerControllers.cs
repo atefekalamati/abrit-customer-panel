@@ -112,7 +112,8 @@ public sealed class DashboardController(
             order,
             request,
             await workspaces.GetForOwnerAsync(User.UserId(), order.OrderId),
-            request?.Mode == ProvisionerMode.Real ? nextcloud.BaseUrl : null));
+            request?.Mode == ProvisionerMode.Real ? nextcloud.BaseUrl : null,
+            nextcloud.Mode));
     }
 
     /// <summary>Team workspace (bonus §12): owner-only, Active Team orders only; anything else is 404.</summary>
