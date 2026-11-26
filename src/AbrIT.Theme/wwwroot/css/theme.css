@@ -879,13 +879,20 @@ body.abr-noscroll{overflow:hidden}
 @media (prefers-reduced-motion: reduce){.abr-app .abr-btn,.abr-app .abr-btn--primary{transition:none}}
 
 /* =========================================================================
-   Signed-in sidebar: navy column (D-29). The --abr-nav-* tokens are re-pointed inside .abr-side only, so the
+   Signed-in sidebar: navy column (D-32). The --abr-nav-* tokens are re-pointed inside .abr-side only, so the
    light top bar, focus outlines, selection and backdrops are unaffected. Anonymous pages have no sidebar.
    ========================================================================= */
 .abr-side{--abr-nav-bg:var(--abr-side-bg);--abr-nav-text:var(--abr-side-text);--abr-nav-muted:var(--abr-side-muted);--abr-text:var(--abr-side-text)}
-.abr-side .abr-brand svg{color:color-mix(in srgb,var(--abr-primary) 55%,white)}
+.abr-side .abr-brand svg{color:var(--abr-side-active-from)}
+.abr-app .abr-side .abr-sidenav a{color:var(--abr-side-text)}
+.abr-app .abr-side .abr-sidenav a[aria-current=page]{color:var(--abr-on-primary)}
 .abr-app .abr-sidenav a:hover{background:rgba(255,255,255,.07)}
-.abr-app .abr-sidenav a[aria-current=page]{background:var(--abr-cta-gradient);color:var(--abr-on-primary);box-shadow:var(--abr-cta-glow)}
+.abr-app .abr-sidenav a[aria-current=page]{background:linear-gradient(90deg,var(--abr-side-active-from),var(--abr-side-active-to));color:var(--abr-on-primary);box-shadow:var(--abr-cta-glow)}
+/* decorative wave at the foot of the column: a masked gradient behind the help card */
+.abr-side::after{content:"";position:absolute;inset-inline:0;bottom:0;height:300px;z-index:-1;pointer-events:none;
+  background:linear-gradient(180deg,var(--abr-side-wave-top) 0,var(--abr-side-wave-bottom) 60%,var(--abr-side-bg) 82%);
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 249 300' preserveAspectRatio='none'%3E%3Cpath d='M0 172C34 138 62 96 108 68 154 38 196 2 249 0V300H0Z'/%3E%3C/svg%3E") 0 0/100% 100% no-repeat;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 249 300' preserveAspectRatio='none'%3E%3Cpath d='M0 172C34 138 62 96 108 68 154 38 196 2 249 0V300H0Z'/%3E%3C/svg%3E") 0 0/100% 100% no-repeat}
 .abr-side .abr-helpcard{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.14)}
 .abr-side .abr-helpcard>.abr-ico{color:color-mix(in srgb,var(--abr-primary) 50%,white)}
 .abr-app .abr-side :focus-visible{box-shadow:0 0 0 2px var(--abr-side-bg),0 0 0 4px var(--abr-side-text)}

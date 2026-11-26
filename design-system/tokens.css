@@ -52,10 +52,14 @@
   --abr-nav-muted:      var(--abr-gray-700);     /* 5.43:1 on nav */
   --abr-nav-active-bg:  var(--abr-blue-50);
   --abr-nav-active-text: var(--abr-blue-600);    /* 5.68:1 on active-bg */
-  /* signed-in sidebar only (D-29): the original navy column; the top bar stays light */
-  --abr-side-bg:        #0F1B2A;                 /* navy-900, value from before eee163d */
-  --abr-side-text:      var(--abr-gray-0);       /* 17.4:1 on side-bg */
-  --abr-side-muted:     var(--abr-gray-500);     /* 9.25:1 on side-bg */
+  /* signed-in sidebar only (D-32); colours sampled from refrence/09-dashboard-empty.png */
+  --abr-side-bg:          #071D33;
+  --abr-side-text:        var(--abr-gray-0);       /* 17:1 on side-bg */
+  --abr-side-muted:       var(--abr-gray-500);     /* 9:1 on side-bg */
+  --abr-side-active-from: #0094FA;                 /* active item, left end */
+  --abr-side-active-to:   #0066F9;                 /* active item, right end (under the label) */
+  --abr-side-wave-top:    #033A7C;                 /* bottom wave */
+  --abr-side-wave-bottom: #032040;
 
   --abr-bg:             var(--abr-gray-50);
   --abr-surface:        var(--abr-gray-0);

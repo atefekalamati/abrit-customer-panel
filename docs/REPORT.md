@@ -58,7 +58,7 @@ Captured in a browser on a freshly set-up Mock host. HTTP answers and fake-accou
 | AC-07 customer B cannot see A's order | `AC07_*` tests |
 | AC-08 non-admin cannot approve | `AC08_*` tests |
 | AC-09 data survives a restart | `AC09_RestartHost_SameAppData_OrderAndStatusPersist` |
-| AC-10 mobile and desktop, right-to-left | Manual, [screenshots/](screenshots/). Many were taken before the last visual changes (navy sidebar, fewer test labels); current ones are in [screenshots/review/](screenshots/review/) and [evidence/](evidence/). |
+| AC-10 mobile and desktop, right-to-left | Manual, [screenshots/](screenshots/). Many were taken before the last visual changes (navy sidebar, fewer test labels); later ones are in [screenshots/review/](screenshots/review/) and [evidence/](evidence/). The final sidebar theme ([D-32](DECISIONS.md)) is shown in [desktop](screenshots/review/after-sidebar-theme-desktop.png) and [mobile](screenshots/review/after-sidebar-theme-mobile.png); earlier captures show the previous sidebar colour. White text on the active menu item has a contrast of about 3.2:1 at the light end of its gradient and 4.9:1 at the dark end, so it is partly below 4.5:1. |
 
 ## Key decisions
 
