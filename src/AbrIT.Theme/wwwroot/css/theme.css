@@ -434,8 +434,11 @@ body.abr-noscroll{overflow:hidden}
 /* ---- Phone ---- */
 @media (max-width: 640px){
   .abr-shell{display:block;background:none}
-  .abr-side{position:fixed;inset-block:0;inset-inline-start:0;width:min(300px,86vw);height:100dvh;z-index:var(--abr-z-dialog);transform:translateX(100%);visibility:hidden;transition:transform var(--abr-dur-slow) var(--abr-ease),visibility 0s linear var(--abr-dur-slow);box-shadow:var(--abr-shadow-3)}
-  .abr-side.is-open{transform:none;visibility:visible;transition:transform var(--abr-dur-slow) var(--abr-ease),visibility 0s}
+  .abr-side{position:fixed;inset-block:0;inset-inline-start:0;width:min(300px,86vw);height:100dvh;z-index:var(--abr-z-dialog);transform:translateX(100%);visibility:hidden;transition:none;box-shadow:none}
+  /* animate only while the user opens/closes it (theme.js adds --anim), never on resize or page load */
+  .abr-side.abr-side--anim{transition:transform var(--abr-dur-slow) var(--abr-ease),visibility 0s linear var(--abr-dur-slow)}
+  .abr-side.is-open{transform:none;visibility:visible;box-shadow:var(--abr-shadow-3)}
+  .abr-side.abr-side--anim.is-open{transition:transform var(--abr-dur-slow) var(--abr-ease),visibility 0s}
   .abr-side__close{display:grid}
   .abr-side__head{height:64px}
   .abr-backdrop{display:block;position:fixed;inset:0;background:rgba(0,7,22,.45);z-index:calc(var(--abr-z-dialog) - 1)}
@@ -571,7 +574,10 @@ body.abr-noscroll{overflow:hidden}
 .abr-quick .abr-ico{color:var(--abr-primary)}
 .abr-orders th{white-space:nowrap}
 .abr-orders td{font-size:15px}
-.abr-orders__no a{font-weight:700}
+.abr-orders__no a{font-weight:700;white-space:nowrap}
+.abr-orders__no bdi{white-space:nowrap;direction:ltr}
+.abr-orders__plan{white-space:normal;overflow-wrap:anywhere}
+.abr-crumb bdi{white-space:nowrap}
 .abr-orders td.actions{text-align:end}
 .abr-emptystate{flex-direction:row;align-items:center;gap:40px;padding:36px 48px}
 .abr-emptystate img{width:340px;max-width:40%;height:auto;flex:none}
@@ -635,9 +641,10 @@ body.abr-noscroll{overflow:hidden}
   .abr-svclist__more{grid-area:more}
   .abr-svclist__more span{display:none}
   .abr-app .abr-orders td::before{display:none}
-  .abr-app .abr-orders tr{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"no amount" "plan date" "plan status";gap:4px 16px;padding:14px 16px;border-radius:14px;margin-bottom:12px;background:var(--abr-surface)}
+  .abr-app .abr-orders tr{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"no amount" "plan date" "status status";gap:4px 16px;padding:14px 16px;border-radius:14px;margin-bottom:12px;background:var(--abr-surface)}
   .abr-app .abr-orders td{display:flex;align-items:center;gap:8px;padding:0;width:auto;justify-content:flex-start}
-  .abr-orders__no{grid-area:no;font-size:16px}
+  .abr-orders__no{grid-area:no;font-size:15px}
+  .abr-app .abr-orders td.abr-orders__amount,.abr-app .abr-orders td.abr-orders__date{justify-content:flex-end}
   .abr-orders__plan{grid-area:plan;color:var(--abr-text-2);align-self:start}
   .abr-orders__amount{grid-area:amount;font-weight:700}
   .abr-orders__date{grid-area:date}

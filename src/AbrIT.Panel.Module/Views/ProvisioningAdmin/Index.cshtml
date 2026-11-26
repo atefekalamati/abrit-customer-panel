@@ -40,11 +40,11 @@
                 </div>
             </div>
             <dl class="abr-settings__rows">
-                <div><dt>حالت (<bdi>Mode</bdi>)</dt><dd><span class="abr-abadge" data-mode="@Model.Mode"><bdi>@Model.Mode</bdi></span></dd></div>
-                <div><dt>آدرس سرور (<bdi>Server URL</bdi>)</dt><dd>@if (Model.BaseUrl is { } url) { <bdi class="ltr abr-mono">@url</bdi> } else { <span aria-label="ندارد">—</span> }</dd></div>
+                <div><dt>حالت <span class="abr-nowrap">(<bdi>Mode</bdi>)</span></dt><dd><span class="abr-abadge" data-mode="@Model.Mode"><bdi>@Model.Mode</bdi></span></dd></div>
+                <div><dt>آدرس سرور <span class="abr-nowrap">(<bdi>Server URL</bdi>)</span></dt><dd>@if (Model.BaseUrl is { } url) { <bdi class="ltr abr-mono">@url</bdi> } else { <span aria-label="ندارد">—</span> }</dd></div>
                 <div><dt>نام کاربری مدیر <bdi>Nextcloud</bdi></dt><dd>@if (Model.AdminUser is { } user) { <bdi class="ltr abr-mono">@user</bdi> } else { <span aria-label="ندارد">—</span> }</dd></div>
                 <div>
-                    <dt>وضعیت رمز عبور برنامه (<bdi>App Password</bdi>)</dt>
+                    <dt>وضعیت رمز عبور برنامه <span class="abr-nowrap">(<bdi>App Password</bdi>)</span></dt>
                     <dd><span class="abr-abadge" data-set="@Model.AppPasswordSet">@Icons.Svg(Model.AppPasswordSet ? "check-circle" : "circle", 16) @(Model.AppPasswordSet ? "تنظیم شده" : "تنظیم نشده")</span></dd>
                 </div>
                 <div><dt>حداکثر تلاش مجدد</dt><dd>@Labels.Digits(Model.MaxAttempts)</dd></div>

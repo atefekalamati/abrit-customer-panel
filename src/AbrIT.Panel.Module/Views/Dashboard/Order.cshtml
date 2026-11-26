@@ -269,7 +269,14 @@
                 <section class="abr-container abr-od__guide" aria-labelledby="abr-guide-title">
                     <h2 class="abr-container__title abr-titleicon" id="abr-guide-title"><span class="abr-titleicon__box">@Icons.Svg("book", 24)</span>راهنمای استفاده</h2>
                     <ol class="abr-od__guidelist">
-                        <li>ایمیل «تعیین رمز عبور» را که <bdi>Nextcloud</bdi> برایتان می‌فرستد باز کنید و رمز دلخواه را تعیین کنید.</li>
+                        @if (Model.IsMock)
+                        {
+                            <li>در حالت واقعی، <bdi>Nextcloud</bdi> ایمیل تعیین رمز را برایتان می‌فرستد؛ در حالت آزمایشی (<bdi>Mock</bdi>) ایمیلی ارسال نمی‌شود.</li>
+                        }
+                        else
+                        {
+                            <li>ایمیل «تعیین رمز عبور» را که <bdi>Nextcloud</bdi> برایتان می‌فرستد باز کنید و رمز دلخواه را تعیین کنید.</li>
+                        }
                         <li>با نام کاربری بالا وارد <bdi>AbrIT Drive</bdi> شوید.</li>
                         <li>فایل‌ها را بارگذاری کنید@(Model.IsTeam ? " و اعضای تیم را از بخش «اعضای فضای تیمی» اضافه کنید" : string.Empty).</li>
                     </ol>
